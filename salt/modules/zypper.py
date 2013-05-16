@@ -43,8 +43,7 @@ def list_upgrades(refresh=True):
         if '|' not in line:
             continue
         try:
-            status, repo, name, cur, avail, arch = \
-                [x.strip() for x in line.split('|')]
+            status, repo, name, cur, avail, arch = [x.strip() for x in line.split('|')]  # pylint: disable=W0612
         except (ValueError, IndexError):
             continue
         if status == 'v':

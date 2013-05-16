@@ -940,7 +940,7 @@ def set_replication_enabled(status, host=None, core_name=None):
             return  _replication_request(cmd, host=host, core_name=core_name)
 
 
-def signal(signal=None):
+def signal(signal=None):  # pylint: disable=W0621
     '''
     Signals Apache Solr to start, stop, or restart. Obviously this is only
     going to work if the minion resides on the solr host. Additionally Solr

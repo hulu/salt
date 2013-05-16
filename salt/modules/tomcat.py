@@ -493,7 +493,7 @@ def fullversion():
     return ret
 
 
-def signal(signal=None):
+def signal(signal=None):  # pylint: disable=W0621
     '''
     Signals catalina to start, stop, securestart, forcestop.
 

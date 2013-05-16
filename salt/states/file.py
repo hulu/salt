@@ -827,7 +827,7 @@ def managed(name,
 def directory(name,
               user=None,
               group=None,
-              recurse=None,
+              recurse=None,  # pylint: disable=W0621
               dir_mode=None,
               file_mode=None,
               makedirs=False,
@@ -1179,7 +1179,7 @@ def recurse(name,
             __salt__['file.makedirs_perms'](
                 name, user, group, int(str(dir_mode), 8) if dir_mode else None)
 
-    def add_comment(path, comment):
+    def add_comment(path, comment):  # pylint: disable=W0621
         comments = ret['comment'].setdefault(path, [])
         if isinstance(comment, basestring):
             comments.append(comment)
