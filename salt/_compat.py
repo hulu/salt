@@ -1,7 +1,7 @@
 '''
 Salt compatibility code
 '''
-# pylint: disable=W0611
+# pylint: disable=W0611,W0622
 
 # Import python libs
 import sys
