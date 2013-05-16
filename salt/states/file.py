@@ -264,7 +264,7 @@ def _get_recurse_dest(prefix, fn_, source, env):
 def _check_directory(name,
                      user,
                      group,
-                     recurse,
+                     recurse,  # pylint: disable=W0621
                      mode,
                      clean,
                      require):

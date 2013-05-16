@@ -405,7 +405,7 @@ def init(cwd, opts=None, user=None):
     return _git_run(cmd, runas=user)
 
 
-def submodule(cwd, init=True, opts=None, user=None):
+def submodule(cwd, init=True, opts=None, user=None):  # pylint: disable=W0621
     '''
     Initialize git submodules
 

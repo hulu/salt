@@ -75,7 +75,7 @@ def scan():
     return ret
 
 
-def pair(address, key):
+def pair(address, key):  # pylint: disable=W0621
     '''
     Pair the bluetooth adapter with a device
 
@@ -94,7 +94,7 @@ def pair(address, key):
     return out
 
 
-def unpair(address):
+def unpair(address):  # pylint: disable=W0621
     '''
     Unpair the bluetooth adapter from a device
 
