@@ -172,7 +172,7 @@ def latest_version(name, **kwargs):
 available_version = latest_version
 
 
-def install(name=None, refresh=False, version=None, pkgs=None, **kwargs):
+def install(name=None, refresh=False, version=None, pkgs=None, **kwargs):  # pylint: disable=W0621
     '''
     Install packages using the pkgutil tool.
 

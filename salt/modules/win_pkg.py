@@ -424,7 +424,7 @@ def install(name=None, refresh=False, **kwargs):
         if pkginfo[pkg]['full_name'] in old:
             return '{0} already installed'.format(pkginfo[pkg]['full_name'])
     if kwargs.get('version') is not None:
-        version = kwargs['version']
+        version = kwargs['version']  # pylint: disable=W0621
     else:
         version = _get_latest_pkg_version(pkginfo)
     if pkginfo[version]['installer'].startswith('salt:') or pkginfo[version]['installer'].startswith('http:') or pkginfo[version]['installer'].startswith('https:') or pkginfo[version]['installer'].startswith('ftp:'):
@@ -467,7 +467,7 @@ def upgrade(refresh=True):
     return {}
 
 
-def remove(name=None, pkgs=None, version=None, **kwargs):
+def remove(name=None, pkgs=None, version=None, **kwargs):  # pylint: disable=W0621
     '''
     Remove packages.
 
@@ -529,7 +529,7 @@ def remove(name=None, pkgs=None, version=None, **kwargs):
     return __salt__['pkg_resource.find_changes'](old, new)
 
 
-def purge(name=None, pkgs=None, version=None, **kwargs):
+def purge(name=None, pkgs=None, version=None, **kwargs):  # pylint: disable=W0621
     '''
     Package purges are not supported, this function is identical to
     ``remove()``.
