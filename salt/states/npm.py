@@ -7,7 +7,7 @@ from salt.exceptions import CommandExecutionError, CommandNotFoundError
 
 
 def installed(name,
-              dir=None,
+              dir=None,  # pylint: disable=W0622
               runas=None,
               force_reinstall=False,
               **kwargs):
@@ -72,7 +72,7 @@ def installed(name,
 
 
 def removed(name,
-            dir=None,
+            dir=None,  # pylint: disable=W0622
             runas=None,
             **kwargs):
     '''

@@ -46,7 +46,7 @@ def _config(key):
     return value
 
 
-def _render_template(filter, username):
+def _render_template(filter, username):  # pylint: disable=W0622
     '''
     Render filter template, substituting username where found.
     '''

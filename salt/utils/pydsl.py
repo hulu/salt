@@ -189,7 +189,7 @@ class Sls(object):
                     del self.decls[i]
                     break
 
-    def state(self, id=None):
+    def state(self, id=None):  # pylint: disable=W0622
         if not id:
             id = '.{0}'.format(_uuid())
             # adds a leading dot to make use of stateconf's namespace feature.
@@ -257,7 +257,7 @@ class Sls(object):
 
 class StateDeclaration(object):
 
-    def __init__(self, id):
+    def __init__(self, id):  # pylint: disable=W0622
         self._id = id
         self._mods = []
 
