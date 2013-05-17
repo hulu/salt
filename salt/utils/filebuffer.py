@@ -101,11 +101,11 @@ class BufferedReader(object):
 
 
 def _main():
-    def timeit_string(fpath, max_size, chunk_size):
+    def timeit_string(fpath, max_size, chunk_size):  # pylint: disable=W0612
 
         breader = BufferedReader(fpath, max_size, chunk_size)
         for chunk in breader:
-            chunk
+            chunk  # pylint: disable=W0104
         return
 
     def sizeof_fmt(num):
