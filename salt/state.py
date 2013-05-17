@@ -1632,7 +1632,7 @@ class BaseHighState(object):
                                     self.client.get_state(
                                         sls,
                                         env
-                                        ),
+                                        ).get('dest', False),
                                     self.state.rend,
                                     self.state.opts['renderer'],
                                     env=env
@@ -1770,7 +1770,8 @@ class BaseHighState(object):
         '''
         err = ''
         errors = []
-        fn_ = self.client.get_state(sls, env)
+        state_data = self.client.get_state(sls, env)
+        fn_ = state_data.get('dest', False)
         if not fn_:
             errors.append(('Specified SLS {0} in environment {1} is not'
                            ' available on the salt master').format(sls, env))
@@ -1821,6 +1822,13 @@ class BaseHighState(object):
                         env_key, inc_sls = inc_sls.popitem()
                     else:
                         env_key = env
+
+                    if inc_sls.startswith('.'):
+                        p_comps = sls.split('.')
+                        if state_data.get('source', '').endswith('/init.sls'):
+                            inc_sls = sls + inc_sls
+                        else:
+                            inc_sls = '.'.join(p_comps[:-1]) + inc_sls
 
                     if env_key != xenv_key:
                         # Resolve inc_sls in the specified environment
