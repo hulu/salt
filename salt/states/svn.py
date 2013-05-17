@@ -131,9 +131,9 @@ def latest(name,
 
 
 def dirty(name,
-          target,
-          user=None,
-          ignore_unversioned=False):
+          target,  # pylint: disable=W0613
+          user=None,  # pylint: disable=W0613
+          ignore_unversioned=False):  # pylint: disable=W0613
     '''
     Determine if the working directory has been changed.
     '''
