@@ -13,7 +13,7 @@ import os
 import stat
 import os.path
 import logging
-import tempfile # do no remove. Used in import of salt.modules.file.__clean_tmp
+import tempfile  # pylint: disable=W0611
 
 # Import third party libs
 try:
