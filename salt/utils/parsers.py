@@ -173,7 +173,7 @@ class OptionParser(optparse.OptionParser):
             help='show program\'s dependencies version number and exit'
         )
 
-    def print_versions_report(self, file=sys.stdout):
+    def print_versions_report(self, file=sys.stdout):  # pylint: disable=W0622
         print >> file, '\n'.join(version.versions_report())
         self.exit()
 
