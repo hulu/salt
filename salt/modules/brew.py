@@ -194,8 +194,7 @@ def install(name=None, pkgs=None, taps=None, **kwargs):
 
         salt '*' pkg.install 'package package package'
     '''
-    pkg_params, pkg_type = \
-        __salt__['pkg_resource.parse_targets'](name,
+    pkg_params, pkg_type = __salt__['pkg_resource.parse_targets'](name,  # pylint: disable=W0612
                                                pkgs,
                                                kwargs.get('sources', {}))
     if pkg_params is None or len(pkg_params) == 0:
