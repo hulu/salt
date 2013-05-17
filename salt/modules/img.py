@@ -4,7 +4,7 @@ Virtual machine image management tools
 
 # Import python libs
 import os
-import urlparse
+import urlparse  # pylint: disable=W0611
 import shutil
 import yaml
 
