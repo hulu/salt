@@ -284,7 +284,7 @@ def _generate_module(name):
 
     code = "'''Salt loaded {0} parent module'''".format(name.split('.')[-1])
     module = imp.new_module(name)
-    exec code in module.__dict__
+    exec code in module.__dict__  # pylint: disable=W0122
     sys.modules[name] = module
 
 
