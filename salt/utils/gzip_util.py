@@ -25,7 +25,7 @@ class GzipFile(gzip.GzipFile):
         self.close()
 
 
-def open(filename, mode="rb", compresslevel=9):
+def open(filename, mode="rb", compresslevel=9):  # pylint: disable=W0622
     if hasattr(gzip.GzipFile, '__enter__'):
         return gzip.open(filename, mode, compresslevel)
     else:
