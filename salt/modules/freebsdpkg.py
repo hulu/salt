@@ -476,7 +476,7 @@ def file_dict(*packages):
                 files[pkg].append(line)
             elif ':/' in line:
                 pkg, fn = line.split(':', 1)
-                pkg, ver = pkg.rsplit('-', 1)
+                pkg, ver = pkg.rsplit('-', 1)  # pylint: disable=W0612
                 files[pkg] = [fn]
             else:
                 continue  # unexpected string
