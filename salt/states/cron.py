@@ -299,7 +299,7 @@ def file(name,  # pylint: disable=W0622
     '''
     # Initial set up
     mode = __salt__['config.manage_mode'](600)
-    owner, group, crontab_dir = _get_cron_info()
+    owner, group, crontab_dir = _get_cron_info()  # pylint: disable=W0612
 
     cron_path = mkstemp()
     with fopen(cron_path, 'w+') as fp_:
