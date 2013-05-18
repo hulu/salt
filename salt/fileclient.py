@@ -204,13 +204,13 @@ class Client(object):
         ldest = self._file_local_list(localfilesdest)
         return sorted(fdest.union(ldest))
 
-    def file_list(self, env='base'):
+    def file_list(self, env='base'):  # pylint: disable=W0613
         '''
         This function must be overwritten
         '''
         return []
 
-    def dir_list(self, env='base'):
+    def dir_list(self, env='base'):  # pylint: disable=W0613
         '''
         This function must be overwritten
         '''
