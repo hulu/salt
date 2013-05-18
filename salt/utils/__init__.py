@@ -976,7 +976,7 @@ def rm_rf(path):
     Platform-independent recursive delete. Includes code from
     http://stackoverflow.com/a/2656405
     '''
-    def _onerror(func, path, exc_info):
+    def _onerror(func, path, exc_info):  # pylint: disable=W0613
         '''
         Error handler for `shutil.rmtree`.
 
