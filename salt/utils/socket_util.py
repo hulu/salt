@@ -68,7 +68,7 @@ def ip_to_host(ip):
         salt '*' network.ip_to_host 8.8.8.8
     '''
     try:
-        hostname, aliaslist, ipaddrlist = socket.gethostbyaddr(ip)
+        hostname, aliaslist, ipaddrlist = socket.gethostbyaddr(ip)  # pylint: disable=W0612
     except Exception:
         hostname = None
     return hostname
