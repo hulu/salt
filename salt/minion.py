@@ -67,7 +67,7 @@ def resolve_dns(opts):
 
     if check_dns is True:
         # Because I import salt.log below I need to re-import salt.utils here
-        import salt.utils  # pylint: disable=W0404
+        import salt.utils  # pylint: disable=W0404,W0621
         try:
             ret['master_ip'] = salt.utils.dns_check(opts['master'], True, opts['ipv6'])
         except SaltClientError:
