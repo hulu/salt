@@ -41,7 +41,7 @@ def add(name,
     return not ret['retcode']
 
 
-def delete(name, purge=False, force=False):
+def delete(name, purge=False, force=False):  # pylint: disable=W0613
     '''
     Remove a user from the minion
     NOTE: purge and force have not been implemented on Windows yet
