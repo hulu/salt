@@ -251,7 +251,7 @@ class LocalClient(object):
         '''
         Execute a batch command
         '''
-        import salt.cli.batch
+        import salt.cli.batch  # pylint: disable=W0621
         arg = condition_kwarg(arg, kwarg)
         opts = {'tgt': tgt,
                 'fun': fun,
