@@ -220,12 +220,12 @@ class NameOption(Option):
     Note: this is the 'basename' portion of a pathname.
     The option name is 'name', e.g. {'name' : '*.txt'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         self.regex = re.compile(value.replace('.', '\\.')
                                      .replace('?', '.?')
                                      .replace('*', '.*') + '$')
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return self.regex.match(filename)
 
 
@@ -235,13 +235,13 @@ class InameOption(Option):
     Note: this is the 'basename' portion of a pathname.
     The option name is 'iname', e.g. {'iname' : '*.TXT'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         self.regex = re.compile(value.replace('.', '\\.')
                                      .replace('?', '.?')
                                      .replace('*', '.*') + '$',
                                 re.IGNORECASE)
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return self.regex.match(filename)
 
 
@@ -250,13 +250,13 @@ class RegexOption(Option):
     Note: this is the 'basename' portion of a pathname.
     The option name is 'regex', e.g. {'regex' : '.*\\.txt'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         try:
             self.regex = re.compile(value)
         except re.error:
             raise ValueError('invalid regular expression: "{0}"'.format(value))
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return self.regex.match(filename)
 
 
@@ -265,13 +265,13 @@ class IregexOption(Option):
     Note: this is the 'basename' portion of a pathname.
     The option name is 'iregex', e.g. {'iregex' : '.*\\.txt'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         try:
             self.regex = re.compile(value, re.IGNORECASE)
         except re.error:
             raise ValueError('invalid regular expression: "{0}"'.format(value))
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return self.regex.match(filename)
 
 
@@ -289,7 +289,7 @@ class TypeOption(Option):
         s = socket
     The option name is 'type', e.g. {'type' : 'd'} or {'type' : 'bc'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         # remove whitespace and commas
         value = "".join(value.strip().replace(',', '').split())
         self.ftypes = set()
@@ -302,7 +302,7 @@ class TypeOption(Option):
     def requires(self):
         return _REQUIRES_STAT
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return stat.S_IFMT(fstat[stat.ST_MODE]) in self.ftypes
 
 
@@ -313,7 +313,7 @@ class OwnerOption(Option):
     A match occurs when the file's uid matches any user specified.
     The option name is 'owner', e.g. {'owner' : 'root'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         self.uids = set()
         for name in value.replace(',', ' ').split():
             if name.isdigit():
@@ -327,7 +327,7 @@ class OwnerOption(Option):
     def requires(self):
         return _REQUIRES_STAT
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return fstat[stat.ST_UID] in self.uids
 
 
@@ -338,7 +338,7 @@ class GroupOption(Option):
     A match occurs when the file's gid matches any group specified.
     The option name is 'group', e.g. {'group' : 'admin'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         self.gids = set()
         for name in value.replace(',', ' ').split():
             if name.isdigit():
@@ -352,7 +352,7 @@ class GroupOption(Option):
     def requires(self):
         return _REQUIRES_STAT
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return fstat[stat.ST_GID] in self.gids
 
 
@@ -370,13 +370,13 @@ class SizeOption(Option):
         t = terabytes
     The option name is 'size', e.g. {'size' : '+1G'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         self.min_size, self.max_size = _parse_size(value)
 
     def requires(self):
         return _REQUIRES_STAT
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return self.min_size <= fstat[stat.ST_SIZE] <= self.max_size
 
 
@@ -393,14 +393,14 @@ class MtimeOption(Option):
         s = second
     Whitespace is ignored in the value.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         secs, resolution = _parse_interval(value)
         self.min_time = time.time() - int(secs / resolution) * resolution
 
     def requires(self):
         return _REQUIRES_STAT
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         return fstat[stat.ST_MTIME] >= self.min_time
 
 
@@ -408,7 +408,7 @@ class GrepOption(Option):
     '''Match files when a pattern occurs within the file.
     The option name is 'grep', e.g. {'grep' : '(foo)|(bar}'}.
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         try:
             self.regex = re.compile(value)
         except re.error:
@@ -417,7 +417,7 @@ class GrepOption(Option):
     def requires(self):
         return _REQUIRES_CONTENTS | _REQUIRES_STAT
 
-    def match(self, dirname, filename, fstat):
+    def match(self, dirname, filename, fstat):  # pylint: disable=W0613
         if not stat.S_ISREG(fstat[stat.ST_MODE]):
             return None
         dfilename = os.path.join(dirname, filename)
@@ -443,7 +443,7 @@ class PrintOption(Option):
         type   = file type
         user   = user name
     '''
-    def __init__(self, key, value):
+    def __init__(self, key, value):  # pylint: disable=W0613
         self.need_stat = False
         self.print_title = False
         self.fmt = []
