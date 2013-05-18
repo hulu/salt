@@ -745,7 +745,7 @@ def managed(name,
     if not replace:
         if os.path.exists(name):
            # Check and set the permissions if necessary
-            ret, perms = __salt__['file.check_perms'](name,
+            ret, perms = __salt__['file.check_perms'](name,  # pylint: disable=W0612
                                                       ret,
                                                       user,
                                                       group,
@@ -944,7 +944,7 @@ def directory(name,
         return _error(ret, 'Failed to create directory {0}'.format(name))
 
     # Check permissions
-    ret, perms = __salt__['file.check_perms'](name, ret, user, group, dir_mode)
+    ret, perms = __salt__['file.check_perms'](name, ret, user, group, dir_mode)  # pylint: disable=W0612
 
     if recurse:
         if not set(['user', 'group', 'mode']) >= set(recurse):
@@ -1262,7 +1262,7 @@ def recurse(name,
         merge_ret(path, _ret)
 
     # If source is a list, find which in the list actually exists
-    source, source_hash = __salt__['file.source_list'](source, '', env)
+    source, source_hash = __salt__['file.source_list'](source, '', env)  # pylint: disable=W0612
 
     keep = set()
     vdir = set()
