@@ -434,4 +434,4 @@ class StateFunction(object):
     for req_type in REQUISITES:
         ns[req_type] = _generate_requsite_method(req_type)
     del ns
-    del req_type
+    del req_type  # pylint: disable=W0631
