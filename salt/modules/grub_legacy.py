@@ -77,8 +77,8 @@ def conf():
                     key, value = _parse_line(line)
                     ret[key] = value
             if in_stanza:
-                if not line.endswith('\n'):
-                    line += '\n'
+                if not line.endswith('\n'):  # pylint: disable=W0631
+                    line += '\n'  # pylint: disable=W0631
                 stanza += line
                 stanza += 'order {0}'.format(pos)
                 pos += 1
