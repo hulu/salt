@@ -478,7 +478,7 @@ def add_start_state(data, sls):
             break
     else:
         raise SaltRenderError('Can\'t determine the first state in the sls file!')
-    reqin = {state_name(data[sid].iterkeys().next()): sid}
+    reqin = {state_name(data[sid].iterkeys().next()): sid}  # pylint: disable=W0631
     data[start_sid] = { STATE_FUNC: [ {'require_in': [reqin]} ] }
 
 
