@@ -70,10 +70,33 @@ def latest_version(*names, **kwargs):
     '''
     if len(names) == 0:
         return ''
+
     ret = {}
-    updates = list_upgrades()
     for name in names:
-        ret[name] = updates.get(name, '')
+        ret[name] = ''
+
+    cmd = 'zypper info -t package {0}'.format(' '.join(names))
+    output = __salt__['cmd.run_all'](cmd).get('stdout', '')
+    output = re.split('Information for package \\S+:\n', output)
+    for package in output:
+        pkginfo = {}
+        for line in package.splitlines():
+            try:
+                key, val = line.split(':', 1)
+                key = key.lower()
+                val = val.strip()
+            except ValueError:
+                continue
+            else:
+                pkginfo[key] = val
+
+        # Ignore if the needed keys weren't found in this iteration
+        if not set(('name', 'version', 'status')) <= set(pkginfo.keys()):
+            continue
+
+        status = pkginfo['status'].lower()
+        if 'not installed' in status or 'out-of-date' in status:
+            ret[pkginfo['name']] = pkginfo['version']
 
     # Return a string if only one package name passed
     if len(names) == 1:
@@ -138,7 +161,7 @@ def list_pkgs(versions_as_list=False):
         __salt__['pkg_resource.add_pkg'](ret, name, pkgver)
 
     __salt__['pkg_resource.sort_pkglist'](ret)
-    __context__['pkg.list_pkgs'] = ret
+    __context__['pkg.list_pkgs'] = copy.deepcopy(ret)
     if not versions_as_list:
         __salt__['pkg_resource.stringify'](ret)
     return ret
@@ -232,7 +255,8 @@ def install(name=None,
 
     pkg_params, pkg_type = __salt__['pkg_resource.parse_targets'](name,
                                                                   pkgs,
-                                                                  sources)
+                                                                  sources,
+                                                                  **kwargs)
     if pkg_params is None or len(pkg_params) == 0:
         return {}
 

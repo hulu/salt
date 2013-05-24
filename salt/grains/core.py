@@ -455,8 +455,12 @@ def _virtual(osdata):
         kenv = salt.utils.which('kenv')
         if kenv:
             product = __salt__['cmd.run']('{0} smbios.system.product'.format(kenv))
+            maker = __salt__['cmd.run']('{0} smbios.system.maker'.format(kenv))
             if product.startswith('VMware'):
                 grains['virtual'] = 'VMware'
+            if maker.startswith('Xen'):
+                grains['virtual_subtype'] = '{0} {1}'.format(maker, product)
+                grains['virtual'] = 'xen'
         if sysctl:
             model = __salt__['cmd.run']('{0} hw.model'.format(sysctl))
             jail = __salt__['cmd.run']('{0} -n security.jail.jailed'.format(sysctl))
@@ -478,19 +482,20 @@ def _virtual(osdata):
             grains['virtual'] = 'zone'
     elif osdata['kernel'] == 'NetBSD':
         if sysctl:
-            model = __salt__['cmd.run']('{0} -n machdep.cpu_brand'
-                                        .format(sysctl))
-            xendomu = __salt__['cmd.run']('{0} -n machdep.xen.suspend'
-                                        .format(sysctl))
-            vmware = __salt__['cmd.run']('{0} -n machdep.dmi.system-vendor'
-                                        .format(sysctl))
-
-            if 'QEMU Virtual CPU' in model:
+            if 'QEMU Virtual CPU' in __salt__['cmd.run'](
+                    '{0} -n machdep.cpu_brand'.format(sysctl)):
                 grains['virtual'] = 'kvm'
-            if not 'invalid' in xendomu:
+            elif not 'invalid' in __salt__['cmd.run'](
+                    '{0} -n machdep.xen.suspend'.format(sysctl)):
                 grains['virtual'] = 'Xen PV DomU'
-            if 'VMware' in vmware:
+            elif 'VMware' in __salt__['cmd.run'](
+                    '{0} -n machdep.dmi.system-vendor'.format(sysctl)):
                 grains['virtual'] = 'VMware'
+            # NetBSD has Xen dom0 support
+            elif __salt__['cmd.run'](
+                '{0} -n machdep.idle-mechanism'.format(sysctl)) == 'xen':
+                if os.path.isfile('/var/run/xenconsoled.pid'):
+                    grains['virtual_subtype'] = 'Xen Dom0'
 
     return grains
 
@@ -815,7 +820,7 @@ def hostname():
     #   domain
     grains = {}
     grains['localhost'] = socket.gethostname()
-    if (re.search('\.', socket.getfqdn())):
+    if '.' in socket.getfqdn():
         grains['fqdn'] = socket.getfqdn()
     else :
         grains['fqdn'] = grains['localhost']
@@ -841,6 +846,21 @@ def ip4():
     ips = salt.utils.socket_util.ip4_addrs()
     return {'ipv4': ips}
 
+def ip_interfaces():
+    '''
+    Provide a dict of the connected interfaces and their ip addresses
+    '''
+    # Provides:
+    #   ip_interfaces
+    ret = {}
+    ifaces = salt.utils.socket_util.interfaces()
+    for face in ifaces:
+        iface_ips = []
+        for inet in ifaces[face].get('inet', []):
+            if 'address' in inet:
+                iface_ips.append(inet['address'])
+        ret[face] = iface_ips
+    return {'ip_interfaces': ret}
 
 def path():
     '''
@@ -875,8 +895,8 @@ def saltpath():
     '''
     # Provides:
     #   saltpath
-    path = os.path.abspath(os.path.join(__file__, os.path.pardir))
-    return {'saltpath': os.path.dirname(path)}
+    salt_path = os.path.abspath(os.path.join(__file__, os.path.pardir))
+    return {'saltpath': os.path.dirname(salt_path)}
 
 
 def saltversion():
@@ -971,11 +991,11 @@ def _hw_data(osdata):
         grains.update(_dmidecode_data(linux_dmi_regex))
     elif osdata['kernel'] == 'SunOS':
         sunos_dmi_regex = {
-            '(.+)SMB_TYPE_BIOS\s\(BIOS [Ii]nformation\)': {
+            r'(.+)SMB_TYPE_BIOS\s\(BIOS [Ii]nformation\)': {
                 '[Vv]ersion [Ss]tring:': 'biosversion',
                 '[Rr]elease [Dd]ate:': 'biosreleasedate',
             },
-            '(.+)SMB_TYPE_SYSTEM\s\([Ss]ystem [Ii]nformation\)': {
+            r'(.+)SMB_TYPE_SYSTEM\s\([Ss]ystem [Ii]nformation\)': {
                 'Manufacturer:': 'manufacturer',
                 'Product(?: Name)?:': 'productname',
                 'Serial Number:': 'serialnumber',

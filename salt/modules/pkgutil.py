@@ -137,7 +137,7 @@ def list_pkgs(versions_as_list=False):
             __salt__['pkg_resource.add_pkg'](ret, name, version_num)
 
     __salt__['pkg_resource.sort_pkglist'](ret)
-    __context__['pkg.list_pkgs'] = ret
+    __context__['pkg.list_pkgs'] = copy.deepcopy(ret)
     if not versions_as_list:
         __salt__['pkg_resource.stringify'](ret)
     return ret
@@ -202,7 +202,9 @@ def install(name=None, refresh=False, version=None, pkgs=None, **kwargs):  # pyl
         refresh_db()
 
     # Ignore 'sources' argument
-    pkg_params = __salt__['pkg_resource.parse_targets'](name, pkgs)[0]
+    pkg_params = __salt__['pkg_resource.parse_targets'](name,
+                                                        pkgs,
+                                                        **kwargs)[0]
 
     if pkg_params is None or len(pkg_params) == 0:
         return {}
