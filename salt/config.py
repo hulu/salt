@@ -96,7 +96,7 @@ DEFAULT_MINION_OPTS = {
     'state_verbose': True,
     'state_output': 'full',
     'acceptance_wait_time': 10,
-    'loop_interval': 0.05,
+    'loop_interval': 1,
     'dns_check': True,
     'verify_env': True,
     'grains': {},
@@ -413,12 +413,12 @@ def get_id():
     for a in ip_addresses:
         if not a.is_private:
             log.info('Using public ip address for id: {0}'.format(a))
-            return a, True
+            return str(a), True
 
     if ip_addresses:
         a = ip_addresses.pop(0)
         log.info('Using private ip address for id: {0}'.format(a))
-        return a, True
+        return str(a), True
 
     log.error('No id found, falling back to localhost')
     return 'localhost', False
