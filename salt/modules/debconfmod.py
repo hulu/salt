@@ -99,7 +99,11 @@ def _set_file(path):
     __salt__['cmd.run_stdout'](cmd)
 
 
-def set_(package, question, type, value, *extra):
+def set_(package,
+         question,
+         type,  # pylint: disable=W0622
+         value,
+         *extra):
     '''
     Set answers to debconf questions for a package.
 
