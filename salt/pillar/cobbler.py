@@ -41,7 +41,7 @@ __opts__ = {'cobbler.url': 'http://localhost/cobbler_api',
 log = logging.getLogger(__name__)
 
 
-def ext_pillar(pillar, key=None, only=()):
+def ext_pillar(pillar, key=None, only=()):  # pylint: disable=W0613
     '''
     Read pillar data from Cobbler via its API.
     '''

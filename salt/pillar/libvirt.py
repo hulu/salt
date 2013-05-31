@@ -8,7 +8,7 @@ import os
 import subprocess
 
 
-def ext_pillar(pillar, command):
+def ext_pillar(pillar, command):  # pylint: disable=W0613
     '''
     Read in the generated libvirt keys
     '''

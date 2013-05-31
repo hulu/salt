@@ -145,7 +145,7 @@ def _do_search(conf):
     return result
 
 
-def ext_pillar(pillar, config_file):
+def ext_pillar(pillar, config_file):  # pylint: disable=W0613
     '''
     Execute LDAP searches and return the aggregated data
     '''
