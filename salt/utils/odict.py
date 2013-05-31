@@ -184,7 +184,7 @@ except ImportError:
                     for key in other:
                         self[key] = other[key]
                 elif hasattr(other, 'keys'):
-                    for key in other.keys():
+                    for key in other.keys():  # pylint: disable=E1103
                         self[key] = other[key]
                 else:
                     for key, value in other:
