@@ -424,7 +424,7 @@ def run(name,
                 env = yaml.safe_load(env)
             except Exception:
                 _env = {}
-                for var in env.split():
+                for var in env.split():  # pylint: disable=E1103
                     try:
                         key, val = var.split('=')
                         _env[key] = val
