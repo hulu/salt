@@ -226,7 +226,7 @@ def set_job(user, minute, hour, dom, month, dow, cmd):
     return 'new'
 
 
-def rm_job(user, minute, hour, dom, month, dow, cmd):
+def rm_job(user, minute, hour, dom, month, dow, cmd):  # pylint: disable=W0613
     '''
     Remove a cron job for a specified user.
 
