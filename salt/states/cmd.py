@@ -234,15 +234,15 @@ def _run_check(cmd_kwargs, onlyif, unless, group):
 
 
 def wait(name,
-         onlyif=None,
-         unless=None,
-         cwd=None,
-         user=None,
-         group=None,
-         shell=None,
-         stateful=False,
-         umask=None,
-         **kwargs):
+         onlyif=None,  # pylint: disable=W0613
+         unless=None,  # pylint: disable=W0613
+         cwd=None,  # pylint: disable=W0613
+         user=None,  # pylint: disable=W0613
+         group=None,  # pylint: disable=W0613
+         shell=None,  # pylint: disable=W0613
+         stateful=False,  # pylint: disable=W0613
+         umask=None,  # pylint: disable=W0613
+         **kwargs):  # pylint: disable=W0613
     '''
     Run the given command only if the watch statement calls it
 
@@ -285,18 +285,18 @@ def wait(name,
 
 
 def wait_script(name,
-                source=None,
-                template=None,
-                onlyif=None,
-                unless=None,
-                cwd=None,
-                user=None,
-                group=None,
-                shell=None,
-                env=None,
-                stateful=False,
-                umask=None,
-                **kwargs):
+                source=None,  # pylint: disable=W0613
+                template=None,  # pylint: disable=W0613
+                onlyif=None,  # pylint: disable=W0613
+                unless=None,  # pylint: disable=W0613
+                cwd=None,  # pylint: disable=W0613
+                user=None,  # pylint: disable=W0613
+                group=None,  # pylint: disable=W0613
+                shell=None,  # pylint: disable=W0613
+                env=None,  # pylint: disable=W0613
+                stateful=False,  # pylint: disable=W0613
+                umask=None,  # pylint: disable=W0613
+                **kwargs):  # pylint: disable=W0613
     '''
     Download a script from a remote source and execute it only if a watch
     statement calls it.
@@ -705,13 +705,13 @@ def call(name, func, args=(), kws=None,
 
 
 def wait_call(name,
-              func,
-              args=(),
-              kws=None,
-              onlyif=None,
-              unless=None,
-              stateful=False,
-              **kwargs):
+              func,  # pylint: disable=W0613
+              args=(),  # pylint: disable=W0613
+              kws=None,  # pylint: disable=W0613
+              onlyif=None,  # pylint: disable=W0613
+              unless=None,  # pylint: disable=W0613
+              stateful=False,  # pylint: disable=W0613
+              **kwargs):  # pylint: disable=W0613
     return {'name': name,
             'changes': {},
             'result': True,
