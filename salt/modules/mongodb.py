@@ -79,7 +79,7 @@ def db_list(user=None, password=None, host=None, port=None):
 
     try:
         log.info('Listing databases')
-        return conn.database_names()
+        return conn.database_names()  # pylint: disable=E1103
     except pymongo.errors.PyMongoError as err:
         log.error(err)
         return err.message
@@ -115,7 +115,7 @@ def db_remove(name, user=None, password=None, host=None, port=None):
 
     try:
         log.info('Removing database {0}'.format(name))
-        conn.drop_database(name)
+        conn.drop_database(name)  # pylint: disable=E1103
     except pymongo.errors.PyMongoError as err:
         log.error(
             'Removing database {0} failed with error: {1}'.format(
