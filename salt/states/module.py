@@ -17,7 +17,7 @@ import salt.state
 import salt.loader
 
 
-def wait(name, **kwargs):
+def wait(name, **kwargs):  # pylint: disable=W0613
     '''
     Run a single module function only if the watch statement calls it
 
