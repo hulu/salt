@@ -48,8 +48,8 @@ if salt.utils.is_windows():
     _get_package_info = namespaced_function(_get_package_info, globals())
     _get_latest_pkg_version = namespaced_function(_get_latest_pkg_version, globals())
     _reverse_cmp_pkg_versions = namespaced_function(_reverse_cmp_pkg_versions, globals())
-    import msgpack
-    from distutils.version import LooseVersion
+    import msgpack  # pylint: disable=W0611
+    from distutils.version import LooseVersion  # pylint: disable=W0611
 
 log = logging.getLogger(__name__)
 
