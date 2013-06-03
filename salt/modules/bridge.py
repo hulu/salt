@@ -231,7 +231,7 @@ def show(br=None):
     return _os_dispatch('brshow', br)
 
 
-def list():
+def list():  # pylint: disable=W0622
     '''
     Returns the machine's bridges list
 

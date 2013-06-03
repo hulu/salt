@@ -202,7 +202,7 @@ def default(ruby=None, runas=None):
     else:
         return _rbenv_exec('global', runas=runas).strip()
 
-def list(runas=None):
+def list(runas=None):  # pylint: disable=W0622
     '''
     List the installable versions of ruby.
 
