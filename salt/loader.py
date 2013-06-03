@@ -196,7 +196,9 @@ def states(opts, functions, whitelist=None):
     return load.gen_functions(pack, whitelist=whitelist)
 
 
-def search(opts, returners, whitelist=None):
+def search(opts,
+           returners,  # pylint: disable=W0621
+           whitelist=None):
     '''
     Returns the search modules
     '''
