@@ -81,7 +81,7 @@ def _get_xapi_session():
         xapi_password = ''
 
     try:
-        session = _xenapi.Session(xapi_uri)
+        session = _xenapi.Session(xapi_uri)  # pylint: disable=E1103
         session.xenapi.login_with_password(xapi_login, xapi_password)
 
         yield session.xenapi
