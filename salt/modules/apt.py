@@ -731,7 +731,9 @@ def get_repo(repo, **kwargs):
     raise Exception('repo "{0}" was not found'.format(repo))
 
 
-def del_repo(repo, refresh=False, **kwargs):
+def del_repo(repo,
+             refresh=False,  # pylint: disable=W0613
+             **kwargs):
     '''
     Delete a repo from the sources.list / sources.list.d
 
