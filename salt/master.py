@@ -1645,7 +1645,7 @@ class ClearFuncs(object):
             aes = self.opts['aes']
             ret['aes'] = pub.public_encrypt(self.opts['aes'], 4)
         # Be aggressive about the signature
-        digest = hashlib.sha256(aes).hexdigest()
+        digest = hashlib.sha256(aes).hexdigest()  # pylint: disable=E1101
         ret['sig'] = self.master_key.key.private_encrypt(digest, 5)
         eload = {'result': True,
                  'act': 'accept',

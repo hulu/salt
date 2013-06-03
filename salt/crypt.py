@@ -195,7 +195,7 @@ class Auth(object):
                     mkey = RSA.load_pub_key(m_path)
                 except Exception:
                     return '', ''
-                digest = hashlib.sha256(key_str).hexdigest()
+                digest = hashlib.sha256(key_str).hexdigest()  # pylint: disable=E1101
                 m_digest = mkey.public_decrypt(payload['sig'], 5)
                 if m_digest != digest:
                     return '', ''
@@ -335,7 +335,7 @@ class Crypticle(object):
 
     PICKLE_PAD = 'pickle::'
     AES_BLOCK_SIZE = 16
-    SIG_SIZE = hashlib.sha256().digest_size
+    SIG_SIZE = hashlib.sha256().digest_size  # pylint: disable=E1101
 
     def __init__(self, opts, key_string, key_size=192):
         self.keys = self.extract_keys(key_string, key_size)
@@ -363,7 +363,7 @@ class Crypticle(object):
         iv_bytes = os.urandom(self.AES_BLOCK_SIZE)
         cypher = AES.new(aes_key, AES.MODE_CBC, iv_bytes)
         data = iv_bytes + cypher.encrypt(data)
-        sig = hmac.new(hmac_key, data, hashlib.sha256).digest()
+        sig = hmac.new(hmac_key, data, hashlib.sha256).digest()  # pylint: disable=E1101
         return data + sig
 
     def decrypt(self, data):
@@ -373,7 +373,7 @@ class Crypticle(object):
         aes_key, hmac_key = self.keys
         sig = data[-self.SIG_SIZE:]
         data = data[:-self.SIG_SIZE]
-        mac_bytes = hmac.new(hmac_key, data, hashlib.sha256).digest()
+        mac_bytes = hmac.new(hmac_key, data, hashlib.sha256).digest()  # pylint: disable=E1101
         if len(mac_bytes) != len(sig):
             log.debug('Failed to authenticate message')
             raise AuthenticationError('message authentication failed')
