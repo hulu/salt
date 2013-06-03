@@ -842,7 +842,9 @@ def build_interface(iface, iface_type, enabled, settings):
     return _read_file(path)
 
 
-def down(iface, iface_type, opts):
+def down(iface,
+         iface_type,
+         opts):  # pylint: disable=W0613
     '''
     Shutdown a network interface
 
@@ -880,7 +882,7 @@ def get_interface(iface):
     return _read_file(path)
 
 
-def up(iface, iface_type, opts):  # pylint: disable=C0103
+def up(iface, iface_type, opts):  # pylint: disable=C0103,W0613
     '''
     Start up a network interface
 
