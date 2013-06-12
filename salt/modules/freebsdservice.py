@@ -307,6 +307,8 @@ def status(name,
 
         salt '*' service.status <service name>
     '''
+    if sig:
+        return bool(__salt__['status.pid'](sig))
     cmd = '{0} {1} onestatus'.format(_cmd(), name)
     return not __salt__['cmd.retcode'](cmd)
 

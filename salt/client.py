@@ -818,6 +818,7 @@ class LocalClient(object):
                     continue
                 found.add(raw['id'])
                 ret[raw['id']] = {'ret': raw['return']}
+                ret[raw['id']]['success'] = raw.get('success', False)
                 if 'out' in raw:
                     ret[raw['id']]['out'] = raw['out']
                 if len(found.intersection(minions)) >= len(minions):
@@ -1074,7 +1075,7 @@ class LocalClient(object):
                 return payload
 
         # We have the payload, let's get rid of SREQ fast(GC'ed faster)
-        del(sreq)
+        del sreq
 
         return {'jid': payload['load']['jid'],
                 'minions': payload['load']['minions']}
@@ -1085,7 +1086,7 @@ class LocalClient(object):
         # threads per test case which uses self.client
         if hasattr(self, 'event'):
             # The call bellow will take care of calling 'self.event.destroy()'
-            del(self.event)
+            del self.event
 
 
 class FunctionWrapper(dict):
