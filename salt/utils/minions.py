@@ -41,9 +41,10 @@ class CkMinions(object):
     '''
     Used to check what minions should respond from a target
     '''
-    def __init__(self, opts):
+    def __init__(self, opts, label_mapping=None):
         self.opts = opts
         self.serial = salt.payload.Serial(opts)
+        self.label_mapping = label_mapping
 
     def _check_glob_minions(self, expr):
         '''
@@ -51,7 +52,10 @@ class CkMinions(object):
         '''
         cwd = os.getcwd()
         os.chdir(os.path.join(self.opts['pki_dir'], 'minions'))
-        ret = set(glob.glob(expr))
+        if self.label_mapping:
+            ret = [fn_ for fn_ in os.listdir('.') if fnmatch.fnmatch(self.label_mapping[fn_], expr)]
+        else:
+            ret = set(glob.glob(expr))
         os.chdir(cwd)
         return list(ret)
 
@@ -60,10 +64,16 @@ class CkMinions(object):
         Return the minions found by looking via a list
         '''
         ret = []
-        for fn_ in os.listdir(os.path.join(self.opts['pki_dir'], 'minions')):
-            if fn_ in expr:
-                if fn_ not in ret:
-                    ret.append(fn_)
+        if self.label_mapping:
+            for fn_ in os.listdir(os.path.join(self.opts['pki_dir'], 'minions')):
+                if self.label_mapping[fn_] in expr:
+                    if fn_ not in ret:
+                        ret.append(fn_)
+        else:
+            for fn_ in os.listdir(os.path.join(self.opts['pki_dir'], 'minions')):
+                if fn_ in expr:
+                    if fn_ not in ret:
+                        ret.append(fn_)
         return ret
 
     def _check_pcre_minions(self, expr):
@@ -73,7 +83,10 @@ class CkMinions(object):
         cwd = os.getcwd()
         os.chdir(os.path.join(self.opts['pki_dir'], 'minions'))
         reg = re.compile(expr)
-        ret = [fn_ for fn_ in os.listdir('.') if reg.match(fn_)]
+        if self.label_mapping:
+            ret = [fn_ for fn_ in os.listdir('.') if reg.match(self.label_mapping[fn_])]
+        else:
+            ret = [fn_ for fn_ in os.listdir('.') if reg.match(fn_)]
         os.chdir(cwd)
         return ret
 
@@ -211,7 +224,7 @@ class CkMinions(object):
                            ).format(expr_form, expr))
             minions = expr
         return minions
-
+# QUESTIONTAG not sure if this requires changes for label_mapping
     def validate_tgt(self, valid, expr, expr_form):
         '''
         Return a Bool. This function returns if the expression sent in is

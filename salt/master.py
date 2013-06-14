@@ -3,6 +3,8 @@ This module contains all of the routines needed to set up a master server, this
 involves preparing the three listeners and the workers needed by the master.
 '''
 
+label_mapping = { 'saltdev' : 'saltdevpretty' }
+
 # Import python libs
 import os
 import re
@@ -578,9 +580,14 @@ class MWorker(multiprocessing.Process):
             load = payload['load']
         except KeyError:
             return ''
-        return {'aes': self._handle_aes,
+        ret = {'aes': self._handle_aes,
                 'pub': self._handle_pub,
                 'clear': self._handle_clear}[key](load)
+        if label_mapping and isinstance(ret, dict) and 'load' in ret:
+            if isinstance(ret['load'], dict) and 'minions' in ret['load']:
+                new_labels = [label_mapping[minion] for minion in ret['load']['minions']]
+                ret['load']['minions'] = new_labels
+        return ret
 
     def _handle_clear(self, load):
         '''
@@ -665,7 +672,7 @@ class AESFuncs(object):
         self.event = salt.utils.event.MasterEvent(self.opts['sock_dir'])
         self.serial = salt.payload.Serial(opts)
         self.crypticle = crypticle
-        self.ckminions = salt.utils.minions.CkMinions(opts)
+        self.ckminions = salt.utils.minions.CkMinions(opts, label_mapping)
         # Create the tops dict for loading external top data
         self.tops = salt.loader.tops(self.opts)
         # Make a client
@@ -858,7 +865,7 @@ class AESFuncs(object):
         ret = {}
         if not salt.utils.verify.valid_id(load['id']):
             return ret
-        checker = salt.utils.minions.CkMinions(self.opts)
+        checker = salt.utils.minions.CkMinions(self.opts, label_mapping)
         minions = checker.check_minions(
                 load['tgt'],
                 load.get('expr_form', 'glob')
@@ -1016,7 +1023,12 @@ class AESFuncs(object):
                     self.opts['hash_type'],
                     load.get('nocache', False))
         log.info('Got return from {id} for job {jid}'.format(**load))
-        self.event.fire_event(load, load['jid'])
+        if label_mapping:
+            event_load = dict(load, id=label_mapping[load['id']])
+        else:
+            event_load = load
+        self.event.fire_event(event_load, load['jid'])
+#QUESTIONTAG should this one use label_mapping as well?
         self.event.fire_ret_load(load)
         if self.opts['master_ext_job_cache']:
             fstr = '{0}.returner'.format(self.opts['master_ext_job_cache'])
@@ -1406,7 +1418,7 @@ class ClearFuncs(object):
         # Make a client
         self.local = salt.client.LocalClient(self.opts['conf_file'])
         # Make an minion checker object
-        self.ckminions = salt.utils.minions.CkMinions(opts)
+        self.ckminions = salt.utils.minions.CkMinions(opts, label_mapping)
         # Make an Auth object
         self.loadauth = salt.auth.LoadAuth(opts)
         # Stand up the master Minion to access returner data
@@ -2044,6 +2056,7 @@ class ClearFuncs(object):
                         'minions': minions
                     }
                 }
+#QUESTIONTAG does the label_mapping need to be applied here?
         self.event.fire_event({'minions': minions}, clear_load['jid'])
         # Retrieve the jid
         if not clear_load['jid']:
@@ -2091,10 +2104,14 @@ class ClearFuncs(object):
         # In short, check with Thomas Hatch before you even think about
         # touching this stuff, we can probably do what you want to do another
         # way that won't have a negative impact.
+        if label_mapping:
+            tgt = ','.join(minions)
+        else:
+            tgt = clear_load[tgt]
         load = {
                 'fun': clear_load['fun'],
                 'arg': clear_load['arg'],
-                'tgt': clear_load['tgt'],
+                'tgt': tgt,
                 'jid': clear_load['jid'],
                 'ret': clear_load['ret'],
                }
