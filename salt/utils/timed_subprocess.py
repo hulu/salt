@@ -22,7 +22,7 @@ class TimedProc(object):
             (self.stdout, self.stderr) = self.process.communicate()
 
         if timeout:
-            if not isinstance(timeout, (int,float)):
+            if not isinstance(timeout, (int, float)):
                 raise salt.exceptions.TimedProcTimeoutError('Error: timeout must be a number')
             rt = threading.Thread(target=receive)
             rt.start()
@@ -34,7 +34,7 @@ class TimedProc(object):
                 def terminate():
                     if rt.isAlive():
                         self.process.terminate()
-                threading.Timer(10, terminate)
+                threading.Timer(10, terminate).start()
                 raise salt.exceptions.TimedProcTimeoutError('%s : Timed out after %s seconds' % (
                     self.command,
                     str(timeout),
@@ -42,4 +42,3 @@ class TimedProc(object):
         else:
             receive()
         return self.process.returncode
-

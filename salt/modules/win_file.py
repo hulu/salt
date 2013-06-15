@@ -13,6 +13,9 @@ import os
 import stat
 import os.path
 import logging
+import contextlib
+import difflib
+# do no remove. Used in import of salt.modules.file.__clean_tmp
 import tempfile  # pylint: disable=W0611
 
 # Import third party libs
@@ -45,7 +48,7 @@ def __virtual__():
     if salt.utils.is_windows():
         if HAS_WINDOWS_MODULES:
             global check_perms, get_managed, makedirs_perms, manage_file
-            global source_list, mkdir, __clean_tmp, makedirs, 
+            global source_list, mkdir, __clean_tmp, makedirs
 
             check_perms = namespaced_function(check_perms, globals())
             get_managed = namespaced_function(get_managed, globals())
@@ -55,7 +58,7 @@ def __virtual__():
             source_list = namespaced_function(source_list, globals())
             mkdir = namespaced_function(mkdir, globals())
             __clean_tmp = namespaced_function(__clean_tmp, globals())
-            
+
             return 'file'
         log.warn(salt.utils.required_modules_error(__file__, __doc__))
     return False
@@ -264,14 +267,14 @@ def chgrp(path, group):
 
 
 def stats(path, hash_type='md5', follow_symlink=False):
-    '''  
+    '''
     Return a dict containing the stats for a given file
 
     CLI Example::
 
         salt '*' file.stats /etc/passwd
     '''
-    ret = {} 
+    ret = {}
     if not os.path.exists(path):
         return ret
     if follow_symlink:
