@@ -43,9 +43,11 @@ import salt.utils
 if salt.utils.is_windows():
     from salt.utils import namespaced_function
     from salt.modules.win_pkg import _get_package_info
+    from salt.modules.win_pkg import _get_repo_data
     from salt.modules.win_pkg import _get_latest_pkg_version
     from salt.modules.win_pkg import _reverse_cmp_pkg_versions
     _get_package_info = namespaced_function(_get_package_info, globals())
+    _get_repo_data = namespaced_function(_get_repo_data, globals())
     _get_latest_pkg_version = namespaced_function(_get_latest_pkg_version, globals())
     _reverse_cmp_pkg_versions = namespaced_function(_reverse_cmp_pkg_versions, globals())
     # The following imports are used by the namespaced win_pkg funcs
@@ -676,7 +678,9 @@ def _uninstall(action='remove', name=None, pkgs=None, **kwargs):
         return {'name': name,
                 'changes': {},
                 'result': True,
-                'comment': 'None of the targeted packages are installed'}
+                'comment': 'None of the targeted packages are installed'
+                           '{0}'.format(' or partially installed'
+                                        if action == 'purge' else '')}
 
     if __opts__['test']:
         return {'name': name,

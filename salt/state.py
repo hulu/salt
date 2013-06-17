@@ -1032,7 +1032,14 @@ class State(object):
         '''
         Extend the data reference with requisite_in arguments
         '''
-        req_in = set(['require_in', 'watch_in', 'use', 'use_in', 'prereq'])
+        req_in = set([
+            'require_in',
+            'watch_in',
+            'use',
+            'use_in',
+            'prereq',
+            'prereq_in',
+            ])
         req_in_all = req_in.union(set(['require', 'watch']))
         extend = {}
         for id_, body in high.items():
@@ -1092,6 +1099,15 @@ class State(object):
                                     continue
                                 _state = next(iter(ind))
                                 name = ind[_state]
+                                if key == 'prereq_in':
+                                    # Add prerequired to origin
+                                    if id_ not in extend:
+                                        extend[id_] = {}
+                                    if state not in extend[id_]:
+                                        extend[id_][state] = []
+                                    extend[id_][state].append(
+                                            {'prerequired': [{_state: name}]}
+                                            )
                                 if key == 'prereq':
                                     # Add prerequired to prereqs
                                     ext_id = find_name(name, _state, high)
@@ -1395,7 +1411,7 @@ class State(object):
                                 found = True
                     if not found:
                         lost[requisite].append(req)
-            if lost['require'] or lost['watch'] or lost.get('prerequired'):
+            if lost['require'] or lost['watch'] or lost['prereq'] or lost.get('prerequired'):
                 comment = 'The following requisites were not found:\n'
                 for requisite, lreqs in lost.items():
                     for lreq in lreqs:
