@@ -59,6 +59,11 @@ def latest_version(*names, **kwargs):
     '''
     if len(names) == 0:
         return ''
+
+    # Refresh before looking for the latest version available
+    if salt.utils.is_true(kwargs.get('refresh', True)):
+        refresh_db()
+
     ret = {}
     pkgs = list_pkgs()
     for name in names:
@@ -66,7 +71,7 @@ def latest_version(*names, **kwargs):
         version_num = '0'
         pkginfo = _get_package_info(name)
         if not pkginfo:
-            # pkg not available in repo, skip
+            log.error('Unable to locate package {0}'.format(name))
             continue
         if len(pkginfo) == 1:
             candidate = pkginfo.keys()[0]
@@ -124,7 +129,7 @@ def list_upgrades(refresh=True):
         if version(name):
             latest = latest_version(name)
             if latest:
-                ret[name]=latest
+                ret[name] = latest
     return ret
 
 
@@ -434,7 +439,7 @@ def refresh_db():
     return True
 
 
-def install(name=None, refresh=False, **kwargs):
+def install(name=None, refresh=False, pkgs=None, **kwargs):
     '''
     Install the passed package
 
@@ -447,43 +452,70 @@ def install(name=None, refresh=False, **kwargs):
 
         salt '*' pkg.install <package name>
     '''
-    if refresh:
+    if salt.utils.is_true(refresh):
         refresh_db()
+
+    # Ignore pkg_type from parse_targets, Windows does not suport the "sources"
+    # argument
+    pkg_params = __salt__['pkg_resource.parse_targets'](name,
+                                                        pkgs,
+                                                        **kwargs)[0]
+
+    if pkg_params is None or len(pkg_params) == 0:
+        return {}
+
     old = list_pkgs()
-    pkginfo = _get_package_info(name)
-    if not pkginfo:
-        return {name: {'old': 'Error: Unable to locate package {0}'.format(name),
-                       'new': 'Error: Unable to locate package {0}'.format(name)}}
-    if kwargs.get('version') is not None:
-        version_num = kwargs['version']
-    else:
-        version_num = _get_latest_pkg_version(pkginfo)
-    for pkg in pkginfo.keys():
-        if pkginfo[pkg]['full_name'] in old and old[pkginfo[pkg]['full_name']] == version_num:
-            return {name: {'old': version_num, 'new': version_num}}
-    if not pkginfo.has_key(version_num):
-        return {name: {'old': 'Error: version {0} not found for package {1}'.format(version_num, name),
-                       'new': 'Error: version {0} not found for package {1}'.format(version_num, name)}}
-    installer = pkginfo[version_num].get('installer')
-    if not installer:
-        return {name: {'old': 'Error: No installer configured for package {0}'.format(name),
-                       'new': 'Error: No installer configured for package {0}'.format(name)}}
-    if installer.startswith('salt:') or installer.startswith('http:') or installer.startswith('https:') or installer.startswith('ftp:'):
-        cached_pkg = __salt__['cp.is_cached'](installer)
-        if not cached_pkg:
-            # It's not cached. Cache it, mate.
-            cached_pkg = \
-                __salt__['cp.cache_file'](installer)
-    else:
-        cached_pkg = installer
-    cached_pkg = cached_pkg.replace('/', '\\')
-    cmd = '"' + str(cached_pkg) + '"' + str(pkginfo[version_num]['install_flags'])
-    if pkginfo[version_num].get('msiexec'):
-        cmd = 'msiexec /i ' + cmd
-    __salt__['cmd.run_all'](cmd)
+
+    if pkgs is None and kwargs.get('version') and len(pkg_params) == 1:
+        # Only use the 'version' param if 'name' was not specified as a
+        # comma-separated list
+        pkg_params = {name: kwargs.get('version')}
+
+    for param, version_num in pkg_params.iteritems():
+        pkginfo = _get_package_info(param)
+        if not pkginfo:
+            log.error('Unable to locate package {0}'.format(name))
+            continue
+
+        version_num = version_num or _get_latest_pkg_version(pkginfo)
+
+        if version_num in [old.get(pkginfo[x]['full_name']) for x in pkginfo]:
+            # Desired version number already installed
+            continue
+        elif version_num not in pkginfo:
+            log.error('Version {0} not found for package '
+                      '{1}'.format(version_num, param))
+            continue
+
+        installer = pkginfo[version_num].get('installer')
+        if not installer:
+            log.error('No installer configured for version {0} of package '
+                      '{1}'.format(version_num, param))
+
+        if installer.startswith('salt:') \
+                or installer.startswith('http:') \
+                or installer.startswith('https:') \
+                or installer.startswith('ftp:'):
+            cached_pkg = __salt__['cp.is_cached'](installer)
+            if not cached_pkg:
+                # It's not cached. Cache it, mate.
+                cached_pkg = __salt__['cp.cache_file'](installer)
+        else:
+            cached_pkg = installer
+
+        cached_pkg = cached_pkg.replace('/', '\\')
+        msiexec = pkginfo[version_num].get('msiexec')
+        cmd = '{msiexec}"{cached_pkg}" {install_flags}'.format(
+            msiexec='msiexec /i ' if msiexec else '',
+            cached_pkg=cached_pkg,
+            install_flags=pkginfo[version_num]['install_flags']
+        )
+        __salt__['cmd.run_all'](cmd)
+
     __context__.pop('pkg.list_pkgs', None)
     new = list_pkgs()
     return __salt__['pkg_resource.find_changes'](old, new)
+
 
 def upgrade(refresh=True):
     '''
@@ -525,6 +557,8 @@ def remove(name=None, pkgs=None, version=None, **kwargs):  # pylint: disable=W06
         A list of packages to delete. Must be passed as a python list. The
         ``name`` parameter will be ignored if this option is passed.
 
+    .. versionadded:: 0.16.0
+
 
     Returns a dict containing the changes.
 
@@ -540,6 +574,9 @@ def remove(name=None, pkgs=None, version=None, **kwargs):  # pylint: disable=W06
     old = list_pkgs()
     for target in pkg_params:
         pkginfo = _get_package_info(target)
+        if not pkginfo:
+            log.error('Unable to locate package {0}'.format(name))
+            continue
         if not version:
             version = _get_latest_pkg_version(pkginfo)
 
@@ -592,6 +629,8 @@ def purge(name=None, pkgs=None, version=None, **kwargs):  # pylint: disable=W062
         A list of packages to delete. Must be passed as a python list. The
         ``name`` parameter will be ignored if this option is passed.
 
+    .. versionadded:: 0.16.0
+
 
     Returns a dict containing the changes.
 
@@ -602,6 +641,7 @@ def purge(name=None, pkgs=None, version=None, **kwargs):  # pylint: disable=W062
         salt '*' pkg.purge pkgs='["foo", "bar"]'
     '''
     return remove(name=name, pkgs=pkgs, version=version, **kwargs)
+
 
 def _get_repo_data():
     repocache = __opts__['win_repo_cachefile']
@@ -619,13 +659,14 @@ def _get_repo_data():
         log.debug('Not able to read repo file')
         return ''
 
+
 def _get_package_info(name):
     '''
     Return package info.
     Returns empty map if package not available
     TODO: Add option for version
     '''
-    repodata=_get_repo_data()
+    repodata = _get_repo_data()
     if not repodata:
         return ''
     if name in repodata:

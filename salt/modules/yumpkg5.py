@@ -150,6 +150,10 @@ def latest_version(*names, **kwargs):
     for name in names:
         ret[name] = ''
 
+    # Refresh before looking for the latest version available
+    if salt.utils.is_true(kwargs.get('refresh', True)):
+        refresh_db()
+
     # Get updates for specified package(s)
     repo_arg = _get_repo_options(**kwargs)
     updates = _repoquery('{0} --pkgnarrow=available --queryformat "{1}" '
@@ -442,6 +446,8 @@ def remove(name=None, pkgs=None, **kwargs):
         A list of packages to delete. Must be passed as a python list. The
         ``name`` parameter will be ignored if this option is passed.
 
+    .. versionadded:: 0.16.0
+
 
     Returns a dict containing the changes.
 
@@ -477,6 +483,8 @@ def purge(name=None, pkgs=None, **kwargs):
     pkgs
         A list of packages to delete. Must be passed as a python list. The
         ``name`` parameter will be ignored if this option is passed.
+
+    .. versionadded:: 0.16.0
 
 
     Returns a dict containing the changes.

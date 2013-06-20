@@ -185,6 +185,10 @@ def latest_version(*names, **kwargs):
     for name in names:
         ret[name] = ''
 
+    # Refresh before looking for the latest version available
+    if salt.utils.is_true(kwargs.get('refresh', True)):
+        refresh_db()
+
     yumbase = yum.YumBase()
     error = _set_repo_options(yumbase, **kwargs)
     if error:
@@ -592,6 +596,8 @@ def remove(name=None, pkgs=None, **kwargs):
         A list of packages to delete. Must be passed as a python list. The
         ``name`` parameter will be ignored if this option is passed.
 
+    .. versionadded:: 0.16.0
+
 
     Returns a dict containing the changes.
 
@@ -648,6 +654,8 @@ def purge(name=None, pkgs=None, **kwargs):
     pkgs
         A list of packages to delete. Must be passed as a python list. The
         ``name`` parameter will be ignored if this option is passed.
+
+    .. versionadded:: 0.16.0
 
 
     Returns a dict containing the changes.
