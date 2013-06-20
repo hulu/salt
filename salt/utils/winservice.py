@@ -29,9 +29,9 @@ class Service(win32serviceutil.ServiceFramework):
         win32api.Sleep(sec * 1000, True)
 
     def SvcDoRun(self):  # pylint: disable=C0103
-        self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
+        self.ReportServiceStatus(win32service.SERVICE_START_PENDING)  # pylint: disable=E1101
         try:
-            self.ReportServiceStatus(win32service.SERVICE_RUNNING)
+            self.ReportServiceStatus(win32service.SERVICE_RUNNING)  # pylint: disable=E1101
             self.log('start')
             self.start()
             self.log('wait')
@@ -43,12 +43,12 @@ class Service(win32serviceutil.ServiceFramework):
             self.SvcStop()
 
     def SvcStop(self):  # pylint: disable=C0103
-        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)  # pylint: disable=E1101
         self.log('stopping')
         self.stop()
         self.log('stopped')
         win32event.SetEvent(self.stop_event)
-        self.ReportServiceStatus(win32service.SERVICE_STOPPED)
+        self.ReportServiceStatus(win32service.SERVICE_STOPPED)  # pylint: disable=E1101
 
     # to be overridden
     def start(self):
