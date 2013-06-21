@@ -362,7 +362,7 @@ def win_interfaces():
     Obtain interface information for Windows systems
     '''
     with salt.utils.winapi.Com():
-        c = wmi.WMI()
+        c = wmi.WMI()  # pylint: disable=C0103
         ifaces = {}
         for iface in c.Win32_NetworkAdapterConfiguration(IPEnabled=1):
             ifaces[iface.Description] = dict()
@@ -370,7 +370,7 @@ def win_interfaces():
                 ifaces[iface.Description]['hwaddr'] = iface.MACAddress
             if iface.IPEnabled:
                 ifaces[iface.Description]['up'] = True
-                for ip in iface.IPAddress:
+                for ip in iface.IPAddress:  # pylint: disable=C0103
                     if '.' in ip:
                         if 'inet' not in ifaces[iface.Description]:
                             ifaces[iface.Description]['inet'] = []
