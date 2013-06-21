@@ -18,7 +18,7 @@ def __virtual__():
     '''
     return 'portage_config' if 'portage_config.get_missing_flags' in __salt__ else False
 
-def mod_init(low):
+def mod_init(low):  # pylint: disable=W0613
     '''
     Enforce a nice structure on the configuration files.
     '''
@@ -57,7 +57,7 @@ def flags(name,
           use=None,
           accept_keywords=None,
           env=None,
-          license=None,
+          license=None,  # pylint: disable=W0622
           properties=None,
           unmask=False,
           mask=False):
