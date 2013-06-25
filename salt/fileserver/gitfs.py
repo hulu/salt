@@ -213,7 +213,7 @@ def find_file(path, short='base', **kwargs):
         if not ref:
             # Branch or tag not found in repo, try the next
             continue
-        tree = ref.commit.tree
+        tree = ref.commit.tree  # pylint: disable=E1103
         try:
             blob = tree / path
         except KeyError:
@@ -314,7 +314,7 @@ def file_list(load):
         ref = _get_ref(repo, load['env'])
         if not ref:
             continue
-        tree = ref.commit.tree
+        tree = ref.commit.tree  # pylint: disable=E1103
         for blob in tree.traverse():
             if not isinstance(blob, git.Blob):
                 continue
@@ -336,7 +336,7 @@ def file_list_emptydirs(load):
         ref = _get_ref(repo, load['env'])
         if not ref:
             continue
-        tree = ref.commit.tree
+        tree = ref.commit.tree  # pylint: disable=E1103
         for blob in tree.traverse():
             if not isinstance(blob, git.Tree):
                 continue
@@ -359,7 +359,7 @@ def dir_list(load):
         ref = _get_ref(repo, load['env'])
         if not ref:
             continue
-        tree = ref.commit.tree
+        tree = ref.commit.tree  # pylint: disable=E1103
         for blob in tree.traverse():
             if not isinstance(blob, git.Tree):
                 continue
