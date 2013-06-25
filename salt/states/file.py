@@ -514,6 +514,9 @@ def symlink(
         then the state will fail, setting makedirs to True will allow Salt to
         create the parent directory
     '''
+    # Make sure that leading zeros stripped by YAML loader are added back
+    mode = __salt__['config.manage_mode'](mode)
+
     user = _test_owner(kwargs, user=user)
     ret = {'name': name,
            'changes': {},
@@ -740,9 +743,10 @@ def managed(name,
         contents of the file.  Should not be used in conjunction with a source
         file of any kind.  Ignores hashes and does not use a templating engine.
     '''
-    user = _test_owner(kwargs, user=user)
-    # Initial set up
+    # Make sure that leading zeros stripped by YAML loader are added back
     mode = __salt__['config.manage_mode'](mode)
+
+    user = _test_owner(kwargs, user=user)
     ret = {'changes': {},
            'comment': '',
            'name': name,
@@ -795,19 +799,19 @@ def managed(name,
 
     if __opts__['test']:
         ret['result'], ret['comment'] = __salt__['file.check_managed'](
-                name,
-                source,
-                source_hash,
-                user,
-                group,
-                mode,
-                template,
-                makedirs,
-                context,
-                defaults,
-                env,
-                contents,
-                **kwargs
+            name,
+            source,
+            source_hash,
+            user,
+            group,
+            mode,
+            template,
+            makedirs,
+            context,
+            defaults,
+            env,
+            contents,
+            **kwargs
         )
         return ret
 
@@ -924,6 +928,7 @@ def directory(name,
     if not file_mode:
         file_mode = dir_mode
 
+    # Make sure that leading zeros stripped by YAML loader are added back
     dir_mode = __salt__['config.manage_mode'](dir_mode)
     file_mode = __salt__['config.manage_mode'](file_mode)
 
@@ -1173,6 +1178,10 @@ def recurse(name,
             '\'file_mode\' and \'dir_mode\'.'
         )
         return ret
+
+    # Make sure that leading zeros stripped by YAML loader are added back
+    dir_mode = __salt__['config.manage_mode'](dir_mode)
+    file_mode = __salt__['config.manage_mode'](file_mode)
 
     u_check = _check_user(user, group)
     if u_check:
@@ -1871,7 +1880,26 @@ def patch(name,
 def touch(name, atime=None, mtime=None, makedirs=False):
     '''
     Replicate the 'nix "touch" command to create a new empty
-    file or update the atime and mtime of an existing  file.
+    file or update the atime and mtime of an existing file.
+
+    Note that if you just want to create a file and don't care about atime or
+    mtime, you should use ``file.managed`` instead, as it is more
+    feature-complete.  (Just leave out the ``source``/``template``/``contents``
+    arguments, and it will just create the file and/or check its permissions,
+    without messing with contents)
+
+    name
+        name of the file
+
+    atime
+        atime of the file
+
+    mtime
+        mtime of the file
+
+    makedirs
+        whether we should create the parent directory/directories in order to
+        touch the file
 
     Usage::
 

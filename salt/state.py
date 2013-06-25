@@ -1352,6 +1352,8 @@ class State(object):
                 if r_state == 'watch' and run_dict[tag]['changes']:
                     fun_stats.add('change')
                     continue
+                if r_state == 'prereq' and run_dict[tag]['result'] is None:
+                    fun_stats.add('premet')
                 if r_state == 'prereq' and not run_dict[tag]['result'] is None:
                     fun_stats.add('pre')
                 else:
@@ -1362,6 +1364,8 @@ class State(object):
         elif 'fail' in fun_stats:
             return 'fail'
         elif 'pre' in fun_stats:
+            if 'premet' in fun_stats:
+                return 'met'
             return 'pre'
         elif 'change' in fun_stats:
             return 'change'
@@ -1643,16 +1647,17 @@ class BaseHighState(object):
             opts['state_top'] = 'salt://top.sls'
             opts['nodegroups'] = {}
             opts['file_roots'] = {'base': ['/srv/salt']}
-        opts['renderer'] = mopts['renderer']
-        opts['failhard'] = mopts.get('failhard', False)
-        if mopts['state_top'].startswith('salt://'):
-            opts['state_top'] = mopts['state_top']
-        elif mopts['state_top'].startswith('/'):
-            opts['state_top'] = os.path.join('salt://', mopts['state_top'][1:])
         else:
-            opts['state_top'] = os.path.join('salt://', mopts['state_top'])
-        opts['nodegroups'] = mopts.get('nodegroups', {})
-        opts['file_roots'] = mopts['file_roots']
+            opts['renderer'] = mopts['renderer']
+            opts['failhard'] = mopts.get('failhard', False)
+            if mopts['state_top'].startswith('salt://'):
+                opts['state_top'] = mopts['state_top']
+            elif mopts['state_top'].startswith('/'):
+                opts['state_top'] = os.path.join('salt://', mopts['state_top'][1:])
+            else:
+                opts['state_top'] = os.path.join('salt://', mopts['state_top'])
+            opts['nodegroups'] = mopts.get('nodegroups', {})
+            opts['file_roots'] = mopts['file_roots']
         return opts
 
     def _get_envs(self):
