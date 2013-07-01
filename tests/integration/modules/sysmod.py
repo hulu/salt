@@ -1,4 +1,11 @@
+# Import python libs
 import re
+
+# Import Salt Testing libs
+from salttesting.helpers import ensure_in_syspath
+ensure_in_syspath('../../')
+
+# Import salt libs
 import integration
 
 
@@ -10,9 +17,25 @@ class SysModuleTest(integration.ModuleCase):
         '''
         sys.list_functions
         '''
+        # Get all functions
         funcs = self.run_function('sys.list_functions')
-        self.assertTrue('hosts.list_hosts' in funcs)
-        self.assertTrue('pkg.install' in funcs)
+        self.assertIn('hosts.list_hosts', funcs)
+        self.assertIn('pkg.install', funcs)
+
+        # Just sysctl
+        funcs = self.run_function('sys.list_functions', ('sysctl',))
+        self.assertNotIn('sys.doc', funcs)
+        self.assertIn('sysctl.get', funcs)
+
+        # Just sys
+        funcs = self.run_function('sys.list_functions', ('sys.',))
+        self.assertNotIn('sysctl.get', funcs)
+        self.assertIn('sys.doc', funcs)
+
+        # Staring with sys
+        funcs = self.run_function('sys.list_functions', ('sys',))
+        self.assertNotIn('sysctl.get', funcs)
+        self.assertIn('sys.doc', funcs)
 
     def test_list_modules(self):
         '''
@@ -56,6 +79,7 @@ class SysModuleTest(integration.ModuleCase):
                 '\n'.join(['  - {0}'.format(f) for f in sorted(noexample)]),
             )
         )
+
 
 if __name__ == '__main__':
     from integration import run_tests

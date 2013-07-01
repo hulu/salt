@@ -151,6 +151,7 @@ supported. This module will therefore only work on RH/CentOS/Fedora.
 
 # Import python libs
 import difflib
+from salt.loader import _create_loader
 
 
 def managed(name, type, enabled=True, **kwargs):  # pylint: disable=W0622
@@ -255,6 +256,10 @@ def managed(name, type, enabled=True, **kwargs):  # pylint: disable=W0622
         ret['comment'] = error.message
         return ret
 
+    load = _create_loader(__opts__, 'grains', 'grain', ext_dirs=False)
+    grains_info = load.gen_grains()
+    __grains__.update(grains_info)
+    __salt__['saltutil.refresh_modules']()
     return ret
 
 

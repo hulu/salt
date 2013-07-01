@@ -227,10 +227,10 @@ determine what minions are expected to reply from executions.
 
     minion_cache_dir: True
 
-.. conf_master:: minion_data_cache
+.. conf_master:: enforce_mine_cache
 
 ``enforce_mine_cache``
----------------------
+----------------------
 
 Default: False
 
@@ -565,6 +565,8 @@ Default:: ``None``
     ext_pillar:
       - hiera: /etc/hiera.yaml
       - cmd_yaml: cat /etc/salt/yaml
+      - reclass:
+          inventory_base_uri: /etc/reclass
 
 There are additional details at :ref:`salt-pillars`
 

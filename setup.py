@@ -45,7 +45,7 @@ if with_setuptools is False:
     from distutils.core import setup
     warnings.filterwarnings(
         'ignore',
-        'Unknown distribution option: \'(install_requires|zip_safe)\'',
+        'Unknown distribution option: \'(tests_require|install_requires|zip_safe)\'',
         UserWarning,
         'distutils.dist'
     )
@@ -217,6 +217,8 @@ setup_kwargs = {'name': NAME,
                              'salt.search',
                              'salt.output',
                              'salt.utils',
+                             'salt.ssh',
+                             'salt.roster',
                              ],
                 'package_data': {'salt.modules': ['rh_ip/*.jinja']},
                 'data_files': [('share/man/man1',
@@ -296,9 +298,16 @@ if with_setuptools:
                             'salt-cp = salt.scripts:salt_cp',
                             'salt-call = salt.scripts:salt_call',
                             'salt-run = salt.scripts:salt_run',
+                            'salt-ssh = salt.scripts:salt_ssh',
                             'salt = salt.scripts:salt_main'
                             ],
     }
+
+    # Required for running the tests suite
+    setup_kwargs['dependency_links'] = [
+        'https://github.com/saltstack/salt-testing/tarball/develop#egg=SaltTesting'
+    ]
+    setup_kwargs['tests_require'] = ['SaltTesting']
 else:
     setup_kwargs['scripts'] = ['scripts/salt-master',
                                'scripts/salt-minion',
@@ -307,6 +316,7 @@ else:
                                'scripts/salt-cp',
                                'scripts/salt-call',
                                'scripts/salt-run',
+                               'scripts/salt-ssh',
                                'scripts/salt']
 
 if __name__ == '__main__':

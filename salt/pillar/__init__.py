@@ -261,7 +261,7 @@ class Pillar(object):
                             matches[env].append(item)
         return matches
 
-    def render_pstate(self, sls, env, mods):
+    def render_pstate(self, sls, env, mods, defaults={}):
         '''
         Collect a single pillar sls file and render it
         '''
@@ -274,7 +274,7 @@ class Pillar(object):
         state = None
         try:
             state = compile_template(
-                fn_, self.rend, self.opts['renderer'], env, sls)
+                fn_, self.rend, self.opts['renderer'], env, sls, **defaults)
         except Exception as exc:
             errors.append(('Rendering SLS {0} failed, render error:\n{1}'
                            .format(sls, exc)))
@@ -292,14 +292,24 @@ class Pillar(object):
                         errors.append(err)
                     else:
                         for sub_sls in state.pop('include'):
+                            if isinstance(sub_sls, dict):
+                                sub_sls, v = sub_sls.iteritems().next()
+                                defaults = v.get('defaults', {})
+                                key = v.get('key', None)
+                            else:
+                                key = None
                             if sub_sls not in mods:
                                 nstate, mods, err = self.render_pstate(
                                         sub_sls,
                                         env,
-                                        mods
+                                        mods,
+                                        defaults
                                         )
                             if nstate:
-                                state.update(nstate)
+                                if key:
+                                    state[key] = nstate
+                                else:
+                                    state.update(nstate)
                             if err:
                                 errors += err
         return state, mods, errors

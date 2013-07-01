@@ -3,6 +3,14 @@ Support for YUM
 
 :depends:   - yum Python module
             - rpmUtils Python module
+
+This module uses the python interface to YUM. Note that with a default
+/etc/yum.conf, this will cause messages to be sent to sent to syslog on
+/dev/log, with a log facility of :strong:`LOG_USER`. This is in addition to
+whatever is logged to /var/log/yum.log. See the manpage for ``yum.conf(5)`` for
+information on how to use the ``syslog_facility`` and ``syslog_device`` config
+parameters to configure how syslog is handled, or take the above defaults into
+account when configuring your syslog daemon.
 '''
 
 # Import python libs
@@ -19,6 +27,71 @@ try:
     import yum
     import rpmUtils.arch
     HAS_YUMDEPS = True
+
+    class _YumLogger(yum.rpmtrans.RPMBaseCallback):
+        '''
+        A YUM callback handler that logs failed packages with their associated
+        script output to the minion log, and logs install/remove/update/etc.
+        activity to the yum log (usually /var/log/yum.log).
+
+        See yum.rpmtrans.NoOutputCallBack in the yum package for base
+        implementation.
+        '''
+        def __init__(self):
+            self.messages = {}
+            self.failed = []
+            self.action = {
+                yum.constants.TS_UPDATE: yum._('Updating'),
+                yum.constants.TS_ERASE: yum._('Erasing'),
+                yum.constants.TS_INSTALL: yum._('Installing'),
+                yum.constants.TS_TRUEINSTALL: yum._('Installing'),
+                yum.constants.TS_OBSOLETED: yum._('Obsoleted'),
+                yum.constants.TS_OBSOLETING: yum._('Installing'),
+                yum.constants.TS_UPDATED: yum._('Cleanup'),
+                'repackaging': yum._('Repackaging')
+            }
+            # The fileaction are not translated, most sane IMHO / Tim
+            self.fileaction = {
+                yum.constants.TS_UPDATE: 'Updated',
+                yum.constants.TS_ERASE: 'Erased',
+                yum.constants.TS_INSTALL: 'Installed',
+                yum.constants.TS_TRUEINSTALL: 'Installed',
+                yum.constants.TS_OBSOLETED: 'Obsoleted',
+                yum.constants.TS_OBSOLETING: 'Installed',
+                yum.constants.TS_UPDATED: 'Cleanup'
+            }
+            self.logger = logging.getLogger('yum.filelogging.RPMInstallCallback')
+
+        def event(self, package, action, te_current, te_total, ts_current, ts_total):
+            # This would be used for a progress counter according to Yum docs
+            pass
+
+        def log_accumulated_errors(self):
+            '''
+            Convenience method for logging all messages from failed packages
+            '''
+            for pkg in self.failed:
+                log.error('{0} {1}'.format(pkg, self.messages[pkg]))
+
+        def errorlog(self, msg):
+            # Log any error we receive
+            log.error(msg)
+
+        def filelog(self, package, action):
+            if action == yum.constants.TS_FAILED:
+                self.failed.append(package)
+            else:
+                if action in self.fileaction:
+                    msg = '{0}: {1}'.format(self.fileaction[action], package)
+                else:
+                    msg = '{0}: {1}'.format(package, action)
+                self.logger.info(msg)
+
+        def scriptout(self, package, msgs):
+            # This handler covers ancillary messages coming from the RPM script
+            # Will sometimes contain more detailed error messages.
+            self.messages[package] = msgs
+
 except (ImportError, AttributeError):
     HAS_YUMDEPS = False
 
@@ -56,48 +129,6 @@ def __virtual__():
     elif os_family == 'RedHat' and os_major >= 6:
         return 'pkg'
     return False
-
-
-class _YumErrorLogger(object):
-    '''
-    A YUM callback handler that logs failed packages with their associated
-    script output.
-
-    See yum.rpmtrans.NoOutputCallBack in the yum package for base
-    implementation.
-    '''
-    def __init__(self):
-        self.messages = {}
-        self.failed = []
-
-    def event(self, package, action, te_current, te_total, ts_current, ts_total):
-        # This would be used for a progress counter according to Yum docs
-        pass
-
-    def log_accumulated_errors(self):
-        '''
-        Convenience method for logging all messages from failed packages
-        '''
-        for pkg in self.failed:
-            log.error('{0} {1}'.format(pkg, self.messages[pkg]))
-
-    def errorlog(self, msg):
-        # Log any error we receive
-        log.error(msg)
-
-    def filelog(self, package, action):
-        # TODO: extend this for more conclusive transaction handling for
-        # installs and removes VS. the pkg list compare method used now.
-        #
-        # See yum.constants and yum.rpmtrans.RPMBaseCallback in the yum
-        # package for more information about the received actions.
-        if action == yum.constants.TS_FAILED:
-            self.failed.append(package)
-
-    def scriptout(self, package, msgs):
-        # This handler covers ancillary messages coming from the RPM script
-        # Will sometimes contain more detailed error messages.
-        self.messages[package] = msgs
 
 
 def list_upgrades(refresh=True):
@@ -529,7 +560,7 @@ def install(name=None,
         log.info('Resolving dependencies')
         yumbase.resolveDeps()
         log.info('Processing transaction')
-        yumlogger = _YumErrorLogger()
+        yumlogger = _YumLogger()
         yumbase.processTransaction(rpmDisplay=yumlogger)
         yumlogger.log_accumulated_errors()
         yumbase.closeRpmDB()
@@ -569,8 +600,8 @@ def upgrade(refresh=True):
         yumbase.update()
         log.info('Resolving dependencies')
         yumbase.resolveDeps()
-        yumlogger = _YumErrorLogger()
         log.info('Processing transaction')
+        yumlogger = _YumLogger()
         yumbase.processTransaction(rpmDisplay=yumlogger)
         yumlogger.log_accumulated_errors()
         yumbase.closeRpmDB()
@@ -629,8 +660,8 @@ def remove(name=None, pkgs=None, **kwargs):
 
     log.info('Resolving dependencies')
     yumbase.resolveDeps()
-    yumlogger = _YumErrorLogger()
     log.info('Processing transaction')
+    yumlogger = _YumLogger()
     yumbase.processTransaction(rpmDisplay=yumlogger)
     yumlogger.log_accumulated_errors()
     yumbase.closeRpmDB()

@@ -564,10 +564,10 @@ def psed(path, before, after, limit='', backup='.bak', flags='gMS',
         Flags to modify the search. Valid values are :
             ``g``: Replace all occurrences of the pattern, not just the first.
             ``I``: Ignore case.
-            ``L``: Make \\w, \\W, \b, \\B, \\s and \\S dependent on the locale.
+            ``L``: Make ``\w``, ``\W``, ``\\b``, ``\B``, ``\s`` and ``\S`` dependent on the locale.
             ``M``: Treat multiple lines as a single line.
             ``S``: Make `.` match all characters, including newlines.
-            ``U``: Make \\w, \\W, \\b, \\B, \\d, \\D, \\s and \\S dependent on Unicode.
+            ``U``: Make ``\w``, ``\W``, ``\\b``, ``\B``, ``\d``, ``\D``, ``\s`` and ``\S`` dependent on Unicode.
             ``X``: Verbose (whitespace is ignored).
     multi: ``False``
         If True, treat the entire file as a single line
@@ -1100,12 +1100,26 @@ def source_list(source, source_hash, env):
     Check the source list and return the source to use
 
     CLI Example::
+
         salt '*' file.source_list salt://http/httpd.conf '{hash_type: 'md5', 'hsum': <md5sum>}' base
     '''
+    # get the master file list
     if isinstance(source, list):
-        # get the master file list
         mfiles = __salt__['cp.list_master'](env)
         mdirs = __salt__['cp.list_master_dirs'](env)
+        for single in source:
+            if isinstance(single, dict):
+                single = next(iter(single))
+            try:
+                sname, senv = single.split('?env=')
+            except ValueError:
+                continue
+            else:
+                mfiles += ["{0}?env={1}".format(f, senv)
+                           for f in __salt__['cp.list_master'](senv)]
+                mdirs += ["{0}?env={1}".format(d, senv)
+                          for d in __salt__['cp.list_master_dirs'](senv)]
+
         for single in source:
             if isinstance(single, dict):
                 # check the proto, if it is http or ftp then download the file
@@ -1116,7 +1130,7 @@ def source_list(source, source_hash, env):
                 single_hash = single[single_src]
                 proto = salt._compat.urlparse(single_src).scheme
                 if proto == 'salt':
-                    if single_src in mfiles:
+                    if single_src[7:] in mfiles or single_src[7:] in mdirs:
                         source = single_src
                         break
                 elif proto.startswith('http') or proto == 'ftp':
