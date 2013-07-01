@@ -208,7 +208,7 @@ def find_file(path, short='base', **kwargs):
         if not ref:
             # Branch or tag not found in repo, try the next
             continue
-        tree = ref.commit.tree
+        tree = ref.commit.tree  # pylint: disable=E1103
         try:
             blob = tree/path
         except KeyError:
