@@ -1123,11 +1123,11 @@ def mod_repo(repo, **kwargs):
         s_comps = set(mod_source.comps)
         r_comps = set(repo_comps)
         if s_comps.symmetric_difference(r_comps):
-            new_source = sourceslist.SourceEntry(source.line)
-            new_source.file = source.file
+            new_source = sourceslist.SourceEntry(source.line)  # pylint: disable=W0631
+            new_source.file = source.file  # pylint: disable=W0631
             new_source.comps = list(r_comps.difference(s_comps))
-            source.comps = list(s_comps.difference(r_comps))
-            sources.insert(sources.index(source), new_source)
+            source.comps = list(s_comps.difference(r_comps))  # pylint: disable=W0631
+            sources.insert(sources.index(source), new_source)  # pylint: disable=W0631
             sources.save()
 
     for key in kwargs:
