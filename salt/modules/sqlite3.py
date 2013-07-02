@@ -63,7 +63,7 @@ def modify(db=None, sql=None):
     if not cur:
         return False
 
-    cur.execute(sql)
+    cur.execute(sql)  # pylint: disable=E1103
     return True
 
 
@@ -80,8 +80,8 @@ def fetch(db=None, sql=None):
     if not cur:
         return False
 
-    cur.execute(sql)
-    rows = cur.fetchall()
+    cur.execute(sql)  # pylint: disable=E1103
+    rows = cur.fetchall()  # pylint: disable=E1103
     return rows
 
 
@@ -98,10 +98,10 @@ def tables(db=None):
     if not cur:
         return False
 
-    cur.execute(
+    cur.execute(  # pylint: disable=E1103
         "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
     )
-    rows = cur.fetchall()
+    rows = cur.fetchall()  # pylint: disable=E1103
     return rows
 
 
@@ -118,10 +118,10 @@ def indices(db=None):
     if not cur:
         return False
 
-    cur.execute(
+    cur.execute(  # pylint: disable=E1103
         "SELECT name FROM sqlite_master WHERE type='index' ORDER BY name;"
     )
-    rows = cur.fetchall()
+    rows = cur.fetchall()  # pylint: disable=E1103
     return rows
 
 
