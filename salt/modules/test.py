@@ -299,7 +299,7 @@ def not_loaded():
     return sorted(ret)
 
 
-def tty(device, echo=None):
+def tty(device, echo=None):  # pylint: disable=W0621
     '''
     Echo a string to a specific tty
 
