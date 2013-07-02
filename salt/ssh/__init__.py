@@ -14,10 +14,11 @@ class SSH(object):
     '''
     def __init__(self, opts):
         self.opts = opts
+        tgt_type = self.opts['selected_target_option'] if self.opts['selected_target_option'] else 'glob'
         self.roster = salt.roster.Roster(opts)
         self.targets = self.roster.targets(
                 self.opts['tgt'],
-                self.opts['selected_target_option'])
+                tgt_type)
         self.defaults = {
                 'user': self.opts.get('ssh_user', 'root'),
                 'port': self.opts.get('ssh_port', '22'),
@@ -33,15 +34,14 @@ class SSH(object):
         '''
         # TODO, this is just the code to test the chain, this is where the
         # parallel stuff needs to go once the chain is proven valid
-        for target in self.targets.items():
+        for target in self.targets:
             for default in self.defaults:
-                if not default in target:
-                    target[default] = self.defaults[default]
+                if not default in self.targets[target]:
+                    self.targets[target][default] = self.defaults[default]
             single = Single(
                     self.opts,
-                    self.arg_str,
-                    target['host'],
-                    **target)
+                    self.opts['arg_str'],
+                    **self.targets[target])
             yield single.cmd()
 
     def run(self):
@@ -49,7 +49,7 @@ class SSH(object):
         Execute the overall routine
         '''
         for ret in self.process():
-            salt.output.display_output(ret, salt.opts['out'], self.opts)
+            salt.output.display_output(ret, self.opts['out'], self.opts)
 
 
 class Single(multiprocessing.Process):
@@ -120,7 +120,8 @@ class Single(multiprocessing.Process):
                '    echo "deploy"\n'
                '    exit 1\n'
                '$PYTHON $SALT --local -l quiet {0}\n'
-               'EOF').format(self.arg_std)
+               'EOF').format(self.arg_str)
+        print 'Ran command'
         ret = self.shell.exec_cmd(cmd)
         if ret.startswith('deploy'):
             self.deploy()
