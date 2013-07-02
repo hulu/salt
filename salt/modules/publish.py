@@ -91,7 +91,7 @@ def _normalize_arg(arg):
             arg = [arg]
     except Exception:
         if isinstance(arg, string_types):
-            arg = arg.split(',')
+            arg = arg.split(',')  # pylint: disable=E1103
 
     return arg
 
