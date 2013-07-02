@@ -140,7 +140,7 @@ def list_(prefix='', ruby=None, runas=None):
                      ruby, runas=runas)
     lines = []
     if isinstance(stdout, str):
-        lines = stdout.splitlines()
+        lines = stdout.splitlines()  # pylint: disable=E1103
     for line in lines:
         match = re.match(r'^([^ ]+) \((.+)\)', line)
         if match:
