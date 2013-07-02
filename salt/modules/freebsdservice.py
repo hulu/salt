@@ -131,7 +131,7 @@ def _switch(name,                   # pylint: disable=C0103
         if not os.path.exists(rcdir) or not os.path.isdir(rcdir):
             log.error('{0} not exists'.format(rcdir))
             return False
-        config = os.path.join(rcdir, rcvar.replace('_enable', ''))
+        config = os.path.join(rcdir, rcvar.replace('_enable', ''))  # pylint: disable=E1103
 
     nlines = []
     edited = False
