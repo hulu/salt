@@ -567,7 +567,7 @@ def get_id():
     # Can /etc/hosts help us?
     try:
         # TODO Add Windows host file support
-        with open('/etc/hosts') as f:
+        with salt.utils.fopen('/etc/hosts') as f:
             line = f.readline()
             while line:
                 names = line.split()
