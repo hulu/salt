@@ -127,7 +127,7 @@ def eclean_dist(destructive=False, package_names=False, size_limit=0,
         fetch_restricted=fetch_restricted, exclude=exclude)
 
     cleaned = dict()
-    def _eclean_progress_controller(size, key, *args):
+    def _eclean_progress_controller(size, key, *args):  # pylint: disable=W0613
         cleaned[key] = _pretty_size(size)
         return True
 
@@ -191,7 +191,7 @@ def eclean_pkg(destructive=False, package_names=False, time_limit=0,
                                    pkgdir=search.pkgdir)
 
     cleaned = dict()
-    def _eclean_progress_controller(size, key, *args):
+    def _eclean_progress_controller(size, key, *args):  # pylint: disable=W0613
         cleaned[key] = _pretty_size(size)
         return True
 
