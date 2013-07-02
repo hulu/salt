@@ -17,7 +17,6 @@ class Shell(object):
     '''
     def __init__(
             self,
-            cmd,
             host,
             user=None,
             port=None,
@@ -26,7 +25,6 @@ class Shell(object):
             timeout=None,
             sudo=False,
             tty=False):
-        self.cmd = cmd
         self.host = host
         self.user = user
         self.port = port
@@ -40,8 +38,7 @@ class Shell(object):
         '''
         Return options for the ssh command base for Salt to call
         '''
-        options = ['ControlMaster=auto',
-                   'ControlPersist=60s',
+        options = [
                    'StrictHostKeyChecking=no',
                    'KbdInteractiveAuthentication=no',
                    'GSSAPIAuthentication=no',
@@ -55,7 +52,10 @@ class Shell(object):
         if self.user:
             options.append('User={0}'.format(self.user))
 
-        return options
+        ret = ''
+        for option in options:
+            ret += '-o {0} '.format(option)
+        return ret
 
     def _passwd_opts(self):
         '''
@@ -72,8 +72,10 @@ class Shell(object):
         if self.user:
             options.append('User={0}'.format(self.user))
 
-        return options
-
+        ret = ''
+        for option in options:
+            ret += '-o {0} '.format(option)
+        return ret
 
     def _cmd_str(self, cmd, ssh='ssh'):
         '''
@@ -83,20 +85,20 @@ class Shell(object):
             if not salt.utils.which('sshpass'):
                 return None
             opts = self._passwd_opts()
-            return 'sshpass -p {0} {1} {2} {3} -o {4} -c {5}'.format(
+            return 'sshpass -p {0} {1} {2} {3} {4} {5}'.format(
                     self.passwd,
                     ssh,
                     self.host,
                     '-t -t' if self.tty else '',
-                    ','.join(opts),
+                    opts,
                     cmd)
         elif self.priv:
             opts = self._key_opts()
-            return '{0} {1} {2} -o {3} -c {4}'.format(
+            return '{0} {1} {2} {3} {4}'.format(
                     ssh,
                     self.host,
                     '-t -t' if self.tty else '',
-                    ','.join(opts),
+                    opts,
                     cmd)
         return None
 
@@ -106,7 +108,7 @@ class Shell(object):
         Cleanly execute the command string
         '''
         try:
-            proc = salt.utils.nb_open.NonBlockingPopen(
+            proc = salt.utils.nb_popen.NonBlockingPopen(
                 cmd,
                 shell=True,
                 stderr=subprocess.PIPE,

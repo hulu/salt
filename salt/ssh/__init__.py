@@ -3,6 +3,7 @@ Create ssh executor system
 '''
 # Import python libs
 import multiprocessing
+import json
 
 # Import salt libs
 import salt.ssh.shell
@@ -49,7 +50,10 @@ class SSH(object):
         Execute the overall routine
         '''
         for ret in self.process():
-            salt.output.display_output(ret, self.opts['out'], self.opts)
+            salt.output.display_output(
+                    ret,
+                    self.opts.get('output', 'nested'),
+                    self.opts)
 
 
 class Single(multiprocessing.Process):
@@ -110,20 +114,20 @@ class Single(multiprocessing.Process):
                'then\n'
                '    PYTHON=python26\n'
                'fi\n'
-               'if [ `which salt-call` ]\n'
+               'if hash salt-call\n'
                'then\n'
-               '    SALT=salt-call\n'
+               '    SALT=$(type -p salt-call)\n'
                'elif [ -f /tmp/salt-thin/salt-call] \n'
                'then\n'
                '    SALT=/tmp/salt-thin/salt-call\n'
                'else\n'
                '    echo "deploy"\n'
                '    exit 1\n'
-               '$PYTHON $SALT --local -l quiet {0}\n'
+               'fi\n'
+               '$PYTHON $SALT --local --out json -l quiet {0}\n'
                'EOF').format(self.arg_str)
-        print 'Ran command'
         ret = self.shell.exec_cmd(cmd)
         if ret.startswith('deploy'):
             self.deploy()
-            return self.cmd(arg_str)
-        return ret
+            return json.loads(self.cmd(arg_str))
+        return json.loads(ret)
