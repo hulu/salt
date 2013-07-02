@@ -313,7 +313,7 @@ def remount(name, device, mkmnt=False, fstype='', opts='defaults'):
     if name in mnts:
         # The mount point is mounted, attempt to remount it with the given data
         if 'remount' not in opts:
-            opts.append('remount')
+            opts.append('remount')  # pylint: disable=E1103
         lopts = ','.join(opts)
         args = '-o {0}'.format(lopts)
         if fstype:
