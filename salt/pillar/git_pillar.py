@@ -169,7 +169,7 @@ def envs(branch, repo_location):
     return list(ret)
 
 
-def ext_pillar(pillar, repo_string):
+def ext_pillar(pillar, repo_string):  # pylint: disable=W0613
     '''
     Execute a command and read the output as YAML
     '''
