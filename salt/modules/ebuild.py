@@ -699,7 +699,7 @@ def compare(pkg1='', oper='==', pkg2=''):
     return __salt__['pkg_resource.compare'](pkg1=pkg1, oper=oper, pkg2=pkg2)
 
 
-def version_clean(version):
+def version_clean(version):  # pylint: disable=W0621
     '''
     Clean the version string removing extra data.
 
