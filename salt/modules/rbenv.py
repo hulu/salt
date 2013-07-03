@@ -1,5 +1,7 @@
 '''
 Manage ruby installations with rbenv.
+
+.. versionadded:: 0.16.0
 '''
 
 # Import python libs
@@ -194,8 +196,8 @@ def versions(runas=None):
         salt '*' rbenv.versions
     '''
 
-    ret = _rbenv_exec('versions', '--bare', runas=runas).splitlines()
-    return [] if ret is False else ret
+    ret = _rbenv_exec('versions', '--bare', runas=runas)
+    return [] if ret is False else ret.splitlines()
 
 
 def default(ruby=None, runas=None):

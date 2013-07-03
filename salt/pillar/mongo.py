@@ -80,7 +80,8 @@ def __virtual__():
 log = logging.getLogger(__name__)
 
 
-def ext_pillar(pillar,  # pylint: disable=W0613
+def ext_pillar(minion_id,
+               pillar,  # pylint: disable=W0613
                collection='pillar',
                id_field='_id',
                re_pattern=None,
@@ -125,7 +126,6 @@ def ext_pillar(pillar,  # pylint: disable=W0613
         mdb.authenticate(user, password)
 
     # Do the regex string replacement on the minion id
-    minion_id = __opts__['id']
     if re_pattern:
         minion_id = re.sub(re_pattern, re_replace, minion_id)
 

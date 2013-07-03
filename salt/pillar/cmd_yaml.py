@@ -13,7 +13,7 @@ import yaml
 log = logging.getLogger(__name__)
 
 
-def ext_pillar(pillar, command):  # pylint: disable=W0613
+def ext_pillar(minion_id, pillar, command):  # pylint: disable=W0613
     '''
     Execute a command and read the output as YAML
     '''
