@@ -365,7 +365,7 @@ class Pillar(object):
                         update(pillar, ext)
 
                     except TypeError as e:
-                        if e.message.startswith('ext_pillar() takes exactly '):
+                        if e.message.startswith('ext_pillar() takes exactly '):  # pylint: disable=E1101
                             log.warning('Deprecation warning: ext_pillar "{0}"'\
                                         ' needs to accept minion_id as first'\
                                         ' argument'.format(key))
