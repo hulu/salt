@@ -81,7 +81,7 @@ def flavor_list():
     return ret
 
 
-def flavor_create(name,      # pylint: disable=C0103
+def flavor_create(name,  # pylint: disable=C0103
                   id=0,  # pylint: disable=W0622
                   ram=0,
                   disk=0,

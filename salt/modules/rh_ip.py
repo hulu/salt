@@ -944,7 +944,7 @@ def get_interface(iface):
     return _read_file(path)
 
 
-def up(iface, iface_type):  # pylint: disable-msg=C0103
+def up(iface, iface_type):  # pylint: disable=C0103
     '''
     Start up a network interface
 
