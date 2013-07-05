@@ -100,8 +100,8 @@ def minion_mods(opts, context=None, whitelist=None):
         pack,
         whitelist=whitelist
     )
-    # Enforce dependancies of module functions from "functions"
-    Depends.enforce_dependancies(functions)
+    # Enforce dependencies of module functions from "functions"
+    Depends.enforce_dependencies(functions)
 
     if opts.get('providers', False):
         if isinstance(opts['providers'], dict):
@@ -247,7 +247,8 @@ def grains(opts):
     if 'conf_file' in opts:
         pre_opts = {}
         pre_opts.update(salt.config.load_config(
-            opts['conf_file'], 'SALT_MINION_CONFIG'
+            opts['conf_file'], 'SALT_MINION_CONFIG',
+            salt.config.DEFAULT_MINION_OPTS['conf_file']
         ))
         default_include = pre_opts.get(
             'default_include', opts['default_include']
