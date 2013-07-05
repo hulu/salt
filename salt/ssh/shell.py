@@ -3,12 +3,23 @@ Manage transport commands via ssh
 '''
 
 # Import python libs
+import os
 import time
 import subprocess
 
 # Import salt libs
 import salt.utils
 import salt.utils.nb_popen
+
+
+def gen_key(path):
+    '''
+    Genrate a key for use with salt-ssh
+    '''
+    cmd = 'ssh-keygen -P "" -f {0} -t rsa -q'.format(path)
+    if not os.path.isdir(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+    subprocess.call(cmd, shell=True)
 
 
 class Shell(object):
@@ -81,9 +92,7 @@ class Shell(object):
         '''
         Return the cmd string to execute
         '''
-        if self.passwd:
-            if not salt.utils.which('sshpass'):
-                return None
+        if self.passwd and salt.utils.which('sshpass'):
             opts = self._passwd_opts()
             return 'sshpass -p {0} {1} {2} {3} {4} {5}'.format(
                     self.passwd,
@@ -92,7 +101,7 @@ class Shell(object):
                     '-t -t' if self.tty else '',
                     opts,
                     cmd)
-        elif self.priv:
+        if self.priv:
             opts = self._key_opts()
             return '{0} {1} {2} {3} {4}'.format(
                     ssh,
@@ -102,20 +111,17 @@ class Shell(object):
                     cmd)
         return None
 
-
     def _run_cmd(self, cmd):
         '''
         Cleanly execute the command string
         '''
         try:
-            proc = salt.utils.nb_popen.NonBlockingPopen(
+            proc = subprocess.Popen(
                 cmd,
                 shell=True,
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
             )
-            while proc.poll() is None:
-                time.sleep(0.25)
 
             data = proc.communicate()
             return data[0]
@@ -124,19 +130,14 @@ class Shell(object):
         # Signal an error
         return ''
 
-
     def exec_cmd(self, cmd):
         '''
         Execute a remote command
         '''
         if self.sudo:
             cmd = 'sudo {0}'.format(cmd)
-            tty = True
-        else:
-            tty = False
         cmd = self._cmd_str(cmd)
         return self._run_cmd(cmd)
-
 
     def send(self, local, remote):
         '''
