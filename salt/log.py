@@ -71,7 +71,9 @@ def is_temp_logging_configured():
 if sys.version_info < (2, 7):
     # Since the NullHandler is only available on python >= 2.7, here's a copy
     class NullHandler(logging.Handler):
-        """ This is 1 to 1 copy of python's 2.7 NullHandler"""
+        '''
+        This is 1 to 1 copy of python's 2.7 NullHandler
+        '''
         def handle(self, record):
             pass
 
@@ -136,7 +138,16 @@ class LoggingMixInMeta(type):
         )
 
 
-class SaltLoggingClass(LOGGING_LOGGER_CLASS):
+class __NewStyleClassMixIn(object):
+    '''
+    Simple new style class to make pylint shut up!
+    This is required because SaltLoggingClass can't subclass object directly:
+
+        'Cannot create a consistent method resolution order (MRO) for bases'
+    '''
+
+
+class SaltLoggingClass(LOGGING_LOGGER_CLASS, __NewStyleClassMixIn):
     __metaclass__ = LoggingMixInMeta
 
     def __new__(cls, logger_name):
@@ -222,7 +233,7 @@ class SaltLoggingClass(LOGGING_LOGGER_CLASS):
         return LOGGING_LOGGER_CLASS.makeRecord(
             self, name, level, fn, lno, msg, args, exc_info, func, extra
         )
-    # pylint: enable-msg=C0103
+    # pylint: enable=C0103
 
 
 # Override the python's logging logger class as soon as this module is imported
@@ -239,7 +250,7 @@ if logging.getLoggerClass() is not SaltLoggingClass:
 
         # Add a Null logging handler until logging is configured(will be
         # removed at a later stage) so we stop getting:
-        #   No handlers could be found for logger "foo"
+        #   No handlers could be found for logger 'foo'
         logging.getLogger().addHandler(LOGGING_NULL_HANDLER)
 
 
