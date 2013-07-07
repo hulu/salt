@@ -454,7 +454,7 @@ def compare(pkg1='', oper='==', pkg2=''):
         return cmp_result in cmp_map[oper]
 
 
-def version_clean(version):
+def version_clean(version):  # pylint: disable=W0621
     '''
     Clean the version string removing extra data.
     This function will simply try to call "pkg.version_clean".
