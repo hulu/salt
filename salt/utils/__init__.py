@@ -255,13 +255,13 @@ def which(exe=None):
             full_path = os.path.join(path, exe)
             if os.access(full_path, os.X_OK):
                 return full_path
-        log.trace(
+        log.trace(  # pylint: disable=E1103
             '{0!r} could not be found in the following search '
             'path: {1!r}'.format(
                 exe, search_path
             )
         )
-    log.trace('No executable was passed to be searched by which')
+    log.trace('No executable was passed to be searched by which')  # pylint: disable=E1103
     return None
 
 
