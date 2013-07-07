@@ -197,7 +197,7 @@ def versions(runas=None):
     '''
 
     ret = _rbenv_exec('versions', '--bare', runas=runas)
-    return [] if ret is False else ret.splitlines()
+    return [] if ret is False else ret.splitlines()  # pylint: disable=E1103
 
 
 def default(ruby=None, runas=None):
@@ -222,7 +222,7 @@ def default(ruby=None, runas=None):
         return True
     else:
         ret = _rbenv_exec('global', runas=runas)
-        return '' if ret is False else ret.strip()
+        return '' if ret is False else ret.strip()  # pylint: disable=E1103
 
 
 def list_(runas=None):
@@ -237,7 +237,7 @@ def list_(runas=None):
     ret = []
     output = _rbenv_exec('install', '--list', runas=runas)
     if output:
-        for line in output.splitlines():
+        for line in output.splitlines():  # pylint: disable=E1103
             if line == 'Available versions:':
                 continue
             ret.append(line.strip())
