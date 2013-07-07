@@ -202,4 +202,4 @@ def sources_list(ruby=None, runas=None):
         salt '*' gem.sources_list
     '''
     ret = _gem('sources', ruby, runas=runas)
-    return [] if ret is False else ret.splitlines()[2:]
+    return [] if ret is False else ret.splitlines()[2:]  # pylint: disable=E1103
