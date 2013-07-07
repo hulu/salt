@@ -807,7 +807,7 @@ class Loader(object):
                     # functions are namespaced with their module name
                     module_func_name = '{0}.{1}'.format(module_name, funcname)
                     funcs[module_func_name] = func
-                    log.trace(
+                    log.trace(  # pylint: disable=E1103
                         'Added {0} to {1}'.format(module_func_name, self.tag)
                     )
                     self._apply_outputter(func, mod)
