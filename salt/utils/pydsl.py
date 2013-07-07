@@ -379,7 +379,7 @@ class StateFunction(object):
         if sls.options.ordered:
             last_f = sls.last_func()
             if last_f:
-                self.require(last_f.mod)
+                self.require(last_f.mod)  # pylint: disable=E1101
                 self.require_index = len(self.args) - 1
             sls.track_func(self)
 
