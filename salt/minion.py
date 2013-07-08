@@ -56,8 +56,8 @@ log = logging.getLogger(__name__)
 # 2. Generate the function mapping dict
 # 3. Authenticate with the master
 # 4. Store the AES key
-# 5. connect to the publisher
-# 6. handle publications
+# 5. Connect to the publisher
+# 6. Handle publications
 
 
 def resolve_dns(opts):
@@ -1122,8 +1122,6 @@ class Minion(object):
             self.socket.close()
         if hasattr(self, 'context') and self.context.closed is False:
             self.context.term()
-        if hasattr(self, 'local'):
-            del self.local
 
     def __del__(self):
         self.destroy()
@@ -1296,6 +1294,14 @@ class Syndic(Minion):
                     'An exception occurred while polling the syndic',
                     exc_info=True
                 )
+
+    def destroy(self):
+        '''
+        Tear down the syndic minion
+        '''
+        super(Syndic, self).destroy()
+        if hasattr(self, 'local'):
+            del self.local
 
 
 class Matcher(object):
