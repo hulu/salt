@@ -190,7 +190,14 @@ def _nic_profile(nic):
     return __salt__['config.option']('virt.nic', {}).get(nic, default)
 
 
-def init(name, cpu, mem, image, nic='default', emulator='kvm', start=True, **kwargs):
+def init(name,
+         cpu,
+         mem,
+         image,
+         nic='default',
+         emulator='kvm',
+         start=True,  # pylint: disable=W0621
+         **kwargs):
     '''
     Initialize a new vm
 
