@@ -87,14 +87,6 @@ def _reconstruct_ppa_name(owner_name, ppa_name):
     return 'ppa:{0}/{1}'.format(owner_name, ppa_name)
 
 
-def _pkgname_without_arch(name):
-    '''
-    Check for ':arch' appended to pkg name (i.e. 32 bit installed on 64 bit
-    machine is ':i386')
-    '''
-    return name.rpartition(':')[0]
-
-
 def _get_repo(**kwargs):
     '''
     Check the kwargs for either 'fromrepo' or 'repo' and return the value.
@@ -529,7 +521,6 @@ def list_pkgs(versions_as_list=False, removed=False):
                 [cols[x] for x in (0, 2, 3, 4)]
         except ValueError:
             continue
-        name = _pkgname_without_arch(name)
         if len(cols):
             if ('install' in linetype or 'hold' in linetype) and \
                     'installed' in status:

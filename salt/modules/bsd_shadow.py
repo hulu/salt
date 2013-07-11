@@ -13,6 +13,17 @@ def __virtual__():
     return 'shadow' if 'BSD' in __grains__.get('os', '') else False
 
 
+def default_hash():
+    '''
+    Returns the default hash used for unset passwords
+
+    CLI Example::
+
+        salt '*' shadow.default_hash
+    '''
+    return '*' if __grains__['os'].lower() == 'freebsd' else '*************'
+
+
 def info(name):
     '''
     Return information for the specified user
@@ -25,7 +36,7 @@ def info(name):
         data = pwd.getpwnam(name)
         ret = {
             'name': data.pw_name,
-            'passwd': data.pw_passwd if data.pw_passwd.strip('*') else ''}
+            'passwd': data.pw_passwd}
     except KeyError:
         return {
             'name': '',
