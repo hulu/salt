@@ -85,7 +85,9 @@ class NonBlockingPopen(subprocess.Popen):
     def recv_err(self, maxsize=None):
         return self._recv('stderr', maxsize)
 
-    def send_recv(self, input='', maxsize=None):
+    def send_recv(self,
+                  input='',  # pylint: disable=W0622
+                  maxsize=None):
         return self.send(input), self.recv(maxsize), self.recv_err(maxsize)
 
     def get_conn_maxsize(self, which, maxsize):
@@ -100,7 +102,7 @@ class NonBlockingPopen(subprocess.Popen):
         setattr(self, which, None)
 
     if subprocess.mswindows:
-        def send(self, input):
+        def send(self, input):  # pylint: disable=W0622
             if not self.stdin:
                 return None
 
@@ -147,7 +149,7 @@ class NonBlockingPopen(subprocess.Popen):
 
     else:
 
-        def send(self, input):
+        def send(self, input):  # pylint: disable=W0622
             if not self.stdin:
                 return None
 
