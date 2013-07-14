@@ -196,7 +196,7 @@ def dead(name,
 
 
 def mod_watch(name,
-              restart=False,
+              restart=False,  # pylint: disable=W0613
               update=False,
               runas=None,
               conf_file=None,
