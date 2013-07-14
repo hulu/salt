@@ -138,7 +138,7 @@ def list_(runas=None):
     output = _rvm('list', '', runas=runas)
     if output:
         regex = re.compile(r'^[= ]([*> ]) ([^- ]+)-([^ ]+) \[ (.*) \]')
-        for line in output.splitlines():
+        for line in output.splitlines():  # pylint: disable=E1103
             match = regex.match(line)
             if match:
                 rubies.append([
@@ -264,7 +264,7 @@ def gemset_list(ruby='default', runas=None):
     output = _rvm_do(ruby, 'rvm gemset list', runas=runas)
     if output:
         regex = re.compile('^   ([^ ]+)')
-        for line in output.splitlines():
+        for line in output.splitlines():  # pylint: disable=E1103
             match = regex.match(line)
             if match:
                 gemsets.append(match.group(1))
@@ -348,7 +348,7 @@ def gemset_list_all(runas=None):
     if output:
         gems_regex = re.compile('^   ([^ ]+)')
         gemset_regex = re.compile('^gemsets for ([^ ]+)')
-        for line in output.splitlines():
+        for line in output.splitlines():  # pylint: disable=E1103
             match = gemset_regex.match(line)
             if match:
                 current_ruby = match.group(1)
