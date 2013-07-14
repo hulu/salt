@@ -1614,6 +1614,7 @@ class BaseHighState(object):
     '''
     def __init__(self, opts):
         self.opts = self.__gen_opts(opts)
+        self.iorder = 10000
         self.avail = self.__gather_avail()
         self.serial = salt.payload.Serial(self.opts)
 
@@ -1656,6 +1657,9 @@ class BaseHighState(object):
             else:
                 opts['state_top'] = os.path.join('salt://', mopts['state_top'])
             opts['nodegroups'] = mopts.get('nodegroups', {})
+            opts['state_auto_order'] = mopts.get(
+                    'state_auto_order',
+                    opts['state_auto_order'])
             opts['file_roots'] = mopts['file_roots']
         return opts
 
@@ -1971,11 +1975,37 @@ class BaseHighState(object):
                         log.error(msg)
                         if self.opts['failhard']:
                             errors.append(msg)
+                self._handle_iorder(state)
         else:
             state = {}
         return state, errors
 
+    def _handle_iorder(self, state):
+        '''
+        Take a state and apply the iorder system
+        '''
+        if self.opts['state_auto_order']:
+            for name in state:
+                for s_dec in state[name]:
+                    found = False
+                    if s_dec.startswith('_'):
+                        continue
+                    for arg in state[name][s_dec]:
+                        if isinstance(arg, dict):
+                            if len(arg) > 0:
+                                if arg.keys()[0] == 'order':
+                                    found = True
+                    if not found:
+                        state[name][s_dec].append(
+                                {'order': self.iorder}
+                                )
+                        self.iorder += 1
+        return state
+
     def _handle_state_decls(self, state, sls, env, errors):
+        '''
+        Add sls and env components to the state
+        '''
         for name in state:
             if not isinstance(state[name], dict):
                 if name == '__extend__':
@@ -1996,7 +2026,7 @@ class BaseHighState(object):
                     .format(name, sls)))
                 continue
             skeys = set()
-            for key in sorted(state[name]):
+            for key in state[name]:
                 if key.startswith('_'):
                     continue
                 if not isinstance(state[name][key], list):
@@ -2030,6 +2060,10 @@ class BaseHighState(object):
                 state[name]['__env__'] = env
 
     def _handle_extend(self, state, sls, env, errors):
+        '''
+        Take the extend dec out of state and apply to the highstate global
+        dec
+        '''
         if 'extend' in state:
             ext = state.pop('extend')
             if not isinstance(ext, dict):
@@ -2058,6 +2092,10 @@ class BaseHighState(object):
             state.setdefault('__extend__', []).append(ext)
 
     def _handle_exclude(self, state, sls, env, errors):
+        '''
+        Take the exclude dec out of the state and apply it to the highstate
+        global dec
+        '''
         if 'exclude' in state:
             exc = state.pop('exclude')
             if not isinstance(exc, list):

@@ -5,16 +5,24 @@ Jinja loading utils to enable a more powerful backend for jinja templates
 # Import python libs
 from os import path
 import logging
+from functools import partial
+import json
 
 # Import third party libs
-from jinja2 import BaseLoader
-from jinja2.exceptions import TemplateNotFound
+from jinja2 import BaseLoader, Markup, TemplateNotFound
+from jinja2.ext import Extension
+import yaml
 
 # Import salt libs
 import salt
 import salt.fileclient
 
 log = logging.getLogger(__name__)
+
+__all__ = [
+    'SaltCacheLoader',
+    'SerializerExtension'
+]
 
 
 class SaltCacheLoader(BaseLoader):
@@ -88,3 +96,52 @@ class SaltCacheLoader(BaseLoader):
                 continue
         # there is no template file within searchpaths
         raise TemplateNotFound(template)
+
+
+class SerializerExtension(Extension):
+    '''
+    Serializes variables.
+
+    For example, this dataset:
+
+    .. code-block:: python
+
+        data = {
+            'foo': True,
+            'bar': 42,
+            'baz': [1, 2, 3],
+            'qux': 2.0
+        }
+
+    .. code-block:: jinja
+
+        yaml = {{ data|yaml }}
+        json = {{ data|json }}
+
+    will be rendered has::
+
+        yaml = {bar: 42, baz: [1, 2, 3], foo: true, qux: 2.0}
+        json = {"baz": [1, 2, 3], "foo": true, "bar": 42, "qux": 2.0}
+
+    '''
+
+    def __init__(self, environment):
+        Extension.__init__(self, environment)
+        self.environment.filters.update({
+            'yaml': partial(self.format, formatter='yaml'),
+            'json': partial(self.format, formatter='json')
+        })
+
+    def format(self, value, formatter, *args, **kwargs):
+        if formatter == 'json':
+            return Markup(json.dumps(value, sort_keys=True))
+        elif formatter == 'yaml':
+            return Markup(yaml.dump(value, default_flow_style=True))
+        raise ValueError('Serializer {0} is not implemented'.format(formatter))
+
+    def parse(self, parser):
+        '''
+        If called this method would throw ``NotImplementedError``.
+        While we don't need to implement this method, we override it so pylint
+        does not complain about an abstract method not implemented
+        '''
