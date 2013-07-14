@@ -1372,7 +1372,7 @@ def check_managed(
         group,
         mode,
         template,
-        makedirs,  # pylint: disable=W0621
+        makedirs,  # pylint: disable=W0621,W0613
         context,
         defaults,
         env,
@@ -1428,7 +1428,7 @@ def check_file_meta(
         group,
         mode,
         env,
-        template=None,
+        template=None,  # pylint: disable=W0613
         contents=None):
     '''
     Check for the changes in the file metadata.
@@ -1547,7 +1547,7 @@ def manage_file(name,
                 mode,
                 env,
                 backup,
-                template=None,
+                template=None,  # pylint: disable=W0613
                 show_diff=True,
                 contents=None):
     '''
