@@ -88,7 +88,7 @@ def ext_pillar(minion_id, pillar, **kwargs):
 
     except TypeError as e:
         if 'unexpected keyword argument' in e.message:
-            arg = e.message.split()[-1]
+            arg = e.message.split()[-1]  # pylint: disable=E1101
             raise SaltInvocationError('ext_pillar.reclass: unexpected option: '\
                                       + arg)
         else:
