@@ -36,3 +36,5 @@ htmlcov/
 
 # ignore ctags file
 tags
+
+update.sh
