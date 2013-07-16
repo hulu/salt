@@ -82,7 +82,7 @@ addtl_paths = (
 for path in addtl_paths:
     sys.path.insert(0, os.path.abspath(os.path.join(docs_basepath, path)))
 
-from salt.version import __version__
+import salt.version
 
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
@@ -90,10 +90,10 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 # -- General configuration -----------------------------------------------------
 
 project = 'Salt'
-copyright = '2013, Thomas S. Hatch'
+copyright = '2013 SaltStack, Inc.'
 
-version = __version__
-release = version
+version = salt.version.__version__
+release = '.'.join(map(str, salt.version.__version_info__))
 
 master_doc = 'contents'
 templates_path = ['_templates']
@@ -114,7 +114,7 @@ autosummary_generate = True
 rst_prolog = """\
 .. |saltrepo| replace:: https://github.com/saltstack/salt
 .. |latest| replace:: https://github.com/downloads/saltstack/salt/salt-%s.tar.gz
-""" % __version__
+""" % salt.version.__version__
 
 # A shortcut for linking to tickets on the GitHub issue tracker
 extlinks = {
@@ -176,7 +176,7 @@ html_show_copyright = True
 
 ### Latex options
 latex_documents = [
-  ('contents', 'Salt.tex', 'Salt Documentation', 'Thomas Hatch', 'manual'),
+  ('contents', 'Salt.tex', 'Salt Documentation', 'SaltStack, Inc.', 'manual'),
 ]
 
 latex_logo = '_static/saltstack_logo.png'
@@ -204,9 +204,9 @@ man_pages = [
 
 ### epub options
 epub_title = 'Salt Documentation'
-epub_author = 'Thomas S. Hatch'
+epub_author = 'SaltStack, Inc.'
 epub_publisher = epub_author
-epub_copyright = '2013, Thomas S. Hatch'
+epub_copyright = copyright
 
 epub_scheme = 'URL'
 epub_identifier = 'http://saltstack.org/'
