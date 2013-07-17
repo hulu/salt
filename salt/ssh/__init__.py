@@ -10,6 +10,8 @@ import json
 # Import salt libs
 import salt.ssh.shell
 import salt.roster
+import salt.state
+import salt.loader
 
 
 class SSHCopyID(object):
@@ -95,6 +97,16 @@ class SSH(object):
                     ret,
                     self.opts.get('output', 'nested'),
                     self.opts)
+
+    def highstate_blob(self, target):
+        '''
+        Generate an archive file which contains the instructions and files
+        to execute a state run on a remote system
+        '''
+        wrapper = FunctionWrapper(self.opts, target['id'], **target)
+        st_ = SSHHighState(self.opts, None, wrapper)
+        lowstate = st_.compile_low_chunks()
+        #file_refs = salt.utils.lowstate_file_refs(lowstate)
 
 
 class Single(multiprocessing.Process):
@@ -191,3 +203,81 @@ class Single(multiprocessing.Process):
             return {self.id: data['local']}
         except Exception:
             return {self.id: 'No valid data returned, is ssh key deployed?'}
+
+
+class FunctionWrapper(dict):
+    '''
+    Create an object that acts like the salt function dict and makes function
+    calls remotely via the ssh shell system
+    '''
+    def __init__(
+            self,
+            opts,
+            id_,
+            host,
+            **kwargs):
+        self.opts = opts
+        self.kwargs = {'id_', id_,
+                       'host', host}
+        self.kwargs.update(kwargs)
+
+    def __getitem__(self, cmd):
+        '''
+        Return the function call to simulate the salt local lookup system
+        '''
+        def caller(args, kwargs):
+            '''
+            The remote execution function
+            '''
+            arg_str = '{0} '.format(cmd)
+            for arg in args:
+                arg_str += '{0} '.format(arg)
+            for key, val in kwargs.items():
+                arg_str += '{0}={1} '.format(key, val)
+            single = Single(self.opts, arg_str, **kwargs)
+            ret = single.cmd()
+            return ret[single.id]
+        return caller
+
+
+class SSHState(salt.state.State):
+    '''
+    Create a State object which wraps the ssh functions for state operations
+    '''
+    def __init__(self, opts, pillar=None, wrapper=None):
+        opts['grains'] = wrapper['grains.items']()
+        self.wrapper = wrapper
+        super(opts, pillar)
+
+    def load_modules(self, data=None):
+        '''
+        Load up the modules for remote compilation via ssh
+        '''
+        self.functions = self.wrapper
+        self.states = salt.loader.states(self.opts, self.functions)
+        self.rend = salt.loader.render(self.opts, self.functions)
+
+    def check_refresh(self, data, ret):
+        '''
+        Stub out check_refresh
+        '''
+        return
+
+    def module_refresh(self):
+        '''
+        Module refresh is not needed, stub it out
+        '''
+        return
+
+
+class SSHHighState(salt.state.BaseHighState):
+    '''
+    Used to compile the highstate on the master
+    '''
+    stack = []
+
+    def __init__(self, opts, pillar=None, wrapper=None):
+        self.client = salt.fileclient.LocalClient(opts)
+        salt.state.BaseHighState.__init__(self, opts)
+        self.state = SSHState(opts, pillar, wrapper)
+        self.matcher = salt.minion.Matcher(self.opts)
