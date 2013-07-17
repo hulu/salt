@@ -117,7 +117,7 @@ def _connect(**kwargs):
     return dbc
 
 
-def query(database, query):  # pylint: disable=W0621
+def query(database, query, **connection_args):  # pylint: disable=W0621
     '''
     Run an arbitrary SQL query and return the results or
     the number of affected rows.
