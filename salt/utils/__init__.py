@@ -1301,7 +1301,8 @@ def date_cast(date):
             ' Consider installing timelib'.format(date))
 
 
-def date_format(date=None, format="%Y-%m-%d"):
+def date_format(date=None,
+                format="%Y-%m-%d"):  # pylint: disable=W0622
     '''
     Converts date into a time-based string
 
