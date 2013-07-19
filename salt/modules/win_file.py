@@ -7,7 +7,7 @@ data
             - win32security
             - ntsecuritycon
 '''
-
+# pylint: disable=W0611
 # Import python libs
 import os
 import stat

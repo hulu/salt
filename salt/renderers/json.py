@@ -4,7 +4,10 @@ from __future__ import absolute_import
 import json
 
 
-def render(json_data, env='', sls='', **kws):
+def render(json_data,
+           env='',  # pylint: disable=W0613
+           sls='',  # pylint: disable=W0613
+           **kws):  # pylint: disable=W0613
     '''
     Accepts JSON as a string or as a file object and runs it through the JSON
     parser.

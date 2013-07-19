@@ -174,7 +174,9 @@ def render_mako_tmpl(tmplstr, context, tmplpath=None):
                     mako.exceptions.text_error_template().render())
 
 
-def render_wempy_tmpl(tmplstr, context, tmplpath=None):
+def render_wempy_tmpl(tmplstr,
+                      context,
+                      tmplpath=None):  # pylint: disable=W0613
     from wemplate.wemplate import TemplateParser as Template
     return Template(tmplstr).render(**context)
 

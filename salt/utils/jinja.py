@@ -132,7 +132,11 @@ class SerializerExtension(Extension, object):
             'json': partial(self.format, formatter='json')
         })
 
-    def format(self, value, formatter, *args, **kwargs):
+    def format(self,
+               value,
+               formatter,
+               *args,  # pylint: disable=W0613
+               **kwargs):
         if formatter == 'json':
             return Markup(json.dumps(value, sort_keys=True))
         elif formatter == 'yaml':

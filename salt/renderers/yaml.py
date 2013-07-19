@@ -11,7 +11,7 @@ from salt.utils.odict import OrderedDict
 log = logging.getLogger(__name__)
 
 
-def get_yaml_loader(argline):
+def get_yaml_loader(argline):  # pylint: disable=W0613
     '''
     Return the ordered dict yaml loader
     '''
@@ -20,7 +20,11 @@ def get_yaml_loader(argline):
     return yaml_loader
 
 
-def render(yaml_data, env='', sls='', argline='', **kws):
+def render(yaml_data,
+           env='',
+           sls='',
+           argline='',
+           **kws):  # pylint: disable=W0613
     '''
     Accepts YAML as a string or as a file object and runs it through the YAML
     parser.

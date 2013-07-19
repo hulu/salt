@@ -92,7 +92,7 @@ def _process_emerge_err(stderr):
     return ret
 
 
-def ex_mod_init(low):
+def ex_mod_init(low):  # pylint: disable=W0613
     '''
     Enforce a nice tree structure for /etc/portage/package.* configuration files.
 

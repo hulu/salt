@@ -47,7 +47,7 @@ def __virtual__():
     return 'pkg'
 
 
-def __init__(opts):
+def __init__(opts):  # pylint: disable=W0613
     '''
     For Debian and derivative systems, set up
     a few env variables to keep apt happy and

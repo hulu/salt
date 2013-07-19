@@ -17,17 +17,17 @@ def __virtual__():
 
 
 def add(name,
-        uid=None,
-        gid=None,
-        groups=None,
-        home=False,
-        shell=None,
-        unique=False,
-        system=False,
-        fullname=False,
-        roomnumber=False,
-        workphone=False,
-        homephone=False):
+        uid=None,  # pylint: disable=W0613
+        gid=None,  # pylint: disable=W0613
+        groups=None,  # pylint: disable=W0613
+        home=False,  # pylint: disable=W0613
+        shell=None,  # pylint: disable=W0613
+        unique=False,  # pylint: disable=W0613
+        system=False,  # pylint: disable=W0613
+        fullname=False,  # pylint: disable=W0613
+        roomnumber=False,  # pylint: disable=W0613
+        workphone=False,  # pylint: disable=W0613
+        homephone=False):  # pylint: disable=W0613
     '''
     Add a user to the minion
 
