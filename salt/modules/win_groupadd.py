@@ -13,7 +13,9 @@ def __virtual__():
     return 'group' if salt.utils.is_windows() else False
 
 
-def add(name, gid=None, system=False):
+def add(name,
+        gid=None,  # pylint: disable=W0613
+        system=False):  # pylint: disable=W0613
     '''
     Add the specified group
 

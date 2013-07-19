@@ -25,7 +25,7 @@ def halt(timeout=5):
     return shutdown(timeout)
 
 
-def init(runlevel):
+def init(runlevel):  # pylint: disable=W0613
     '''
     Change the system runlevel on sysV compatible systems
 

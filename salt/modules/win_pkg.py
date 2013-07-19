@@ -520,7 +520,7 @@ def install(name=None, refresh=False, pkgs=None, **kwargs):
     return __salt__['pkg_resource.find_changes'](old, new)
 
 
-def upgrade(refresh=True):
+def upgrade(refresh=True):  # pylint: disable=W0613
     '''
     Run a full system upgrade
 

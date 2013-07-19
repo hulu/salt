@@ -563,7 +563,7 @@ def get_hwclock():
     return 'localtime'
 
 
-def set_hwclock(clock):
+def set_hwclock(clock):  # pylint: disable=W0613
     '''
     Sets the hardware clock to be either UTC or localtime
 
