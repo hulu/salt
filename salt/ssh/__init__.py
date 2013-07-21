@@ -183,9 +183,9 @@ class Single(multiprocessing.Process):
                'if hash salt-call\n'
                'then\n'
                '    SALT=$(type -p salt-call)\n'
-               'elif [ -f /tmp/salt-thin/salt-call] \n'
+               'elif [ -f /tmp/salt-call ] \n'
                'then\n'
-               '    SALT=/tmp/salt-thin/salt-call\n'
+               '    SALT=/tmp/salt-call\n'
                'else\n'
                '    echo "deploy"\n'
                '    exit 1\n'
@@ -197,12 +197,7 @@ class Single(multiprocessing.Process):
             if not self.deploy():
                 msg = ('Failed to deploy salt-thin to target.')
                 return {self.id: msg}
-            return json.loads(
-                # XXX: Remove the next pylint declaration when pylint 0.29
-                # comes out. More information:
-                #   http://hustoknow.blogspot.pt/2013/06/pylint.html
-                self.cmd(self.arg_str)  # pylint: disable=E1121
-            )
+            return self.cmd()
         try:
             data = json.loads(ret)
             return {self.id: data['local']}
