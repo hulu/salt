@@ -35,7 +35,8 @@ def _get_options():
     return {"url": server_url, "db": db_name}
 
 
-def _generate_doc(ret, options):
+def _generate_doc(ret,
+                  options):  # pylint: disable=W0613
     '''
     Create a object that will be saved into the database based on
     options.
