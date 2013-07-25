@@ -175,7 +175,7 @@ def append(key, val):
         return 'The key {0} is not a valid list'.format(key)
     if val in grains:
         return 'The val {0} was already in the list {1}'.format(val, key)
-    grains.append(val)
+    grains.append(val)  # pylint: disable=E1103
     return setval(key, grains)
 
 
@@ -192,7 +192,7 @@ def remove(key, val):
         return 'The key {0} is not a valid list'.format(key)
     if val not in grains:
         return 'The val {0} was not in the list {1}'.format(val, key)
-    grains.remove(val)
+    grains.remove(val)  # pylint: disable=E1103
     return setval(key, grains)
 
 
