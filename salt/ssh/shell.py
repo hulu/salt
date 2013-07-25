@@ -5,6 +5,7 @@ Manage transport commands via ssh
 # Import python libs
 import os
 import json
+import time
 import subprocess
 
 # Import salt libs
@@ -153,17 +154,20 @@ class Shell(object):
         cmd iterator
         '''
         try:
-            proc = salt.utils.nb_open.NonBlockingPopen(
+            proc = salt.utils.nb_popen.NonBlockingPopen(
                 cmd,
                 shell=True,
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
             )
             while True:
+                time.sleep(0.1)
                 out = proc.recv()
                 err = proc.recv_err()
                 if out is None and err is None:
                     break
+                if err:
+                    err = self.get_error(err)
                 yield out, err
         except Exception:
             yield ('', 'Unknown Error')
@@ -176,12 +180,13 @@ class Shell(object):
         r_err = ''
         if self.sudo:
             cmd = 'sudo {0}'.format(cmd)
-        for out, err in self._exec_nb_cmd(cmd):
+        cmd = self._cmd_str(cmd)
+        for out, err in self._run_nb_cmd(cmd):
             if out is not None:
                 r_out += out
             if err is not None:
                 r_err += err
-            yield None
+            yield None, None
         yield r_out, r_err
 
     def exec_cmd(self, cmd):

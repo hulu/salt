@@ -3,9 +3,8 @@ Create ssh executor system
 '''
 # Import python libs
 import os
-import getpass
-import multiprocessing
 import json
+import getpass
 
 # Import salt libs
 import salt.ssh.shell
@@ -101,36 +100,51 @@ class SSH(object):
         Execute the desired routine on the specified systems
         '''
         running = {}
-        active = 0
         target_iter = self.targets.__iter__()
+        done = set()
         while True:
-            done = set()
-            if len(running) < self.opts['ssh_max_process']:
-                host = next(target_iter)
+            if len(running) < self.opts.get('ssh_max_procs', 5):
+                try:
+                    host = next(target_iter)
+                except StopIteration:
+                    pass
+                for default in self.defaults:
+                    if not default in self.targets[host]:
+                        self.targets[host][default] = self.defaults[default]
+
                 single = Single(
                         self.opts,
                         self.opts['arg_str'],
                         host,
-                        **self.targets[target])
+                        **self.targets[host])
                 running[host] = {'iter': single.cmd(),
                                  'single': single}
             for host in running:
-                stdout, stderr = next(running[host])
+                stdout, stderr = next(running[host]['iter'])
                 if stdout == 'deploy':
                     running[host]['single'].deploy()
                     running[host]['iter'] = single.cmd()
                 elif stdout is None and stderr is None:
                     continue
                 else:
-                    # This job is done, yield it
-                    if not stdout and stderr:
-                        yield stderr
-                    else:
-                        yield stdout
+                    # This job is done, yield
+                    try:
+                        if not stdout and stderr:
+                            yield {running[host]['single'].id: stderr}
+                        else:
+                            data = json.dumps(stdout)
+                            if 'local' in data:
+                                yield {running[host]['single'].id: data['local']}
+                            else:
+                                yield {running[host]['single'].id: data}
+                    except Exception:
+                        yield {running[host]['single'].id: 'Bad Return'}
                     done.add(host)
             for host in done:
-                running.pop(host)
-                
+                if host in running:
+                    running.pop(host)
+            if len(done) >= len(self.targets):
+                break
 
     def run(self):
         '''
@@ -143,16 +157,6 @@ class SSH(object):
                     ret,
                     self.opts.get('output', 'nested'),
                     self.opts)
-
-    def highstate_blob(self, target):
-        '''
-        Generate an archive file which contains the instructions and files
-        to execute a state run on a remote system
-        '''
-        wrapper = FunctionWrapper(self.opts, target['id'], **target)
-        st_ = SSHHighState(self.opts, None, wrapper)
-        lowstate = st_.compile_low_chunks()
-        #file_refs = salt.utils.lowstate_file_refs(lowstate)
 
 
 class Single():
@@ -188,6 +192,14 @@ class Single():
                 priv,
                 timeout,
                 sudo)
+        self.target = self.extra
+        self.target['host'] = host
+        self.target['user'] = user
+        self.target['port'] = port
+        self.target['passwd'] = passwd
+        self.target['priv'] = priv
+        self.target['timeout'] = timeout
+        self.target['sudo'] = sudo
 
     def deploy(self):
         '''
@@ -233,11 +245,23 @@ class Single():
                'fi\n'
                '$PYTHON $SALT --local --out json -l quiet {0}\n'
                'EOF').format(self.arg_str)
+        if self.arg_str.startswith('state.highstate'):
+            self.highstate_seed()
         for stdout, stderr in self.shell.exec_nb_cmd(cmd):
             if stdout is None and stderr is None:
                 yield None, None
             else:
                 yield stdout, stderr
+
+    def highstate_seed(self):
+        '''
+        Generate an archive file which contains the instructions and files
+        to execute a state run on a remote system
+        '''
+        wrapper = FunctionWrapper(self.opts, self.target['id'], **self.target)
+        st_ = SSHHighState(self.opts, None, wrapper)
+        lowstate = st_.compile_low_chunks()
+        #file_refs = salt.utils.lowstate_file_refs(lowstate)
 
 
 class FunctionWrapper(dict):
