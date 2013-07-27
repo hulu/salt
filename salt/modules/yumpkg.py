@@ -181,18 +181,18 @@ def _set_repo_options(yumbase, **kwargs):
 
     try:
         if fromrepo:
-            log.info('Restricting to repo \'{0}\''.format(fromrepo))
+            log.info('Restricting to repo {0!r}'.format(fromrepo))
             yumbase.repos.disableRepo('*')
             yumbase.repos.enableRepo(fromrepo)
         else:
             if disablerepo:
-                log.info('Disabling repo \'{0}\''.format(disablerepo))
+                log.info('Disabling repo {0!r}'.format(disablerepo))
                 yumbase.repos.disableRepo(disablerepo)
             if enablerepo:
-                log.info('Enabling repo \'{0}\''.format(enablerepo))
+                log.info('Enabling repo {0!r}'.format(enablerepo))
                 yumbase.repos.enableRepo(enablerepo)
-    except yum.Errors.RepoError as e:
-        return e
+    except yum.Errors.RepoError as exc:
+        return exc
 
 
 def latest_version(*names, **kwargs):
@@ -304,7 +304,7 @@ def list_pkgs(versions_as_list=False, **kwargs):
     for p in yb.rpmdb:
         name = p.name
         if __grains__.get('cpuarch', '') == 'x86_64' \
-                and re.match('i\d86', p.arch):
+                and re.match(r'i\d86', p.arch):
             name += '.{0}'.format(p.arch)
         pkgver = p.version
         if p.release:
@@ -541,7 +541,7 @@ def install(name=None,
                 if version is not None:
                     if __grains__.get('cpuarch', '') == 'x86_64':
                         try:
-                            arch = re.search('(\.i\d86)$', pkgname).group(1)
+                            arch = re.search(r'(\.i\d86)$', pkgname).group(1)
                         except AttributeError:
                             arch = ''
                         else:
@@ -660,7 +660,7 @@ def remove(name=None, pkgs=None, **kwargs):
     for target in targets:
         if __grains__.get('cpuarch', '') == 'x86_64':
             try:
-                arch = re.search('(\.i\d86)$', target).group(1)
+                arch = re.search(r'(\.i\d86)$', target).group(1)
             except AttributeError:
                 arch = None
             else:

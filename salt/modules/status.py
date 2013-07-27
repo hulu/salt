@@ -124,15 +124,10 @@ def loadavg():
     
         salt '*' status.loadavg
     '''
-    procf = '/proc/loadavg'
-    if not os.path.isfile(procf):
-        comps = "%.2f %.2f %.2f" % os.getloadavg()
-    else:
-        comps = salt.utils.fopen(procf, 'r').read().strip()
-    load_avg = comps.split()
-    return {'1-min':  _number(load_avg[0]),
-            '5-min':  _number(load_avg[1]),
-            '15-min': _number(load_avg[2])}
+    load_avg = os.getloadavg()
+    return {'1-min':  load_avg[0],
+            '5-min':  load_avg[1],
+            '15-min': load_avg[2]}
 
 
 def cpustats():
