@@ -156,5 +156,5 @@ def identical_signature_wrapper(original_function, wrapped_function):
         '<string>',
         'exec'
     )
-    exec function_def in context
+    exec function_def in context  # pylint: disable=W0122
     return wraps(original_function)(context[original_function.__name__])
