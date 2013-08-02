@@ -62,7 +62,7 @@ def _parse_pkg_meta(path):
 
     def parse_deb(path):
         name = ''
-        version = ''
+        version = ''  # pylint: disable=W0621
         arch = ''
         # This is ugly, will have to try to find a better way of accessing the
         # __grains__ global.
