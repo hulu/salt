@@ -143,8 +143,8 @@ class NonBlockingPopen(subprocess.Popen):
             if self.stream_stds:
                 getattr(sys, which).write(read)
 
-            if self.universal_newlines:
-                read = self._translate_newlines(read)
+            if self.universal_newlines:  # pylint: disable=E1101
+                read = self._translate_newlines(read)  # pylint: disable=E1101
             return read
 
     else:
@@ -183,8 +183,8 @@ class NonBlockingPopen(subprocess.Popen):
                 if not buff:
                     return self._close(which)
 
-                if self.universal_newlines:
-                    buff = self._translate_newlines(buff)
+                if self.universal_newlines:  # pylint: disable=E1101
+                    buff = self._translate_newlines(buff)  # pylint: disable=E1101
 
                 getattr(self, '{0}_buff'.format(which)).write(buff)
                 getattr(self, '_{0}_logger'.format(which)).debug(buff.rstrip())
