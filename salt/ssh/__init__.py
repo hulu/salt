@@ -16,6 +16,41 @@ import salt.utils.thin
 import salt.roster
 import salt.state
 import salt.loader
+import salt.minion
+
+
+def decode_list(data):
+    '''
+    JSON decodes as unicode, Jinja needs raw strings...
+    '''
+    rv = []
+    for item in data:
+        if isinstance(item, unicode):
+            item = item.encode('utf-8')
+        elif isinstance(item, list):
+            item = decode_list(item)
+        elif isinstance(item, dict):
+            item = decode_dict(item)
+        rv.append(item)
+    return rv
+
+
+def decode_dict(data):
+    '''
+    JSON decodes as unicode, Jinja needs raw strings...
+    '''
+    rv = {}
+    for key, value in data.iteritems():
+        if isinstance(key, unicode):
+            key = key.encode('utf-8')
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        elif isinstance(value, list):
+            value = decode_list(value)
+        elif isinstance(value, dict):
+            value = decode_dict(value)
+        rv[key] = value
+    return rv
 
 
 class SSH(object):
@@ -149,7 +184,7 @@ class SSH(object):
                             yield {running[host]['single'].id: stderr}
                         else:
                             data = json.loads(stdout)
-                            if 'local' in data:
+                            if len(data) < 2 and 'local' in data:
                                 yield {running[host]['single'].id: data['local']}
                             else:
                                 yield {running[host]['single'].id: data}
@@ -198,6 +233,7 @@ class Single():
             **kwargs):
         self.opts = opts
         self.arg_str = arg_str
+        self.fun, self.arg = self.__arg_comps()
         self.id = id_
         self.extra = kwargs
         self.shell = salt.ssh.shell.Shell(
@@ -216,6 +252,19 @@ class Single():
         self.target['priv'] = priv
         self.target['timeout'] = timeout
         self.target['sudo'] = sudo
+
+    def __arg_comps(self):
+        '''
+        Return the function name and the arg list
+        '''
+        fun = ''
+        arg = []
+        comps = self.arg_str.split()
+        if len(comps) > 0:
+            fun = comps[0]
+        if len(comps) > 1:
+            arg = comps[1:]
+        return fun, arg
 
     def deploy(self):
         '''
@@ -264,9 +313,10 @@ class Single():
         if self.arg_str.startswith('state.highstate'):
             self.highstate_seed()
         if self.arg_str.startswith('state.sls'):
-            pass
-            #trans_tar = self.sls_seed()
-            #print trans_tar
+            args, kwargs = salt.minion.parse_args_and_kwargs(
+                    self.sls_seed, self.arg)
+            trans_tar = self.sls_seed(*args, **kwargs)
+            print trans_tar
         for stdout, stderr in self.shell.exec_nb_cmd(cmd):
             if stdout is None and stderr is None:
                 yield None, None
@@ -320,9 +370,10 @@ class Single():
         '''
         Create the seed file for a state.sls run
         '''
-        wrapper = FunctionWrapper(self.opts, self.target['id'], **self.target)
+        wrapper = FunctionWrapper(self.opts, self.id, **self.target)
+        minion_opts = wrapper['test.opts_pkg']()
         pillar = kwargs.get('pillar', {})
-        st_ = SSHHighState(self.opts, pillar, wrapper)
+        st_ = SSHHighState(minion_opts, pillar, wrapper)
         if isinstance(mods, str):
             mods = mods.split(',')
         high, errors = st_.render_highstate({env: mods})
@@ -333,21 +384,22 @@ class Single():
                 high['__exclude__'].extend(exclude)
             else:
                 high['__exclude__'] = exclude
-        high, ext_errors = st_.reconcile_extend(high)
+        high, ext_errors = st_.state.reconcile_extend(high)
         errors += ext_errors
-        errors += st_.verify_high(high)
+        errors += st_.state.verify_high(high)
         if errors:
             return errors
-        high, req_in_errors = st_.requisite_in(high)
+        high, req_in_errors = st_.state.requisite_in(high)
         errors += req_in_errors
-        high = st_.apply_exclude(high)
+        high = st_.state.apply_exclude(high)
         # Verify that the high data is structurally sound
         if errors:
             return errors
         # Compile and verify the raw chunks
-        chunks = st_.compile_high_data(high)
+        chunks = st_.state.compile_high_data(high)
         file_refs = lowstate_file_refs(chunks)
         trans_tar = prep_trans_tar(self.opts, chunks, file_refs)
+        return trans_tar
 
 
 class FunctionWrapper(dict):
@@ -371,7 +423,7 @@ class FunctionWrapper(dict):
         '''
         Return the function call to simulate the salt local lookup system
         '''
-        def caller(args, kwargs):
+        def caller(*args, **kwargs):
             '''
             The remote execution function
             '''
@@ -380,9 +432,9 @@ class FunctionWrapper(dict):
                 arg_str += '{0} '.format(arg)
             for key, val in kwargs.items():
                 arg_str += '{0}={1} '.format(key, val)
-            single = Single(self.opts, arg_str, **kwargs)
-            ret = single.cmd()
-            return ret[single.id]
+            single = Single(self.opts, arg_str, **self.kwargs)
+            ret = json.loads(single.cmd_block(), object_hook=decode_dict)
+            return ret
         return caller
 
 
@@ -391,7 +443,6 @@ class SSHState(salt.state.State):
     Create a State object which wraps the ssh functions for state operations
     '''
     def __init__(self, opts, pillar=None, wrapper=None):
-        opts['grains'] = wrapper['grains.items']()
         self.wrapper = wrapper
         super(SSHState, self).__init__(opts, pillar)
 
@@ -442,12 +493,7 @@ def lowstate_file_refs(chunks):
                 env = chunk[state]
             elif state.startswith('__'):
                 continue
-            for arg in chunk[state]:
-                if not isinstance(arg, dict):
-                    continue
-                if len(arg) < 1:
-                    continue
-                crefs = salt_refs(arg[arg.keys()][0])
+            crefs.extend(salt_refs(chunk[state]))
         if crefs:
             if not env in refs:
                 refs[env] = []
@@ -484,13 +530,15 @@ def prep_trans_tar(opts, chunks, file_refs):
     file_client = salt.fileclient.LocalClient(fnopts)
     lowfn = os.path.join(gendir, 'lowstate.json')
     with open(lowfn, 'w+') as fp_:
-        fp_.write(json.dumps(lowfn))
+        fp_.write(json.dumps(chunks))
     for env in file_refs:
         for ref in file_refs[env]:
-            if file_client.cache_file(ref, env):
-                break
-            if file_client.cache_dir(ref, env, True):
-                break
+            for name in ref:
+                path = file_client.cache_file(name, env)
+                if path:
+                    break
+                if file_client.cache_dir(name, env, True):
+                    break
     cwd = os.getcwd()
     os.chdir(gendir)
     with tarfile.open(trans_tar, 'w:gz') as tfp:
