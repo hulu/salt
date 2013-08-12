@@ -327,4 +327,3 @@ def tty(device, echo=None):  # pylint: disable=W0621
                 teletype,
                 ret['retcode'])
         }
-

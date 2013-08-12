@@ -213,7 +213,13 @@ def query(database, query, **connection_args):  # pylint: disable=W0621
 
     ret = {}
     ret['query time'] = {'human': elapsed_h, 'raw': str(round(elapsed, 5))}
-    if query.upper().strip().startswith("SELECT"):
+    select_keywords = ["SELECT", "SHOW", "DESC"]
+    select_query = False
+    for keyword in select_keywords:
+        if query.upper().strip().startswith(keyword):
+            select_query = True
+            break
+    if select_query:
         ret['rows returned'] = affected
         columns = ()
         for column in cur.description:
@@ -972,7 +978,10 @@ def user_grants(user,
     ret = []
     results = cur.fetchall()
     for grant in results:
-        ret.append(grant[0].split(' IDENTIFIED BY')[0])
+        tmp = grant[0].split(' IDENTIFIED BY')[0]
+        if 'WITH GRANT OPTION' in grant[0]:
+            tmp = '{} WITH GRANT OPTION'.format(tmp)
+        ret.append(tmp)
     log.debug(ret)
     return ret
 

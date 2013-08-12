@@ -144,7 +144,7 @@ def search(filter,  # pylint: disable=W0622
     return ret
 
 
-class _LDAPConnection:
+class _LDAPConnection(object):
     '''
     Setup a LDAP connection.
     '''

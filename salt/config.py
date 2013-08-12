@@ -129,6 +129,7 @@ VALID_OPTS = {
     'client_acl_blacklist': dict,
     'external_auth': dict,
     'token_expire': int,
+    'file_recv': bool,
     'file_ignore_regex': bool,
     'file_ignore_glob': bool,
     'fileserver_backend': list,
@@ -271,6 +272,7 @@ DEFAULT_MASTER_OPTS = {
     'client_acl_blacklist': {},
     'external_auth': {},
     'token_expire': 43200,
+    'file_recv': False,
     'file_buffer_size': 1048576,
     'file_ignore_regex': None,
     'file_ignore_glob': None,
@@ -658,10 +660,8 @@ def get_id():
 
     # Can /etc/hosts help us?
     try:
-        # TODO Add Windows host file support
         with salt.utils.fopen('/etc/hosts') as hfl:
-            line = hfl.readline()
-            while line:
+            for line in hfl:
                 names = line.split()
                 ip_ = names.pop(0)
                 if ip_.startswith('127.'):
@@ -670,7 +670,27 @@ def get_id():
                             log.info('Found minion id in hosts file: {0}'
                                      .format(name))
                             return name, False
-                line = hfl.readline()
+    except Exception:
+        pass
+
+    # Can Windows 'hosts' file help?
+    try:
+        windir = os.getenv("WINDIR")
+        with salt.utils.fopen(windir + '\\system32\\drivers\\etc\\hosts') as hfl:
+            for line in hfl:
+                # skip commented or blank lines
+                if line[0] == '#' or len(line) <= 1:
+                    continue
+                # process lines looking for '127.' in first column
+                try:
+                    entry = line.split()
+                    if entry[0].startswith('127.'):
+                        for name in entry[1:]:  # try each name in the row
+                            if name != 'localhost':
+                                log.info('Found minion id in hosts file: {0}'.format(name))
+                                return name, False
+                except IndexError:
+                    pass  # could not split line (malformed entry?)
     except Exception:
         pass
 
