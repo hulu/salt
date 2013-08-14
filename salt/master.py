@@ -1789,7 +1789,7 @@ class ClearFuncs(object):
             try:
                 fun = clear_load.pop('fun')
                 runner_client = salt.runner.RunnerClient(self.opts)
-                return runner_client.async(fun, clear_load)
+                return runner_client.async(fun, clear_load.get('kwarg', {}))
             except Exception as exc:
                 log.error('Exception occurred while '
                         'introspecting {0}: {1}'.format(fun, exc))
@@ -1831,7 +1831,7 @@ class ClearFuncs(object):
             try:
                 fun = clear_load.pop('fun')
                 runner_client = salt.runner.RunnerClient(self.opts)
-                return runner_client.async(fun, clear_load)
+                return runner_client.async(fun, clear_load.get('kwarg', {}))
             except Exception as exc:
                 log.error('Exception occurred while '
                         'introspecting {0}: {1}'.format(fun, exc))
@@ -1878,7 +1878,7 @@ class ClearFuncs(object):
 
             try:
                 fun = clear_load.pop('fun')
-                return self.wheel_.call_func(fun, **clear_load)
+                return self.wheel_.call_func(fun, **clear_load.get('kwarg', {}))
             except Exception as exc:
                 log.error('Exception occurred while '
                         'introspecting {0}: {1}'.format(fun, exc))
@@ -1919,7 +1919,7 @@ class ClearFuncs(object):
 
             try:
                 fun = clear_load.pop('fun')
-                return self.wheel_.call_func(fun, **clear_load)
+                return self.wheel_.call_func(fun, **clear_load.get('kwarg', {}))
             except Exception as exc:
                 log.error('Exception occurred while '
                         'introspecting {0}: {1}'.format(fun, exc))
@@ -2152,7 +2152,6 @@ class ClearFuncs(object):
                         'minions': minions
                     }
                 }
-        self.event.fire_event({'minions': minions}, clear_load['jid'])
         # Retrieve the jid
         if not clear_load['jid']:
             clear_load['jid'] = salt.utils.prep_jid(
@@ -2160,14 +2159,25 @@ class ClearFuncs(object):
                     self.opts['hash_type'],
                     extra.get('nocache', False)
                     )
+        self.event.fire_event({'minions': minions}, clear_load['jid'])
         jid_dir = salt.utils.jid_dir(
                 clear_load['jid'],
                 self.opts['cachedir'],
                 self.opts['hash_type']
                 )
 
+        new_job_load =  {
+                'jid': clear_load['jid'],
+                'tgt_type':clear_load['tgt_type'],
+                'tgt': clear_load['tgt'],
+                'ret': clear_load['ret'],
+                'user': clear_load['user'],
+                'fun': clear_load['fun'],
+                'arg': clear_load['arg']
+            }
+
         # Announce the job on the event bus
-        self.event.fire_event(clear_load, 'new_job')
+        self.event.fire_event(new_job_load, 'new_job')
 
         # Verify the jid dir
         if not os.path.isdir(jid_dir):

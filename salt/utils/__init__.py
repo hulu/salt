@@ -66,6 +66,7 @@ import salt.log
 import salt.minion
 import salt.payload
 import salt.version
+from salt.utils.decorators import memoize as real_memoize
 from salt.exceptions import (
     SaltClientError, CommandNotFoundError, SaltSystemExit
 )
@@ -823,20 +824,6 @@ def str_to_num(text):
             return text
 
 
-def memoize(func):
-    '''
-    Memoize aka cache the return output of a function
-    given a specific set of arguments
-    '''
-    cache = {}
-
-    def _memoize(*args):
-        if args not in cache:
-            cache[args] = func(*args)
-        return cache[args]
-    return _memoize
-
-
 def fopen(*args, **kwargs):
     '''
     Wrapper around open() built-in to set CLOEXEC on the fd.
@@ -949,7 +936,7 @@ def clean_kwargs(**kwargs):
     return ret
 
 
-@memoize
+@real_memoize
 def is_windows():
     '''
     Simple function to return if a host is Windows or not
@@ -957,7 +944,7 @@ def is_windows():
     return sys.platform.startswith('win')
 
 
-@memoize
+@real_memoize
 def is_linux():
     '''
     Simple function to return if a host is Linux or not
@@ -965,7 +952,7 @@ def is_linux():
     return sys.platform.startswith('linux')
 
 
-@memoize
+@real_memoize
 def is_darwin():
     '''
     Simple function to return if a host is Darwin (OS X) or not
@@ -1439,3 +1426,53 @@ def compare_versions(ver1='', oper='==', ver2='', cmp_func=None):
         return cmp_result not in cmp_map['==']
     else:
         return cmp_result in cmp_map[oper]
+
+
+def argspec_report(functions, module=''):
+    '''
+    Pass in a functions dict as it is returned from the loader and return the
+    argspec function sigs
+    '''
+    ret = {}
+    # TODO: cp.get_file will also match cp.get_file_str. this is the
+    # same logic as sys.doc, and it is not working as expected, see
+    # issue #3614
+    if module:
+        # allow both "sys" and "sys." to match sys, without also matching
+        # sysctl
+        comps = module.split('.')
+        comps = filter(None, comps)
+        if len(comps) < 2:
+            module = module + '.' if not module.endswith('.') else module
+    for fun in functions:
+        if fun.startswith(module):
+            try:
+                aspec = get_function_argspec(functions[fun])
+            except TypeError:
+                # this happens if not callable
+                continue
+
+            args, varargs, kwargs, defaults = aspec
+
+            ret[fun] = {}
+            ret[fun]['args'] = args if args else None
+            ret[fun]['defaults'] = defaults if defaults else None
+            ret[fun]['varargs'] = True if varargs else None
+            ret[fun]['kwargs'] = True if kwargs else None
+
+    return ret
+
+
+def memoize(func):
+    '''
+    Deprecation warning wrapper since memoize is now on salt.utils.decorators
+    '''
+    warn_until(
+        (0, 19),
+        'The \'memoize\' decorator was moved to \'salt.utils.decorators\', '
+        'please start importing it from there. This warning and wrapper '
+        'will be removed on salt > 0.19.0.',
+        stacklevel=3
+
+    )
+    return real_memoize(func)

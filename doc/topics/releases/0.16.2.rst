@@ -2,7 +2,8 @@
 Salt 0.16.2 Release Notes
 =========================
 
-Version 0.16.2 is a bugfix release for 0.16.0, and contains a number of fixes.
+Version 0.16.2 is a bugfix release for :doc:`0.16.0 </topics/releases/0.16.0>`,
+and contains a number of fixes.
 
 Windows
 -------
@@ -17,6 +18,8 @@ Grains
 ------
 - Fixed detection of ``virtual`` grain on OpenVZ hardware nodes
 - Gracefully handle lsb_release data when it is enclosed in quotes
+- LSB grains are now prefixed with ``lsb_distrib_`` instead of simply ``lsb_``.
+  The old naming is not preserved, so SLS may be affected.
 - Improved grains detection on MacOS
 
 Pillar
