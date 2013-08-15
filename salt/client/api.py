@@ -5,8 +5,10 @@ The purpose is to have a simplified consistent interface for various client appl
 '''
 # Import Python libs
 import inspect
+import os
 
 # Import Salt libs
+import salt.config
 import salt.auth
 import salt.client
 import salt.runner
@@ -31,11 +33,12 @@ class APIClient(object):
     Provide a uniform method of accessing the various client interfaces in Salt
     in the form of low-data data structures. For example:
 
-    >>> client = APIClient(__opts__)
-    >>> lowstate = {'client': 'local', 'tgt': '*', 'fun': 'test.ping', 'arg': ''}
-    >>> client.run(lowstate)
+
     '''
-    def __init__(self, opts):
+    def __init__(self, opts=None):
+        if not opts:
+            opts = salt.config.client_config(os.environ.get('SALT_MASTER_CONFIG',
+                                                            '/etc/salt/master'))
         self.opts = opts
         self.localClient = salt.client.LocalClient(self.opts['conf_file'])
         self.runnerClient = salt.runner.RunnerClient(self.opts)
@@ -281,12 +284,12 @@ class APIClient(object):
         If wait is 0 then block forever or until next event becomes available.
         '''
         return (self.event.get_event(wait=wait, tag=tag, full=full))
-    
+
     def fire_event(self, data, tag):
         '''
         fires event with data and tag
         This only works if api is running with same user permissions as master
         Need to convert this to a master call with appropriate authentication
-        
+
         '''
-        return (self.event.fire_event(data, tagify(tag, 'wui')))    
+        return (self.event.fire_event(data, tagify(tag, 'wui')))
