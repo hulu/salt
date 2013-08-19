@@ -179,7 +179,13 @@ def _get_target(target, ssh):
     return ' %s://%s/%s' % (proto, target, 'system')
 
 
-def _gen_xml(name, cpu, mem, vda, nicp, hypervisor, **kwargs):
+def _gen_xml(name,
+             cpu,
+             mem,
+             vda,
+             nicp,
+             hypervisor,
+             **kwargs):
     '''
     Generate the XML string to define a libvirt vm
     '''
@@ -265,7 +271,7 @@ def init(name,
          image,
          nic='default',
          hypervisor='kvm',
-         start=True,  # pylint: disable=W0621
+         start=True,
          **kwargs):
     '''
     Initialize a new vm

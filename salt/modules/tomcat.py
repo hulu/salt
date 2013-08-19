@@ -405,8 +405,12 @@ def undeploy(app, url='http://localhost:8080/manager', timeout=180):
     return _simple_cmd('undeploy', app, url, timeout=timeout)
 
 
-def deploy_war(war, context, force='no', url='http://localhost:8080/manager',
-        env='base', timeout=180):
+def deploy_war(war,
+               context,
+               force='no',
+               url='http://localhost:8080/manager',
+               env='base',
+               timeout=180):
     '''
     Deploy a WAR file
 
@@ -473,7 +477,7 @@ def deploy_war(war, context, force='no', url='http://localhost:8080/manager',
     return res
 
 
-def passwd(passwd,  # pylint: disable=W0621
+def passwd(passwd,
            user='',
            alg='md5',
            realm=None):
