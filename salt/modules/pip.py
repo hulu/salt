@@ -218,14 +218,13 @@ def install(pkgs=None,
         Include pre-releases in the available versions
 
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' pip.install <package name>,<package2 name>
-
         salt '*' pip.install requirements=/path/to/requirements.txt
-
         salt '*' pip.install <package name> bin_env=/path/to/virtualenv
-
         salt '*' pip.install <package name> bin_env=/path/to/pip_bin
 
     Complicated CLI example::
@@ -527,14 +526,13 @@ def uninstall(pkgs=None,
     cwd
         Current working directory to run pip from
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' pip.uninstall <package name>,<package2 name>
-
         salt '*' pip.uninstall requirements=/path/to/requirements.txt
-
         salt '*' pip.uninstall <package name> bin_env=/path/to/virtualenv
-
         salt '*' pip.uninstall <package name> bin_env=/path/to/pip_bin
 
     '''
@@ -658,7 +656,9 @@ def freeze(bin_env=None,
     cwd
         Current working directory to run pip from
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' pip.freeze /home/code/path/to/virtualenv/
     '''
@@ -702,7 +702,9 @@ def list_(prefix=None,
     Filter list of installed apps from ``freeze`` and check to see if
     ``prefix`` exists in the list of packages installed.
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' pip.list salt
     '''
@@ -737,12 +739,18 @@ def list_(prefix=None,
         raise CommandExecutionError(result['stderr'])
 
     for line in result['stdout'].splitlines():
-        if line.startswith('-e'):
+        if line.startswith('-f'):
+            # ignore -f line as it contains --find-links directory
+            continue
+        elif line.startswith('-e'):
             line = line.split('-e ')[1]
             version, name = line.split('#egg=')
         elif len(line.split('==')) >= 2:
             name = line.split('==')[0]
             version = line.split('==')[1]
+        else:
+            logger.error("Can't parse line '%s'", line)
+            continue
 
         if prefix:
             if name.lower().startswith(prefix.lower()):

@@ -14,7 +14,7 @@ Full list of builtin state modules
     alternatives
     cmd
     cron
-    debconfmod
+    debconf
     disk
     eselect
     file
@@ -33,8 +33,8 @@ Full list of builtin state modules
     lvm
     makeconf
     mdadm
-    module
     modjk_worker
+    module
     mongodb_database
     mongodb_user
     mount
@@ -45,8 +45,8 @@ Full list of builtin state modules
     npm
     pecl
     pip
-    pkgng
     pkg
+    pkgng
     pkgrepo
     portage_config
     postgres_database
@@ -68,4 +68,17 @@ Full list of builtin state modules
     timezone
     tomcat
     user
-    virtualenv_mod
+    virtualenv
+
+
+
+.. admonition:: Renamed modules
+
+    The following state modules were renamed but the renaming itself is only 
+    important from a developers perspective. They do not change the regular 
+    user's work-flow.
+
+    .. toctree::
+
+        salt.states.debconfmod
+        salt.states.virtualenv_mod

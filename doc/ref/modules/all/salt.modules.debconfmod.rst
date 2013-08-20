@@ -1,6 +1,4 @@
-=======================
-salt.modules.debconfmod
-=======================
+salt.modules.debconfmod -> salt.modules.debconf
+-----------------------------------------------
 
-.. automodule:: salt.modules.debconfmod
-    :members:
+Please see :doc:`salt.modules.debconf`.

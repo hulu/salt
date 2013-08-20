@@ -60,7 +60,9 @@ def install(pkg=None,
     runas
         The user to run NPM with
 
-    CLI example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' npm.install coffee-script
 
@@ -121,7 +123,9 @@ def uninstall(pkg,
     runas
         The user to run NPM with
 
-    CLI example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' npm.uninstall coffee-script
 
@@ -146,7 +150,7 @@ def uninstall(pkg,
 
 
 def list_(pkg=None,
-         dir=None):  # pylint: disable=W0622
+          dir=None):  # pylint: disable=W0622
     '''
     List installed NPM packages.
 
@@ -160,7 +164,9 @@ def list_(pkg=None,
         The directory whose packages will be listed, or None for global
         installation
 
-    CLI example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' npm.list
 
