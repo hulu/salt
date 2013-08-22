@@ -182,6 +182,7 @@ def create_jail(name,
     CLI Example:
 
     .. code-block:: bash
+
         salt '*' poudriere.create_jail 90amd64 amd64
     '''
     # Config file must be on system to create a poudriere jail
