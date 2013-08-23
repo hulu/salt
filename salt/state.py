@@ -549,8 +549,14 @@ class State(object):
         possible module type, e.g. a python, pyx, or .so. Always refresh if the
         function is recurse, since that can lay down anything.
         '''
+        if data.get('reload_modules', False) is True:
+            # User explicitly requests a reload
+            self.module_refresh()
+            return
+
         if not ret['changes']:
             return
+
         if data['state'] == 'file':
             if data['fun'] == 'managed':
                 if data['name'].endswith(
@@ -1226,6 +1232,7 @@ class State(object):
                         data
                         )
                     )
+
         if 'provider' in data:
             self.load_modules(data)
         cdata = self.format_call(data)
@@ -2016,9 +2023,18 @@ class BaseHighState(object):
         if self.opts['state_auto_order']:
             for name in state:
                 for s_dec in state[name]:
+                    if not isinstance(s_dec, string_types):
+                        # PyDSL OrderedDict?
+                        continue
+
+                    if not isinstance(state[name], dict):
+                        # Include's or excludes as lists?
+                        continue
+
                     found = False
                     if s_dec.startswith('_'):
                         continue
+
                     for arg in state[name][s_dec]:
                         if isinstance(arg, dict):
                             if len(arg) > 0:
