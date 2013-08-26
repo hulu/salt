@@ -39,4 +39,8 @@ htmlcov/
 # ignore ctags file
 tags
 
+# ignore Vagrant file
+Vagrantfile
+.vagrant
+
 update.sh
