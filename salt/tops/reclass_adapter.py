@@ -1,25 +1,27 @@
 '''
-master_tops adapter for reclass.
+This ``master_tops`` plugin provides access to the |reclass| database, such
+that state information (top data) are retrieved from |reclass|.
 
-Please refer to the file ``README.Salt`` in the reclass source for more
-information on how to use these. In a nutshell, you'll just add the plugin to
-the master_tops hash in the master config and tell reclass by way of a few
-options how and where to find the inventory:
+You can find more information about |reclass| at
+http://reclass.pantsfullofunix.net.
+
+To use the plugin, add it to the ``master_tops`` list in the Salt master config
+and tell |reclass| by way of a few options how and where to find the
+inventory:
 
 .. code-block:: yaml
 
     master_tops:
         reclass:
-            storage_type: yaml_fs
-            base_inventory_uri: /srv/salt
+          storage_type: yaml_fs
+          base_inventory_uri: /srv/salt
 
-This would cause reclass to read the inventory from YAML files in
+This would cause |reclass| to read the inventory from YAML files in
 ``/srv/salt/nodes`` and ``/srv/salt/classes``.
 
-More information about reclass: http://github.com/madduck/reclass
-
-If you are also using ext_pillar and you want to avoid having to specify the
-same information for both, use YAML anchors:
+If you are also using |reclass| as ``ext_pillar`` plugin, and you want to
+avoid having to specify the same information for both, use YAML anchors (take
+note of the differing data types for ``ext_pillar`` and ``master_tops``):
 
 .. code-block:: yaml
 
@@ -37,14 +39,20 @@ same information for both, use YAML anchors:
 If you want to run reclass from source, rather than installing it, you can
 either let the master know via the ``PYTHONPATH`` environment variable, or by
 setting the configuration option, like in the example above.
+
+.. |reclass| replace:: **reclass**
 '''
+
 # This file cannot be called reclass.py, because then the module import would
 # not work. Thanks to the __virtual__ function, however, the plugin still
 # responds to the name 'reclass'.
 
 import sys
-from salt.utils.reclass import prepend_reclass_source_path, \
-        filter_out_source_path_option, set_inventory_base_uri_default
+from salt.utils.reclass import (
+    prepend_reclass_source_path,
+    filter_out_source_path_option,
+    set_inventory_base_uri_default
+)
 
 def __virtual__(retry=False):
     try:
@@ -61,6 +69,10 @@ def __virtual__(retry=False):
 from salt.exceptions import SaltInvocationError
 
 def top(**kwargs):
+    '''
+    Query |reclass| for the top data (states of the minions).
+    '''
+
     # If reclass is installed, __virtual__ put it onto the search path, so we
     # don't need to protect against ImportError:
     from reclass.adapters.salt import top as reclass_top
@@ -89,15 +101,19 @@ def top(**kwargs):
 
     except ImportError as e:
         if 'reclass' in e.message:
-            raise SaltInvocationError('master_tops.reclass: cannot find reclass '
-                                      'module in ' + sys.path)
+            raise SaltInvocationError(
+                'master_tops.reclass: cannot find reclass module '
+                'in {0}'.format(sys.path)
+            )
         else:
             raise
 
     except TypeError as e:
         if 'unexpected keyword argument' in e.message:
             arg = e.message.split()[-1]  # pylint: disable=E1101
-            raise SaltInvocationError('master_tops.reclass: unexpected option: ' + arg)
+            raise SaltInvocationError(
+                'master_tops.reclass: unexpected option: {0}'.format(arg)
+            )
         else:
             raise
 
@@ -109,4 +125,4 @@ def top(**kwargs):
             raise
 
     except ReclassException as e:
-        raise SaltInvocationError('master_tops.reclass: ' + e.message)
+        raise SaltInvocationError('master_tops.reclass: {0}'.format(e.message))
