@@ -1408,6 +1408,9 @@ class Matcher(object):
         '''
         Returns true if the passed glob matches the id
         '''
+        if type(tgt) != str:
+            return False
+
         return fnmatch.fnmatch(self.opts['id'], tgt)
 
     def pcre_match(self, tgt):
@@ -1539,12 +1542,10 @@ class Matcher(object):
             return False
         ref = {'G': 'grain',
                'P': 'grain_pcre',
-               'X': 'exsel',
                'I': 'pillar',
                'L': 'list',
                'S': 'ipcidr',
-               'E': 'pcre',
-               'D': 'data'}
+               'E': 'pcre'}
         if HAS_RANGE:
             ref['R'] = 'range'
         results = []

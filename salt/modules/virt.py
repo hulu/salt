@@ -176,7 +176,7 @@ def _get_target(target, ssh):
     proto = 'qemu'
     if ssh:
         proto += '+ssh'
-    return ' %s://%s/%s' % (proto, target, 'system')
+    return ' {0}://{1}/{2}'.format(proto, target, 'system')
 
 
 def _gen_xml(name,
@@ -197,7 +197,7 @@ def _gen_xml(name,
         <memory unit='KiB'>%%MEM%%</memory>
         <os>
                 <type>hvm</type>
-                <boot dev='hd'/>
+                %%BOOT%%
         </os>
         <devices>
                 <disk type='file' device='disk'>
@@ -219,6 +219,16 @@ def _gen_xml(name,
     data = data.replace('%%MEM%%', str(mem))
     data = data.replace('%%VDA%%', vda)
     data = data.replace('%%DISKTYPE%%', _image_type(vda))
+    boot_str = ''
+    if 'boot_dev' in kwargs:
+        for dev in kwargs['boot_dev']:
+            boot_part = '''<boot dev='%%DEV%%' />
+'''
+            boot_part = boot_part.replace('%%DEV%%', dev)
+            boot_str += boot_part
+    else:
+        boot_str = '''<boot dev='hd'/>'''
+    data = data.replace('%%BOOT%%', boot_str)
     nic_str = ''
     for dev, args in nicp.items():
         nic_t = '''
@@ -250,8 +260,8 @@ def _image_type(vda):
     '''
     Detect what driver needs to be used for the given image
     '''
-    out = __salt__['cmd.run']('qemu-img {0}'.format(vda))
-    if 'qcow2' in out:
+    out = __salt__['cmd.run']('qemu-img info {0}'.format(vda))
+    if 'file format: qcow2' in out:
         return 'qcow2'
     else:
         return 'raw'
@@ -260,6 +270,18 @@ def _image_type(vda):
 def _nic_profile(nic):
     '''
     Gather the nic profile from the config or apply the default
+
+    This is the ``default`` profile, which can be overridden in the
+    configuration:
+
+    .. code-block:: yaml
+
+        virt:
+          nic:
+            default:
+              eth0:
+                bridge: br0
+                model: virtio
     '''
     default = {'eth0': {'bridge': 'br0', 'model': 'virtio'}}
     return __salt__['config.option']('virt.nic', {}).get(nic, default)
