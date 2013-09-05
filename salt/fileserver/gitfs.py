@@ -27,7 +27,7 @@ except ImportError:
 # Import salt libs
 import salt.utils
 import salt.fileserver
-
+from salt.utils.event import tagify
 
 log = logging.getLogger(__name__)
 
@@ -117,14 +117,14 @@ def init():
     '''
     bp_ = os.path.join(__opts__['cachedir'], 'gitfs')
     repos = []
-    for ind in range(len(__opts__['gitfs_remotes'])):
+    for ind, opt in enumerate(__opts__['gitfs_remotes']):
         rp_ = os.path.join(bp_, str(ind))
         if not os.path.isdir(rp_):
             os.makedirs(rp_)
         repo = git.Repo.init(rp_)
         if not repo.remotes:
             try:
-                repo.create_remote('origin', __opts__['gitfs_remotes'][ind])
+                repo.create_remote('origin', opt)
             except Exception:
                 # This exception occurs when two processes are trying to write
                 # to the git config at once, go ahead and pass over it since
@@ -159,18 +159,18 @@ def update():
                         '{0}'.format(exc))
         try:
             os.remove(lk_fn)
-        except (OSError, IOError):
+        except (IOError, OSError):
             pass
 
     # if there is a change, fire an event
     event = salt.utils.event.MasterEvent(__opts__['sock_dir'])
-    event.fire_event(data, 'salt.fileserver.gitfs.update ')
+    event.fire_event(data, tagify(['gitfs', 'update'], prefix='fileserver'))
     try:
         salt.fileserver.reap_fileserver_cache_dir(
             os.path.join(__opts__['cachedir'], 'gitfs/hash'),
             find_file
         )
-    except os.error:
+    except (IOError, OSError):
         # Hash file won't exist if no files have yet been served up
         pass
 
@@ -179,6 +179,7 @@ def envs():
     '''
     Return a list of refs that can be used as environments
     '''
+    base_branch = __opts__['gitfs_base']
     ret = set()
     repos = init()
     for repo in repos:
@@ -187,7 +188,7 @@ def envs():
             parted = ref.name.partition('/')
             short = parted[2] if parted[2] else parted[0]
             if isinstance(ref, git.Head):
-                if short == 'master':
+                if short == base_branch:
                     short = 'base'
                 if ref not in remote.stale_refs:
                     ret.add(short)
@@ -203,6 +204,7 @@ def find_file(path, short='base', **kwargs):
     '''
     fnd = {'path': '',
            'rel': ''}
+    base_branch = __opts__['gitfs_base']
     if os.path.isabs(path):
         return fnd
 
@@ -211,7 +213,7 @@ def find_file(path, short='base', **kwargs):
         path = os.path.join(__opts__['gitfs_root'], local_path)
 
     if short == 'base':
-        short = 'master'
+        short = base_branch
     dest = os.path.join(__opts__['cachedir'], 'gitfs/refs', short, path)
     hashes_glob = os.path.join(__opts__['cachedir'],
                                'gitfs/hash',
@@ -310,8 +312,9 @@ def file_hash(load, fnd):
         return ''
     ret = {'hash_type': __opts__['hash_type']}
     short = load['env']
+    base_branch = __opts__['gitfs_base']
     if short == 'base':
-        short = 'master'
+        short = base_branch
     relpath = fnd['rel']
     path = fnd['path']
     hashdest = os.path.join(__opts__['cachedir'],
@@ -338,10 +341,11 @@ def file_list(load):
     environment
     '''
     ret = []
+    base_branch = __opts__['gitfs_base']
     if 'env' not in load:
         return ret
     if load['env'] == 'base':
-        load['env'] = 'master'
+        load['env'] = base_branch
     repos = init()
     for repo in repos:
         ref = _get_ref(repo, load['env'])
@@ -368,10 +372,11 @@ def file_list_emptydirs(load):
     Return a list of all empty directories on the master
     '''
     ret = []
+    base_branch = __opts__['gitfs_base']
     if 'env' not in load:
         return ret
     if load['env'] == 'base':
-        load['env'] = 'master'
+        load['env'] = base_branch
     repos = init()
     for repo in repos:
         ref = _get_ref(repo, load['env'])
@@ -402,10 +407,11 @@ def dir_list(load):
     Return a list of all directories on the master
     '''
     ret = []
+    base_branch = __opts__['gitfs_base']
     if 'env' not in load:
         return ret
     if load['env'] == 'base':
-        load['env'] = 'master'
+        load['env'] = base_branch
     repos = init()
     for repo in repos:
         ref = _get_ref(repo, load['env'])

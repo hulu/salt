@@ -316,7 +316,7 @@ def init(name,
     define_xml_str(xml)
     if kwargs.get('seed'):
         install = kwargs.get('install', True)
-        __salt__['img.seed'](img_dest, name, kwargs.get('config'),
+        __salt__['seed.apply'](img_dest, id_=name, config=kwargs.get('config'),
                 install=install)
     elif kwargs.get('seed_cmd'):
         __salt__[kwargs['seed_cmd']](img_dest, name, kwargs.get('config'))
@@ -595,6 +595,17 @@ def get_disks(vm_):
                 if line.startswith('Snapshot list:'):
                     snapshots = True
                     continue
+
+                # If this is a copy-on-write image, then the backing file
+                # represents the base image
+                #
+                # backing file: base.qcow2 (actual path: /var/shared/base.qcow2)
+                elif line.startswith('backing file'):
+                    matches = re.match(r'.*\(actual path: (.*?)\)', line)
+                    if matches:
+                        output.append('backing file: {0}'.format(matches.group(1)))
+                    continue
+
                 elif snapshots:
                     if line.startswith('ID'):  # Do not parse table headers
                         line = line.replace('VM SIZE', 'VMSIZE')

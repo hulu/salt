@@ -11,7 +11,7 @@ import os
 # Import salt libs
 import salt.fileserver
 import salt.utils
-
+from salt.utils.event import tagify
 
 def find_file(path, env='base', **kwargs):
     '''
@@ -85,10 +85,9 @@ def update():
             os.path.join(__opts__['cachedir'], 'roots/hash'),
             find_file
         )
-    except os.error:
+    except (IOError, OSError):
         # Hash file won't exist if no files have yet been served up
         pass
-
 
     mtime_map_path = os.path.join(__opts__['cachedir'], 'roots/mtime_map')
     # data to send on event
@@ -109,8 +108,10 @@ def update():
     # compare the maps, set changed to the return value
     data['changed'] = salt.fileserver.diff_mtime_map(old_mtime_map, new_mtime_map)
 
-
     # write out the new map
+    mtime_map_path_dir = os.path.dirname(mtime_map_path)
+    if not os.path.exists(mtime_map_path_dir):
+        os.makedirs(mtime_map_path_dir)
     with salt.utils.fopen(mtime_map_path, 'w') as fp_:
         for file_path, mtime in new_mtime_map.iteritems():
             fp_.write('{file_path}:{mtime}\n'.format(file_path=file_path,
@@ -118,7 +119,8 @@ def update():
 
     # if there is a change, fire an event
     event = salt.utils.event.MasterEvent(__opts__['sock_dir'])
-    event.fire_event(data, 'salt.fileserver.roots.update')
+    event.fire_event(data, tagify(['roots', 'update'], prefix='fileserver'))
+
 
 def file_hash(load, fnd):
     '''
