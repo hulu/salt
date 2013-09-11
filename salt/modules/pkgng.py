@@ -872,7 +872,7 @@ def search(pkg_name,
 
 
 def fetch(pkg_name,
-          all=False,
+          all=False,  # pylint: disable=W0622
           quiet=False,
           reponame=None,
           glob=True,
