@@ -215,11 +215,6 @@ def _run(cmd,
     # munge the cmd and cwd through the template
     (cmd, cwd) = _render_cmd(cmd, cwd, template)
 
-    if not os.path.isdir(cwd):
-        # cwd is not a directory - fatal error
-        msg = 'Working directory {0!r} does not exist'
-        raise CommandExecutionError(msg.format(cwd))
-
     ret = {}
 
     if not env:
@@ -331,7 +326,7 @@ def _run(cmd,
         kwargs['executable'] = shell
         kwargs['close_fds'] = True
 
-    elif not os.path.isabs(cwd) or not os.path.isdir(cwd):
+    if not os.path.isabs(cwd) or not os.path.isdir(cwd):
         raise CommandExecutionError(
             'Specified cwd {0!r} either not absolute or does not exist'
             .format(cwd)
