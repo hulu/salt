@@ -127,7 +127,7 @@ class SSH(object):
                     host,
                     **target)
             ret = single.cmd_block()
-            if ret.startswith('deploy'):
+            if ret.startswith('deploy'):  # pylint: disable=E1101
                 single.deploy()
                 ret = single.cmd_block()
             target.pop('passwd')

@@ -217,7 +217,7 @@ class NonBlockingPopen(subprocess.Popen):
 
             time.sleep(0.01)
 
-    def communicate(self, input=None):
+    def communicate(self, input=None):  # pylint: disable=W0622
         super(NonBlockingPopen, self).communicate(input)
         self.stdout_buff.flush()
         self.stdout_buff.seek(0)
