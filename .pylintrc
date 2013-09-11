@@ -48,7 +48,7 @@ disable=R,W0110,W0141,W0142,W0201,W0212,W0402,W0511,W0603,W0612,W0703,C0103,C011
 
 # Set the output format. Available formats are text, parseable, colorized, msvs
 # (visual studio) and html
-output-format=text
+output-format=parseable
 
 # Include message's id in output
 include-ids=yes
