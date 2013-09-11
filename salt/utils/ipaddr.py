@@ -15,6 +15,8 @@
 # implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
+# pylint: disable=E1101,W0613
+
 """A fast, lightweight IPv4/IPv6 manipulation library in Python.
 
 This library is used to create/poke/manipulate IPv4 and IPv6 addresses
