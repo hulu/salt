@@ -70,7 +70,7 @@ def _parse_pkginfo(line):
     '''
     # Need to reimport `collections` as this function is re-namespaced into
     # other modules
-    import collections
+    import collections  # pylint: disable=W0404,W0621
 
     pkginfo = collections.namedtuple('PkgInfo', ('name', 'version'))
 
