@@ -642,7 +642,7 @@ def __remove_temp_logging_handler():
 __GLOBAL_EXCEPTION_HANDLER = sys.excepthook
 
 
-def __global_logging_exception_handler(exc_type, exc_value, exc_traceback):
+def __global_logging_exception_handler(exc_type, exc_value, exc_traceback):  # pylint: disable=C0103
     '''
     This function will log all python exceptions.
     '''

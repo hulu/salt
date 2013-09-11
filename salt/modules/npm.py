@@ -34,9 +34,9 @@ def _valid_version():
     Check the version of npm to ensure this module will work. Currently
     npm must be at least version 1.2.
     '''
-    npm_version = distutils.version.LooseVersion(
+    npm_version = distutils.version.LooseVersion(  # pylint: disable=E1101
         __salt__['cmd.run']('npm --version'))
-    valid_version = distutils.version.LooseVersion('1.2')
+    valid_version = distutils.version.LooseVersion('1.2')  # pylint: disable=E1101
     return npm_version >= valid_version
 
 
