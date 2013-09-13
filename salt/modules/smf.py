@@ -13,7 +13,7 @@ def __virtual__():
     Only work on systems which default to SMF
     '''
     # Don't let this work on Solaris 9 since SMF doesn't exist on it.
-    enable = set((
+    enable = set((  # pylint: disable=W0621
         'Solaris',
     ))
     if __grains__['os'] in enable:
