@@ -26,7 +26,8 @@ def user_present(name,
                  password,
                  email,
                  tenant=None,
-                 enabled=True):
+                 enabled=True,
+                 roles=None):
     '''
     Ensure that the keystone user is present with the specified properties.
 
@@ -44,6 +45,9 @@ def user_present(name,
 
     enabled
         Availability state for this user
+
+    roles
+        The roles the user should have under tenants
     '''
     ret = {'name': name,
            'changes': {},
@@ -72,16 +76,30 @@ def user_present(name,
             __salt__['keystone.user_update'](name=name, enabled=enabled)
             ret['comment'] = 'User "{0}" has been updated'.format(name)
             ret['changes']['Enabled'] = 'Now {0}'.format(enabled)
-        if user[name]['tenant_id'] != tenant_id:
+        if tenant and user[name]['tenant_id'] != tenant_id:
             __salt__['keystone.user_update'](name=name, tenant=tenant)
             ret['comment'] = 'User "{0}" has been updated'.format(name)
             ret['changes']['Tenant'] = 'Added to "{0}" tenant'.format(tenant)
         if not __salt__['keystone.user_verify_password'](name=name,
-                                                     password=password):
+                                                         password=password):
             __salt__['keystone.user_password_update'](name=name,
                                                       password=password)
             ret['comment'] = 'User "{0}" has been updated'.format(name)
             ret['changes']['Password'] = 'Updated'
+        if roles:
+            for tenant_role in roles[0].keys():
+                args = {'user_name': name, 'tenant_name': tenant_role}
+                tenant_roles = __salt__['keystone.user_role_list'](**args)
+                for role in roles[0][tenant_role]:
+                    if role not in tenant_roles:
+                        addargs = {'user': name,
+                                   'role': role,
+                                   'tenant': tenant_role}
+                        newrole = __salt__['keystone.user_role_add'](**addargs)
+                        if 'roles' in ret['changes']:
+                            ret['changes']['roles'].append(newrole)
+                        else:
+                            ret['changes']['roles'] = [newrole]
     else:
         # Create that user!
         __salt__['keystone.user_create'](name=name,
@@ -89,6 +107,13 @@ def user_present(name,
                                          email=email,
                                          tenant_id=tenant_id,
                                          enabled=enabled)
+        if roles:
+            for tenant_role in roles[0].keys():
+                for role in roles[0][tenant_role]:
+                    args = {'user': name,
+                            'role': role,
+                            'tenant': tenant_role}
+                    __salt__['keystone.user_role_add'](**args)
         ret['comment'] = 'Keystone user {0} has been added'.format(name)
         ret['changes']['User'] = 'Created'
 
@@ -177,5 +202,53 @@ def tenant_absent(name):
         __salt__['keystone.tenant_delete'](name=name)
         ret['comment'] = 'Tenant "{0}" has been deleted'.format(name)
         ret['changes']['Tenant'] = 'Deleted'
+
+    return ret
+
+
+def role_present(name):
+    ''''
+    Ensures that the keystone role exists
+
+    name
+        The name of the tenant to manage
+    '''
+    ret = {'name': name,
+           'changes': {},
+           'result': True,
+           'comment': 'Role "{0}" already exists'.format(name)}
+
+    # Check if user is already present
+    role = __salt__['keystone.role_get'](name=name)
+
+    if 'Error' not in role:
+        return ret
+    else:
+        # Create tenant
+        __salt__['keystone.role_create'](name)
+        ret['comment'] = 'Role "{0}" has been added'.format(name)
+        ret['changes']['Role'] = 'Created'
+    return ret
+
+
+def role_absent(name):
+    '''
+    Ensure that the keystone role is absent.
+
+    name
+        The name of the role that should not exist
+    '''
+    ret = {'name': name,
+           'changes': {},
+           'result': True,
+           'comment': 'Role "{0}" is already absent'.format(name)}
+
+    # Check if tenant is present
+    role = __salt__['keystone.role_get'](name=name)
+    if 'Error' not in role:
+        # Delete tenant
+        __salt__['keystone.role_delete'](name=name)
+        ret['comment'] = 'Role "{0}" has been deleted'.format(name)
+        ret['changes']['Role'] = 'Deleted'
 
     return ret

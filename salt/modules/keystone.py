@@ -173,6 +173,51 @@ def endpoint_list():
     return ret
 
 
+def role_create(name):
+    '''
+    Create named role
+
+    .. code-block:: bash
+
+        salt '*' keystone.role_create admin
+    '''
+
+    kstone = auth()
+    if 'Error' not in role_get(name=name):
+        return {'Error': 'Role "{0}" already exists'.format(name)}
+    role = kstone.roles.create(name)
+    return role_get(name=name)
+
+
+def role_delete(role_id=None, name=None):
+    '''
+    Delete a role (keystone role-delete)
+
+    CLI Examples:
+
+    .. code-block:: bash
+
+        salt '*' keystone.role_delete c965f79c4f864eaaa9c3b41904e67082
+        salt '*' keystone.role_delete role_id=c965f79c4f864eaaa9c3b41904e67082
+        salt '*' keystone.role_delete name=admin
+    '''
+    kstone = auth()
+
+    if name:
+        for role in kstone.roles.list():
+            if role.name == name:
+                role_id = role.id
+                break
+    if not role_id:
+        return {'Error': 'Unable to resolve role id'}
+    role = role_get(role_id)
+    kstone.roles.delete(role)
+    ret = 'Role ID {0} deleted'.format(role_id)
+    if name:
+        ret += ' ({0})'.format(name)
+    return ret
+
+
 def role_get(role_id=None, name=None):
     '''
     Return a specific roles (keystone role-get)
@@ -612,12 +657,98 @@ def user_password_update(user_id=None,
     return ret
 
 
+def user_role_add(user_id=None, user=None,
+                  tenant_id=None, tenant=None,
+                  role_id=None, role=None):
+    '''
+    Add role for user in tenant (keystone user-role-add)
+
+    CLI Examples:
+
+    .. code-block:: bash
+
+        salt '*' keystone.user_role_add \
+            user_id=298ce377245c4ec9b70e1c639c89e654 \
+            tenant_id=7167a092ece84bae8cead4bf9d15bb3b \
+            role_id=ce377245c4ec9b70e1c639c89e8cead4
+        salt '*' keystone.user_role_add user=admin tenant=admin role=admin
+    '''
+    kstone = auth()
+    if user:
+        user_id = user_get(name=user)[user]['id']
+    else:
+        user = user_get(user_id).keys()[0]['name']
+    if not user_id:
+        return {'Error': 'Unable to resolve user id'}
+
+    if tenant:
+        tenant_id = tenant_get(name=tenant)[tenant]['id']
+    else:
+        tenant = tenant_get(tenant_id).keys()[0]['name']
+    if not tenant_id:
+        return {'Error': 'Unable to resolve tenant id'}
+
+    if role:
+        role_id = role_get(name=role)[role]['id']
+    else:
+        role = role_get(role_id).keys()[0]['name']
+    if not role_id:
+        return {'Error': 'Unable to resolve role id'}
+
+    kstone.roles.add_user_role(user_id, role_id, tenant_id)
+    ret_msg = '"{0}" role added for user "{1}" for "{2}" tenant'
+    return ret_msg.format(role, user, tenant)
+
+
+def user_role_remove(user_id=None, user=None,
+                     tenant_id=None, tenant=None,
+                     role_id=None, role=None):
+    '''
+    Remove role for user in tenant (keystone user-role-remove)
+
+    CLI Examples:
+
+    .. code-block:: bash
+
+        salt '*' keystone.user_role_remove \
+            user_id=298ce377245c4ec9b70e1c639c89e654 \
+            tenant_id=7167a092ece84bae8cead4bf9d15bb3b \
+            role_id=ce377245c4ec9b70e1c639c89e8cead4
+        salt '*' keystone.user_role_remove user=admin tenant=admin role=admin
+    '''
+    kstone = auth()
+    if user:
+        user_id = user_get(name=user)[user]['id']
+    else:
+        user = user_get(user_id).keys()[0]['name']
+    if not user_id:
+        return {'Error': 'Unable to resolve user id'}
+
+    if tenant:
+        tenant_id = tenant_get(name=tenant)[tenant]['id']
+    else:
+        tenant = tenant_get(tenant_id).keys()[0]['name']
+    if not tenant_id:
+        return {'Error': 'Unable to resolve tenant id'}
+
+    if role:
+        role_id = role_get(name=role)[role]['id']
+    else:
+        role = role_get(role_id).keys()[0]['name']
+    if not role_id:
+        return {'Error': 'Unable to resolve role id'}
+
+    kstone.roles.remove_user_role(user_id, role_id, tenant_id)
+    ret_msg = '"{0}" role removed for user "{1}" under "{2}" tenant'
+    return ret_msg.format(role, user, tenant)
+
+
 def user_role_list(user_id=None,
                    tenant_id=None,
                    user_name=None,
                    tenant_name=None):
     '''
-    Return a list of available user_roles (keystone user_roles-list)
+    Return a list of available user_roles (keystone user-roles-list)
 
     CLI Examples:
 
@@ -640,7 +771,7 @@ def user_role_list(user_id=None,
             if tenant.name == tenant_name:
                 tenant_id = tenant.id
                 break
-    if not user_id and not tenant_id:
+    if not user_id or not tenant_id:
         return {'Error': 'Unable to resolve user or tenant id'}
     for role in kstone.roles.roles_for_user(user=user_id, tenant=tenant_id):
         ret[role.name] = {'id': role.id,
@@ -681,12 +812,8 @@ def _item_list():
     #                    Delete EC2-compatible credentials
     #endpoint-create     Create a new endpoint associated with a service
     #endpoint-delete     Delete a service endpoint
-    #role-create         Create new role
-    #role-delete         Delete role
     #service-create      Add service to Service Catalog
     #service-delete      Delete service from Service Catalog
-    #user-role-add       Add role to user
-    #user-role-remove    Remove role from user
     #discover            Discover Keystone servers and show authentication
     #                    protocols and
     #bootstrap           Grants a new role to a new user on a new tenant, after
