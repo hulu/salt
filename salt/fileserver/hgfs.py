@@ -334,7 +334,7 @@ def file_list(load):
     return ret
 
 
-def file_list_emptydirs(load):
+def file_list_emptydirs(load):  # pylint: disable=W0613
     '''
     Return a list of all empty directories on the master
     '''
