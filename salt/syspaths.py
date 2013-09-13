@@ -17,6 +17,7 @@ import os.path
 try:
     # Let's try loading the system paths from the generated module at
     # installation time.
+    # pylint: disable=W0611
     from salt._syspaths import (  # pylint: disable=E0611
         ROOT_DIR,                 # because pylint thinks that _syspaths is an
         CONFIG_DIR,               # attribute of salt.__init__
