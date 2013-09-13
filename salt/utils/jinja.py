@@ -211,7 +211,7 @@ class SerializerExtension(Extension, object):
 
     def __init__(self, environment):
         super(SerializerExtension, self).__init__(environment)
-        self.environment.filters.update({
+        self.environment.filters.update({  # pylint: disable=E1101
             'yaml': self.format_yaml,
             'json': self.format_json,
             'load_yaml': self.load_yaml,
@@ -256,7 +256,7 @@ class SerializerExtension(Extension, object):
     def parse_load(self, parser):
         filter_name = parser.stream.current.value
         lineno = next(parser.stream).lineno
-        if filter_name not in self.environment.filters:
+        if filter_name not in self.environment.filters:  # pylint: disable=E1101
             parser.fail('Unable to parse {0}'.format(filter_name), lineno)
 
         parser.stream.expect('name:as')
