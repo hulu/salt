@@ -70,7 +70,7 @@ def add(name,
         home=None,
         shell=None,
         fullname=None,
-        createhome=True,
+        createhome=True,  # pylint: disable=W0613
         **kwargs):
     '''
     Add a user to the minion
@@ -122,7 +122,8 @@ def add(name,
     return True
 
 
-def delete(name, *args):
+def delete(name,
+           *args):  # pylint: disable=W0613
     '''
     Remove a user from the minion
 
