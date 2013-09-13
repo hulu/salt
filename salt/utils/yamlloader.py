@@ -38,10 +38,10 @@ class CustomLoader(yaml.SafeLoader):
         yaml.SafeLoader.__init__(self, stream)
         if dictclass is not dict:
             # then assume ordered dict and use it for both !map and !omap
-            self.add_constructor(
+            self.add_constructor(  # pylint: disable=E1101
                 u'tag:yaml.org,2002:map',
                 type(self).construct_yaml_map)
-            self.add_constructor(
+            self.add_constructor(  # pylint: disable=E1101
                 u'tag:yaml.org,2002:omap',
                 type(self).construct_yaml_map)
         self.dictclass = dictclass
@@ -63,18 +63,18 @@ class CustomLoader(yaml.SafeLoader):
                 'expected a mapping node, but found {0}'.format(node.id),
                 node.start_mark)
 
-        self.flatten_mapping(node)
+        self.flatten_mapping(node)  # pylint: disable=E1101
 
         mapping = self.dictclass()
         for key_node, value_node in node.value:
-            key = self.construct_object(key_node, deep=deep)
+            key = self.construct_object(key_node, deep=deep)  # pylint: disable=E1101
             try:
                 hash(key)
             except TypeError:
                 err = ('While constructing a mapping {0} found unacceptable '
                        'key {1}').format(node.start_mark, key_node.start_mark)
                 raise ConstructorError(err)
-            value = self.construct_object(value_node, deep=deep)
+            value = self.construct_object(value_node, deep=deep)  # pylint: disable=E1101
             if key in mapping:
                 warnings.warn(
                     'Duplicate Key: "{0}"'.format(key), DuplicateKeyWarning)
