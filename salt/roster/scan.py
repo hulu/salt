@@ -35,17 +35,18 @@ class RosterMatcher(object):
         ret = {}
         try:
             salt.utils.ipaddr.IPAddress(self.tgt)
-            addrs = (self.tgt)
+            addrs = [self.tgt]
         except ValueError:
             try:
                 addrs = salt.utils.ipaddr.IPNetwork(self.tgt).iterhosts()
             except ValueError:
                 pass
         for addr in addrs:
+            addr = str(addr)
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(0.01)
-                sock.connect((str(addr), 22))
+                sock.connect((addr, 22))
                 sock.shutdown(socket.SHUT_RDWR)
                 sock.close()
                 ret[addr] = {'host': addr}
