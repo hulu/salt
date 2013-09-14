@@ -16,7 +16,7 @@ from salt.modules.yumpkg import (mod_repo, _parse_repo_file, list_repos,
 
 # Import libs required by functions imported from yumpkg
 # DO NOT REMOVE THESE, ON PAIN OF DEATH
-import os
+import os  # pylint: disable=W0611
 
 log = logging.getLogger(__name__)
 
