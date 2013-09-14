@@ -69,7 +69,9 @@ class SaltCacheLoader(BaseLoader):
             self.cache_file(template)
             self.cached.append(template)
 
-    def get_source(self, environment, template):
+    def get_source(self,
+                   environment,  # pylint: disable=W0613
+                   template):
         # checks for relative '..' paths
         if '..' in template:
             log.warning(
