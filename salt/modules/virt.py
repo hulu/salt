@@ -352,7 +352,7 @@ def init(name,
          image,
          nic='default',
          hypervisor='kvm',
-         start=True,
+         start=True,  # pylint: disable=W0621
          **kwargs):
     '''
     Initialize a new vm
