@@ -162,7 +162,7 @@ def installed(name,
                 # The next line is meant to trigger an AttributeError and
                 # handle lower pip versions
                 logger.debug(
-                    'Installed pip version: {0}'.format(pip.__version__)
+                    'Installed pip version: {0}'.format(pip.__version__)  # pylint: disable=E1101
                 )
                 install_req = pip.req.InstallRequirement.from_line(name)
             except AttributeError:
