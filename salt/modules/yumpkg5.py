@@ -3,7 +3,7 @@ Support for YUM
 '''
 
 # Import python libs
-import collections
+import collections  # pylint: disable=W0611
 import copy
 import logging
 import re
