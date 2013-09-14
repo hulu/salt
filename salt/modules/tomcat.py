@@ -507,7 +507,7 @@ def deploy_war(war,
     return res
 
 
-def passwd(passwd,
+def passwd(passwd,  # pylint: disable=W0621
            user='',
            alg='md5',
            realm=None):
