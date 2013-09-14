@@ -14,7 +14,7 @@ import salt.runner
 import salt.wheel
 import salt.utils
 import salt.syspaths as syspaths
-from salt.exceptions import SaltException, EauthAuthenticationError
+from salt.exceptions import SaltException, EauthAuthenticationError  # pylint: disable=W0611
 from salt.utils.event import tagify
 
 def tokenify(cmd, token=None):
