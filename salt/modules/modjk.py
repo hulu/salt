@@ -303,7 +303,7 @@ def lb_edit(lbn, settings, profile='default'):
 ########################
 
 
-def bulk_stop(workers, lbn, profile='default'):
+def bulk_stop(workers, lbn, profile='default'):  # pylint: disable=W0621
     '''
     Stop all the given workers in the spepcific load balancer
 
@@ -332,7 +332,7 @@ def bulk_stop(workers, lbn, profile='default'):
     return ret
 
 
-def bulk_activate(workers, lbn, profile='default'):
+def bulk_activate(workers, lbn, profile='default'):  # pylint: disable=W0621
     '''
     Activate all the given workers in the spepcific load balancer
 
@@ -361,7 +361,7 @@ def bulk_activate(workers, lbn, profile='default'):
     return ret
 
 
-def bulk_disable(workers, lbn, profile='default'):
+def bulk_disable(workers, lbn, profile='default'):  # pylint: disable=W0621
     '''
     Disable all the given workers in the spepcific load balancer
 
@@ -390,7 +390,7 @@ def bulk_disable(workers, lbn, profile='default'):
     return ret
 
 
-def bulk_recover(workers, lbn, profile='default'):
+def bulk_recover(workers, lbn, profile='default'):  # pylint: disable=W0621
     '''
     Recover all the given workers in the spepcific load balancer
 
