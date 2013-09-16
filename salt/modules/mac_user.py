@@ -75,7 +75,9 @@ def add(name,
     '''
     Add a user to the minion
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.add name <uid> <gid> <groups> <home> <shell>
     '''
@@ -127,7 +129,9 @@ def delete(name,
     '''
     Remove a user from the minion
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.delete foo
     '''
@@ -148,7 +152,9 @@ def getent():
     '''
     Return the list of all info for all users
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.getent
     '''
@@ -166,7 +172,9 @@ def chuid(name, uid):
     '''
     Change the uid for a named user
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.chuid foo 4376
     '''
@@ -191,7 +199,9 @@ def chgid(name, gid):
     '''
     Change the default group of the user
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.chgid foo 4376
     '''
@@ -218,7 +228,9 @@ def chshell(name, shell):
     '''
     Change the default shell of the user
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.chshell foo /bin/zsh
     '''
@@ -243,7 +255,9 @@ def chhome(name, home):
     '''
     Change the home directory of the user
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.chhome foo /Users/foo
     '''
@@ -268,7 +282,9 @@ def chfullname(name, fullname):
     '''
     Change the user's Full Name
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.chfullname foo 'Foo Bar'
     '''
@@ -305,7 +321,9 @@ def chgroups(name, groups, append=False):
         Instead of removing user from groups not included in the ``groups``
         parameter, just add user to any groups for which they are not members
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.chgroups foo wheel,root
     '''
@@ -350,7 +368,9 @@ def info(name):
     '''
     Return user information
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.info root
     '''
@@ -379,7 +399,9 @@ def list_groups(name):
     '''
     Return a list of groups the named user belongs to
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.list_groups foo
     '''
@@ -407,7 +429,9 @@ def list_users():
     '''
     Return a list of all users
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' user.list_users
     '''

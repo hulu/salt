@@ -19,7 +19,9 @@ def add(name,
     '''
     Add the specified group
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' group.add foo
     '''
@@ -34,7 +36,9 @@ def delete(name):
     '''
     Remove the named group
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' group.delete foo
     '''
@@ -47,7 +51,9 @@ def info(name):
     '''
     Return information about a group
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' group.info foo
     '''
@@ -78,7 +84,9 @@ def getent(refresh=False):
     '''
     Return info on all groups
 
-    CLI Example::
+    CLI Example:
+
+    .. code-block:: bash
 
         salt '*' group.getent
     '''
