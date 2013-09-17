@@ -241,11 +241,11 @@ def recover_all(lbn, profile='default'):
     ret = {}
     config = get_running(profile)
     try:
-        workers = config['worker.{0}.balance_workers'.format(lbn)].split(',')
+        workers_ = config['worker.{0}.balance_workers'.format(lbn)].split(',')
     except KeyError:
         return ret
 
-    for worker in workers:
+    for worker in workers_:
         curr_state = worker_status(worker, profile)
         if curr_state['activation'] != 'ACT':
             worker_activate(worker, lbn, profile)
@@ -305,7 +305,7 @@ def lb_edit(lbn, settings, profile='default'):
 
 def bulk_stop(workers, lbn, profile='default'):  # pylint: disable=W0621
     '''
-    Stop all the given workers in the spepcific load balancer
+    Stop all the given workers in the specific load balancer
 
     CLI Examples:
 
@@ -334,7 +334,7 @@ def bulk_stop(workers, lbn, profile='default'):  # pylint: disable=W0621
 
 def bulk_activate(workers, lbn, profile='default'):  # pylint: disable=W0621
     '''
-    Activate all the given workers in the spepcific load balancer
+    Activate all the given workers in the specific load balancer
 
     CLI Examples:
 
@@ -363,7 +363,7 @@ def bulk_activate(workers, lbn, profile='default'):  # pylint: disable=W0621
 
 def bulk_disable(workers, lbn, profile='default'):  # pylint: disable=W0621
     '''
-    Disable all the given workers in the spepcific load balancer
+    Disable all the given workers in the specific load balancer
 
     CLI Examples:
 
@@ -392,7 +392,7 @@ def bulk_disable(workers, lbn, profile='default'):  # pylint: disable=W0621
 
 def bulk_recover(workers, lbn, profile='default'):  # pylint: disable=W0621
     '''
-    Recover all the given workers in the spepcific load balancer
+    Recover all the given workers in the specific load balancer
 
     CLI Examples:
 
