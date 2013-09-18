@@ -281,7 +281,7 @@ def _clean_dir(root, keep, exclude_pat):
             if nfn not in real_keep:
                 # -- check if this is a part of exclude_pat(only). No need to
                 # check include_pat
-                if not _check_include_exclude(nfn[len(root) + 1:], None,
+                if not _check_include_exclude(nfn[len(root):], None,
                                               exclude_pat):
                     continue
                 removed.add(nfn)
@@ -1579,7 +1579,7 @@ def recurse(name,
 
 
 def sed(name, before, after, limit='', backup='.bak', options='-r -e',
-        flags='g'):
+        flags='g', negate_match=False):
     '''
     Maintain a simple edit to a file
 
@@ -1604,6 +1604,10 @@ def sed(name, before, after, limit='', backup='.bak', options='-r -e',
     flags : ``g``
         Any flags to append to the sed expression. ``g`` specifies the edit
         should be made globally (and not stop after the first replacement).
+    negate_match : False
+        Negate the search command (``!``)
+
+        .. versionadded:: 0.17
 
     Usage::
 
