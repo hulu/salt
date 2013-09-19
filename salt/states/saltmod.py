@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 The Salt state is used to control the salt command interface. This state is
 intended for use primarily from the state runner from the master.
@@ -157,7 +158,7 @@ def function(
         The target specification, aka '*' for all minions
 
     tgt_type | expr_form
-        The target type, defaults to glob, 
+        The target type, defaults to glob
 
     arg
         The list of arguments to pass into the function

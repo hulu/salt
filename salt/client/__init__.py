@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 The client module is used to create a client connection to the publisher
 The data structure needs to be:
@@ -347,14 +348,14 @@ class LocalClient(object):
 
         .. code:: yaml
 
-            # Master config 
+            # Master config
             ...
             external_auth:
               pam:
                 fred:
                   - test.*
             ...
-        
+
 
         .. code:: python
 
