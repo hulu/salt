@@ -900,7 +900,7 @@ def managed(name,
             template=None,
             makedirs=False,
             context=None,
-            replace=True,
+            replace=True,  # pylint: disable=W0621
             defaults=None,
             env=None,
             backup='',
