@@ -247,8 +247,8 @@ def get_template_context(template, line, num_lines=5, marker=None):
     if line > num_template_lines:
         return template
 
-    context_start = max(0, line-num_lines-1)  # subtract 1 for 0-based indexing
-    context_end = min(num_template_lines, line+num_lines)
+    context_start = max(0, line - num_lines - 1)  # subtract 1 for 0-based indexing
+    context_end = min(num_template_lines, line + num_lines)
     error_line_in_context = line - context_start - 1  # subtract 1 for 0-based indexing
 
     buf = []
