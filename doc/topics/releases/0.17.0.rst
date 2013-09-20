@@ -5,7 +5,7 @@ Salt 0.17.0 Release Notes
 The 0.17.0 release is a very exciting release of Salt, this brings to Salt
 some very powerful new features and advances. The advances range from the
 state system to the test suite, covering new transport capabilities and
-making states easier and moer powerful, to extending Salt Virt and much more!
+making states easier and more powerful, to extending Salt Virt and much more!
 
 The 0.17.0 release will also be the last release of Salt to follow the old
 0.XX.X numbering system, the next release of Salt will change the numbering to
@@ -40,7 +40,7 @@ Salt SSH
 
 The new ``salt-ssh`` command has been added to Salt. This system allows for
 remote execution and states to be run over ssh. The benefit here being, that
-salt can run relying only on the ssh agent, rather than requireing a minion
+salt can run relying only on the ssh agent, rather than requiring a minion
 to be deployed.
 
 The ``salt-ssh`` system runs states in a compatible way as Salt and states
@@ -54,7 +54,14 @@ Rosters
 -------
 
 Salt is designed to have the minions be aware of the master and the master does
-not need to be aware of the location of the minions. The new salt 
+not need to be aware of the location of the minions. The new salt roster system
+was created and designed to facilitate listing the targets for salt-ssh.
+
+The roster system, like most of Salt, is a plugin system, allowing for the list
+of systems to target to be derived from any pluggable backend. The rosters
+shipping with 0.17.0 are flat and scan. Flat is a file which is read in via the
+salt render system and the scan roster does simple network scanning to discover
+ssh servers.
 
 State Auto Order
 ----------------
@@ -62,38 +69,71 @@ State Auto Order
 This is a major change in how states are evaluated in Salt. State Auto Order
 is a new feature that makes states get evaluated and executed in the order in
 which they are defined in the sls file. This feature makes it very easy to
-see the finite order in whih things will be executed, making Salt now, fully
-imperitive AND fully declarative.
+see the finite order in which things will be executed, making Salt now, fully
+imperative AND fully declarative.
 
-The reuisite system still takes precidence over the order in which states are
+The requisite system still takes precedence over the order in which states are
 defined, so no existing states should break with this change. But this new
 feature can be turned off by setting ``state_auto_order: False`` in the master
-config, thus reverting tot he old lexographical order.
+config, thus reverting to the old lexicographical order.
 
 state.sls Runner
 ----------------
 
+The ``state.sls`` runner has been created to allow for a more powerful system
+for orchestrating state runs and function calls across the salt minions. This
+new system uses the state system for organizing executions.
+
+This allows for states to be defined that are executed on the master to call
+states on minions via ``salt-run state.sls``.
+
 Event Namespacing
 -----------------
+
+Events have been updated to be much more flexible. The tags in events have all
+been namespaced allowing easier tracking of event names.
 
 Mercurial Fileserver Backend
 ----------------------------
 
+The popular git fileserver backend has been joined by the mercurial fileserver
+backend, allowing the state tree to be managed entirely via mercurial.
+
 External Logging Handlers
 -------------------------
-sentry and logstash
 
-Jenkins Tetsing
+The external logging handler system allows for Salt to directly hook into any
+external logging system. Currently supported are sentry and logstash.
+
+Jenkins Testing
 ---------------
+
+The testing systems in Salt have been greatly enhanced, tests for salt are now
+executed, via jenkins.saltstack.com, across many supported platforms. Jenkins
+calls out to salt-cloud to create virtual machines on Rackspace, then the
+minion on the virtual machine checks into the master running on Jenkins where
+a state run is executed that sets up the minion to run tests and executes the
+test suite.
+
+This now automates the sequence of running platform tests and allows for
+continuous destructive tests to be run.
 
 Salt Testing Project
 --------------------
 
-Keystone Additions
-------------------
+The testing libraries for salt have been moved out of the main salt code base
+and into a standalone codebase. This has been done to ease the use of the
+testing systems being used in salt based projects other than Salt itself.
 
 StormPath External Authentication
 ---------------------------------
 
+The external auth system now supports the fantastic Stormpath cloud based
+authentication system.
+
 LXC Support
 -----------
+
+Extensive additions have been added to Salt for LXC support. This included
+the backend libs for managing LXC containers. Addition into the salt-virt
+system is still in the works.
