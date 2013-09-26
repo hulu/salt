@@ -249,7 +249,7 @@ def list_pkgs(versions_as_list=False, **kwargs):
 
 
 def install(name=None,
-            refresh=False,
+            refresh=False,  # pylint: disable=W0613
             fromrepo=None,
             pkgs=None,
             sources=None,
