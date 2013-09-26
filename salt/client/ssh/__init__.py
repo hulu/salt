@@ -50,7 +50,7 @@ HEREDOC = (' << "EOF"\n'
            '    SALT=/tmp/.salt/salt-call\n'
            'else\n'
            '    echo "{1}"\n'
-           '    install -m 777 -d /tmp/.salt\n'
+           '    install -m 1777 -d /tmp/.salt\n'
            '    echo "deploy"\n'
            '    exit 1\n'
            'fi\n'
@@ -152,6 +152,8 @@ class SSH(object):
                 else:
                     return {host: data}
             except Exception:
+                if stderr:
+                    return {host: stderr}
                 return {host: 'Bad Return'}
         return ret
 

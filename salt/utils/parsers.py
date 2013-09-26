@@ -1553,6 +1553,21 @@ class SaltSSHOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
                   'target\'s data. This is needed if a target\'s grains have '
                   'been changed and the auto refresh timeframe has not been '
                   'reached.'))
+        self.add_option(
+            '--max-procs',
+            dest='ssh_max_procs',
+            default=5,
+            type=int,
+            help='Set the number of concurrent minions to communicate with. '
+                 'This value defines how many processes are opened up at a '
+                 'time to manage connections, the more running processes the '
+                 'faster communication should be, default is 5')
+        self.add_option(
+            '--passwd',
+            dest='ssh_passwd',
+            default='',
+            help='Set the default password to attempt to use when '
+                 'authenticating')
 
     def _mixin_after_parsed(self):
         if self.options.list:
