@@ -110,6 +110,10 @@ class SSH(object):
         Deploy the SSH key if the minions don't auth
         '''
         if not isinstance(ret[host], basestring):
+            if self.opts.get('ssh_key_deploy'):
+                target = self.targets[host]
+                if 'passwd' in target:
+                    self._key_deploy_run(host, target, False)
             return ret
         if ret[host].startswith('Permission denied'):
             target = self.targets[host]
@@ -121,23 +125,31 @@ class SSH(object):
                 return ret
             target['passwd'] = getpass.getpass(
                     'Password for {0}:'.format(host)
-                    )
-            arg_str = 'ssh.set_auth_key {0} {1}'.format(
-                    target.get('user', 'root'),
-                    self.get_pubkey())
-            single = Single(
-                    self.opts,
-                    arg_str,
-                    host,
-                    **target)
-            if salt.utils.which('ssh-copy-id'):
-                # we have ssh-copy-id, use it!
-                single.shell.copy_id()
-            else:
+                )
+            return self._key_deploy_run(host, target, True)
+        return ret
+
+    def _key_deploy_run(self, host, target, re_run=True):
+        '''
+        The ssh-copy-id routine
+        '''
+        arg_str = 'ssh.set_auth_key {0} {1}'.format(
+                target.get('user', 'root'),
+                self.get_pubkey())
+        single = Single(
+                self.opts,
+                arg_str,
+                host,
+                **target)
+        if salt.utils.which('ssh-copy-id'):
+            # we have ssh-copy-id, use it!
+            single.shell.copy_id()
+        else:
+            ret = single.cmd_block()
+            if ret[0].startswith('deploy'):  # pylint: disable=E1101
+                single.deploy()
                 ret = single.cmd_block()
-                if ret[0].startswith('deploy'):  # pylint: disable=E1101
-                    single.deploy()
-                    ret = single.cmd_block()
+        if re_run:
             target.pop('passwd')
             single = Single(
                     self.opts,
@@ -155,7 +167,6 @@ class SSH(object):
                 if stderr:
                     return {host: stderr}
                 return {host: 'Bad Return'}
-        return ret
 
     def process(self):
         '''
@@ -165,7 +176,7 @@ class SSH(object):
         target_iter = self.targets.__iter__()
         done = set()
         while True:
-            if len(running) < self.opts.get('ssh_max_procs', 5):
+            if len(running) < self.opts.get('ssh_max_procs', 25):
                 try:
                     host = next(target_iter)
                 except StopIteration:
@@ -253,7 +264,7 @@ class SSH(object):
         rets = set()
         init = False
         while True:
-            if len(running) < self.opts.get('ssh_max_procs', 5) and not init:
+            if len(running) < self.opts.get('ssh_max_procs', 25) and not init:
                 try:
                     host = next(target_iter)
                 except StopIteration:
