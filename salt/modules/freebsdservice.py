@@ -245,6 +245,19 @@ def disabled(name):
     return not enabled(name)
 
 
+def available(name):
+    '''
+    Check that the given service is available.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' service.available sshd
+    '''
+    return name in get_all()
+
+
 def get_all():
     '''
     Return a list of all available services
@@ -337,16 +350,3 @@ def status(name,
         return bool(__salt__['status.pid'](sig))
     cmd = '{0} {1} onestatus'.format(_cmd(), name)
     return not __salt__['cmd.retcode'](cmd)
-
-
-def available(name):
-    '''
-    Check that the given service is available.
-
-    CLI Example:
-
-    .. code-block:: bash
-
-        salt '*' service.available sshd
-    '''
-    return name in get_all()

@@ -679,32 +679,6 @@ def build_whitepace_splited_regex(text):
     build_whitespace_split_regex(text)
 
 
-def format_call_defaults(function):
-    '''
-    Build the default function call signature. Arguments will be the argument
-    names, keyword arguments will have it's default values set.
-    '''
-    args = []
-    kwargs = {}
-
-    aspec = get_function_argspec(function)
-
-    try:
-        func_defaults = aspec.defaults[::-1]
-    except TypeError:
-        # There are no function defaults
-        func_defaults = []
-
-    for idx, arg in enumerate(aspec.args[::-1]):
-        try:
-            kwargs[arg] = func_defaults[idx]
-        except IndexError:
-            args.append(arg)
-
-    args.reverse()
-    return args, kwargs
-
-
 def format_call(fun,
                 data,
                 initial_ret=None,
@@ -730,7 +704,7 @@ def format_call(fun,
 
     aspec = get_function_argspec(fun)
 
-    args, kwargs = format_call_defaults(fun)
+    args, kwargs = arg_lookup(fun).values()
 
     # Since we WILL be changing the data dictionary, let's change a copy of it
     data = data.copy()
@@ -745,10 +719,7 @@ def format_call(fun,
             pass
 
     while args:
-        # Get arguments in reverse order since we also reverted their order in
-        # the enumeration above
-        arg = args.pop()
-
+        arg = args.pop(0)
         try:
             ret['args'].append(data.pop(arg))
         except KeyError:
@@ -812,7 +783,7 @@ def format_call(fun,
                 )
             )
         else:
-            '{0} and {1!r} are invalid keyword arguments for {2}'.format(
+            msg = '{0} and {1!r} are invalid keyword arguments for {2}'.format(
                 ', '.join(['{0!r}'.format(e) for e in extra][:-1]),
                 extra.keys()[-1],
                 ret.get(
@@ -848,7 +819,7 @@ def arg_lookup(fun):
     aspec = get_function_argspec(fun)
     if aspec.defaults:
         ret['kwargs'] = dict(zip(aspec.args[::-1], aspec.defaults[::-1]))
-    ret['args'] = aspec.args
+    ret['args'] = [arg for arg in aspec.args if arg not in ret['kwargs']]
     return ret
 
 
