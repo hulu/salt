@@ -78,10 +78,10 @@ class Shell(object):
         if self.user:
             options.append('User={0}'.format(self.user))
 
-        ret = ''
+        ret = []
         for option in options:
-            ret += '-o {0} '.format(option)
-        return ret
+            ret.append('-o {0} '.format(option))
+        return ''.join(ret)
 
     def _passwd_opts(self):
         '''
@@ -98,17 +98,17 @@ class Shell(object):
         if self.user:
             options.append('User={0}'.format(self.user))
 
-        ret = ''
+        ret = []
         for option in options:
-            ret += '-o {0} '.format(option)
-        return ret
+            ret.append('-o {0} '.format(option))
+        return ''.join(ret)
 
     def _copy_id_str(self):
         '''
         Return the string to execute ssh-copy-id
         '''
         if self.passwd and salt.utils.which('sshpass'):
-            return 'sshpass -p {0} {1} {2} "{3} -p {4} {5}@{6}"'.format(
+            return 'sshpass -p "{0}" {1} {2} "{3} -p {4} {5}@{6}"'.format(
                     self.passwd,
                     'ssh-copy-id',
                     '-i {0}.pub'.format(self.priv),
@@ -130,7 +130,7 @@ class Shell(object):
         '''
         if self.passwd and salt.utils.which('sshpass'):
             opts = self._passwd_opts()
-            return 'sshpass -p {0} {1} {2} {3} {4} {5}'.format(
+            return 'sshpass -p "{0}" {1} {2} {3} {4} {5}'.format(
                     self.passwd,
                     ssh,
                     '' if ssh == 'scp' else self.host,
@@ -163,7 +163,6 @@ class Shell(object):
             return data
         except Exception:
             return ('local', 'Unknown Error')
-        return ('local', 'Unknown Error')
 
     def _run_nb_cmd(self, cmd):
         '''
@@ -192,16 +191,16 @@ class Shell(object):
         '''
         Yield None until cmd finished
         '''
-        r_out = ''
-        r_err = ''
+        r_out = []
+        r_err = []
         cmd = self._cmd_str(cmd)
         for out, err in self._run_nb_cmd(cmd):
             if out is not None:
-                r_out += out
+                r_out.append(out)
             if err is not None:
-                r_err += err
+                r_err.append(err)
             yield None, None
-        yield r_out, r_err
+        yield ''.join(r_out), ''.join(r_err)
 
     def exec_cmd(self, cmd):
         '''
