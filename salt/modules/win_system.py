@@ -133,6 +133,25 @@ def set_computer_name(name):
     return False
 
 
+def get_computer_name():
+    '''
+    Get the Windows computer name
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt 'minion-id' system.get_computer_name
+    '''
+    cmd = 'net config server'
+    lines = __salt__['cmd.run'](cmd).splitlines()
+    for line in lines:
+        if 'Server Name' in line:
+            _, srv_name = line.split('Server Name', 1)
+            return srv_name.strip().lstrip('\\')
+    return False
+
+
 def set_computer_desc(desc):
     '''
     Set the Windows computer description
@@ -146,6 +165,25 @@ def set_computer_desc(desc):
     cmd = 'net config server /srvcomment:"{0}"'.format(desc)
     __salt__['cmd.run'](cmd)
     return {'Computer Description': desc}
+
+
+def get_computer_desc():
+    '''
+    Get the Windows computer description
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt 'minion-id' system.get_computer_desc
+    '''
+    cmd = 'net config server'
+    lines = __salt__['cmd.run'](cmd).splitlines()
+    for line in lines:
+        if 'Server Comment' in line:
+            _, desc = line.split('Server Comment', 1)
+            return desc.strip()
+    return False
 
 
 def join_domain(domain, username, passwd, ou, acct_exists=False,):
