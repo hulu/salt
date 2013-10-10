@@ -354,7 +354,7 @@ def unfreeze(name):
     return _change_state('lxc-unfreeze', name, 'running')
 
 
-def destroy(name, stop=True):
+def destroy(name, stop=True):  # pylint: disable=W0621
     '''
     Destroy the named container.
     WARNING: Destroys all data associated with the container.
