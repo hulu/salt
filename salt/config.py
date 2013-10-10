@@ -665,7 +665,7 @@ def syndic_config(master_config_path,
     return opts
 
 
-def get_id():
+def get_id(root_dir=None):
     '''
     Guess the id of the minion.
 
@@ -682,16 +682,20 @@ def get_id():
     Returns two values: the detected ID, and a boolean value noting whether or
     not an IP address is being used for the ID.
     '''
+    if root_dir is None:
+        root_dir = syspaths.ROOT_DIR
 
     # Check for cached minion ID
-    id_cache = os.path.join(syspaths.CONFIG_DIR, 'minion_id')
+    id_cache = os.path.join(root_dir,
+                            syspaths.CONFIG_DIR.lstrip(syspaths.ROOT_DIR),
+                            'minion_id')
     try:
         with salt.utils.fopen(id_cache) as idf:
             name = idf.read().strip()
         if name:
             log.info('Using cached minion ID: {0}'.format(name))
             return name, False
-    except Exception:
+    except (IOError, OSError):
         pass
 
     log.debug('Guessing ID. The id can be explicitly in set {0}'
@@ -704,8 +708,8 @@ def get_id():
         try:
             with salt.utils.fopen(id_cache, 'w') as idf:
                 idf.write(fqdn)
-        except Exception as e:
-            log.error('Could not cache minion ID: {0}'.format(e))
+        except (IOError, OSError) as exc:
+            log.error('Could not cache minion ID: {0}'.format(exc))
         return fqdn, False
 
     # Check /etc/hostname
@@ -720,10 +724,10 @@ def get_id():
                 try:
                     with salt.utils.fopen(id_cache, 'w') as idf:
                         idf.write(name)
-                except Exception as e:
-                    log.error('Could not cache minion ID: {0}'.format(e))
+                except (IOError, OSError) as exc:
+                    log.error('Could not cache minion ID: {0}'.format(exc))
                 return name, False
-    except Exception:
+    except (IOError, OSError):
         pass
 
     # Can /etc/hosts help us?
@@ -740,11 +744,11 @@ def get_id():
                             try:
                                 with salt.utils.fopen(id_cache, 'w') as idf:
                                     idf.write(name)
-                            except Exception as e:
+                            except (IOError, OSError) as exc:
                                 log.error('Could not cache minion ID: {0}'
-                                          .format(e))
+                                          .format(exc))
                             return name, False
-    except Exception:
+    except (IOError, OSError):
         pass
 
     # Can Windows 'hosts' file help?
@@ -766,13 +770,13 @@ def get_id():
                                 try:
                                     with salt.utils.fopen(id_cache, 'w') as idf:
                                         idf.write(name)
-                                except Exception as e:
+                                except (IOError, OSError) as exc:
                                     log.error('Could not cache minion ID: {0}'
-                                              .format(e))
+                                              .format(exc))
                                 return name, False
                 except IndexError:
                     pass  # could not split line (malformed entry?)
-    except Exception:
+    except (IOError, OSError):
         pass
 
     # What IP addresses do we have?
@@ -825,7 +829,7 @@ def apply_minion_config(overrides=None, defaults=None, check_dns=None):
     # No ID provided. Will getfqdn save us?
     using_ip_for_id = False
     if opts['id'] is None:
-        opts['id'], using_ip_for_id = get_id()
+        opts['id'], using_ip_for_id = get_id(opts['root_dir'])
 
     # it does not make sense to append a domain to an IP based id
     if not using_ip_for_id and 'append_domain' in opts:
