@@ -33,9 +33,12 @@ tests/integration/tmp/
 .coverage
 coverage.xml
 htmlcov/
+
+# IDE files
 /.project
 /.pydevproject
 /.idea
+/.ropeproject
 
 # ignore ctags file
 tags
@@ -44,4 +47,8 @@ tags
 Vagrantfile
 .vagrant
 
+# Compiled translation files should not be VCS'ed
+# locale/zh_CN/LC_MESSAGES/topics/virt/nic.mo
+*.mo
+.doctrees
 update.sh

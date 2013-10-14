@@ -18,6 +18,7 @@ mapped to ``base``.
 import os
 import glob
 import time
+import shutil
 import hashlib
 import logging
 
@@ -31,7 +32,8 @@ except ImportError:
 
 # Import salt libs
 import salt.utils
-
+import salt.fileserver
+from salt.utils.event import tagify
 
 log = logging.getLogger(__name__)
 
@@ -116,8 +118,9 @@ def init():
     '''
     bp_ = os.path.join(__opts__['cachedir'], 'hgfs')
     repos = []
-    for ind, opt in enumerate(__opts__['hgfs_remotes']):
-        rp_ = os.path.join(bp_, str(ind))
+    for _, opt in enumerate(__opts__['hgfs_remotes']):
+        repo_hash = hashlib.md5(opt).hexdigest()
+        rp_ = os.path.join(bp_, repo_hash)
         if not os.path.isdir(rp_):
             os.makedirs(rp_)
             hglib.init(rp_)
@@ -134,23 +137,63 @@ def init():
     return repos
 
 
+def purge_cache():
+    bp_ = os.path.join(__opts__['cachedir'], 'hgfs')
+    remove_dirs = os.listdir(bp_)
+    for _, opt in enumerate(__opts__['hgfs_remotes']):
+        repo_hash = hashlib.md5(opt).hexdigest()
+        try:
+            remove_dirs.remove(repo_hash)
+        except ValueError:
+            pass
+    remove_dirs = [os.path.join(bp_, r) for r in remove_dirs if r not in ('hash', 'refs')]
+    if remove_dirs:
+        for r in remove_dirs:
+            shutil.rmtree(r)
+        return True
+    return False
+
+
 def update():
     '''
     Execute a hg pull on all of the repos
     '''
+    # data for the fileserver event
+    data = {'changed': False,
+            'backend': 'hgfs'}
     pid = os.getpid()
+    data['changed'] = purge_cache()
     repos = init()
     for repo in repos:
         repo.open()
         lk_fn = os.path.join(repo.root(), 'update.lk')
         with salt.utils.fopen(lk_fn, 'w+') as fp_:
             fp_.write(str(pid))
-        repo.pull()
+        curtip = repo.tip()
+        if repo.pull():
+            newtip = repo.tip()
+            if curtip[1] != newtip[1]:
+                data['changed'] = True
+        else:
+            log.warning('Failed to pull changes to repo: '
+                        '{0}'.format(repo.root()))
         repo.close()
         try:
             os.remove(lk_fn)
         except (OSError, IOError):
             pass
+
+    # if there is a change, fire an event
+    event = salt.utils.event.MasterEvent(__opts__['sock_dir'])
+    event.fire_event(data, tagify(['hgfs', 'update'], prefix='fileserver'))
+    try:
+        salt.fileserver.reap_fileserver_cache_dir(
+            os.path.join(__opts__['cachedir'], 'hgfs/hash'),
+            find_file
+        )
+    except (IOError, OSError):
+        # Hash file won't exist if no files have yet been served up
+        pass
 
 
 def envs():
