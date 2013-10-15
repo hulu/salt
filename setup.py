@@ -308,6 +308,7 @@ SETUP_KWARGS = {'name': NAME,
                              'salt.output',
                              'salt.utils',
                              'salt.utils.decorators',
+                             'salt.utils.validate',
                              'salt.roster',
                              'salt.log',
                              'salt.log.handlers',
@@ -354,6 +355,10 @@ FREEZER_INCLUDES = [
     'distutils.version',
     'numbers',
     'json',
+    'M2Crypto',
+    'Cookie',
+    'asyncore',
+    'fileinput'
 ]
 
 if IS_WINDOWS_PLATFORM:

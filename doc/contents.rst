@@ -19,6 +19,7 @@ Full Table of Contents
     topics/master_tops/index
     topics/jobs/*
     topics/nonroot
+    topics/translating
     topics/troubleshooting/index
     topics/troubleshooting/yaml_idiosyncrasies
     topics/community
@@ -32,6 +33,7 @@ Full Table of Contents
     topics/conventions/*
     topics/git/*
     topics/development/index
+    topics/translating
 
     ref/configuration/logging/*
     ref/configuration/logging/handlers/*
