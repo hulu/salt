@@ -71,16 +71,27 @@ class Schedule(object):
                'fun': func,
                'jid': '{0:%Y%m%d%H%M%S%f}'.format(datetime.datetime.now())}
         salt.utils.daemonize_if(self.opts)
+
+        args = None
         if 'args' in data:
-            if 'kwargs' in data:
-                ret['return'] = self.functions[func](
-                        *data['args'],
-                        **data['kwargs'])
-            else:
-                ret['return'] = self.functions[func](
-                        *data['args'])
-        else:
+            args = data['args']
+
+        kwargs = None
+        if 'kwargs' in data:
+            kwargs = data['kwargs']
+
+        if args and kwargs:
+            ret['return'] = self.functions[func](*args, **kwargs)
+
+        if args and not kwargs:
+            ret['return'] = self.functions[func](*args)
+
+        if kwargs and not args:
+            ret['return'] = self.functions[func](**kwargs)
+
+        if not kwargs and not args:
             ret['return'] = self.functions[func]()
+
         if 'returner' in data or self.schedule_returner:
             rets = []
             if isinstance(data['returner'], str):
@@ -99,6 +110,7 @@ class Schedule(object):
             for returner in rets:
                 ret_str = '{0}.returner'.format(returner)
                 if ret_str in self.returners:
+                    ret['success'] = True
                     self.returners[ret_str](ret)
                 else:
                     log.info(

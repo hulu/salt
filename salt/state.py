@@ -1658,8 +1658,10 @@ class State(object):
 
 class BaseHighState(object):
     '''
-    The BaseHighState is the foundation of running a highstate, extend it and
-    add a self.state object of type State
+    The BaseHighState is an abstract base class that is the foundation of running a highstate, extend it and
+    add a self.state object of type State.
+
+    When extending this class, please note that self.client and self.matcher should be instantiated and handled.
     '''
     def __init__(self, opts):
         self.opts = self.__gen_opts(opts)
@@ -1925,8 +1927,6 @@ class BaseHighState(object):
         '''
         err = ''
         errors = []
-        if sls in mods:
-            return {}, errors
         state_data = self.client.get_state(sls, env)
         fn_ = state_data.get('dest', False)
         if not fn_:

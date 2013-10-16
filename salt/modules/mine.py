@@ -64,14 +64,15 @@ def update(clear=False):
             log.error('Function {0} in mine_functions failed to execute'
                       .format(func))
             continue
+    auth = _auth()
     load = {
             'cmd': '_mine',
             'data': data,
             'id': __opts__['id'],
             'clear': clear,
+            'tok': auth.gen_token('salt'),
     }
     sreq = salt.payload.SREQ(__opts__['master_uri'])
-    auth = _auth()
     try:
         sreq.send('aes', auth.crypticle.dumps(load), 1, 0)
     except Exception:
@@ -110,13 +111,14 @@ def send(func, *args, **kwargs):
         log.error('Function {0} in mine.send failed to execute: {1}'
                   .format(func, exc))
         return False
+    auth = _auth()
     load = {
             'cmd': '_mine',
             'data': data,
             'id': __opts__['id'],
+            'tok': auth.gen_token('salt'),
     }
     sreq = salt.payload.SREQ(__opts__['master_uri'])
-    auth = _auth()
     try:
         sreq.send('aes', auth.crypticle.dumps(load), 1, 10)
     except Exception:
@@ -153,6 +155,7 @@ def get(tgt, fun, expr_form='glob'):
             'tgt': tgt,
             'fun': fun,
             'expr_form': expr_form,
+            'tok': auth.gen_token('salt'),
     }
     sreq = salt.payload.SREQ(__opts__['master_uri'])
     ret = sreq.send('aes', auth.crypticle.dumps(load))
@@ -173,7 +176,8 @@ def delete(fun):
     load = {
             'cmd': '_mine_delete',
             'id': __opts__['id'],
-            'fun': fun
+            'fun': fun,
+            'tok': auth.gen_token('salt'),
     }
     sreq = salt.payload.SREQ(__opts__['master_uri'])
     ret = sreq.send('aes', auth.crypticle.dumps(load))
@@ -194,6 +198,7 @@ def flush():
     load = {
             'cmd': '_mine_flush',
             'id': __opts__['id'],
+            'tok': auth.gen_token('salt'),
     }
     sreq = salt.payload.SREQ(__opts__['master_uri'])
     ret = sreq.send('aes', auth.crypticle.dumps(load))
