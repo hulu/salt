@@ -15,6 +15,7 @@ import inspect
 import json
 import logging
 import os
+import pprint
 import random
 import re
 import shlex
@@ -28,6 +29,7 @@ import tempfile
 import time
 import types
 import warnings
+import yaml
 from calendar import month_abbr as months
 
 
@@ -69,6 +71,7 @@ import salt.log
 import salt.minion
 import salt.payload
 import salt.version
+from salt._compat import string_types
 from salt.utils.decorators import memoize as real_memoize
 from salt.exceptions import (
     SaltClientError, CommandNotFoundError, SaltSystemExit, SaltInvocationError
@@ -179,7 +182,7 @@ def get_colors(use=True):
     return colors
 
 
-def daemonize():
+def daemonize(redirect_out=True):
     '''
     Daemonize a process
     '''
@@ -216,10 +219,11 @@ def daemonize():
     # Unfortunately when a python multiprocess is called the output is
     # not cleanly redirected and the parent process dies when the
     # multiprocessing process attempts to access stdout or err.
-    #dev_null = open('/dev/null', 'rw')
-    #os.dup2(dev_null.fileno(), sys.stdin.fileno())
-    #os.dup2(dev_null.fileno(), sys.stdout.fileno())
-    #os.dup2(dev_null.fileno(), sys.stderr.fileno())
+    if redirect_out:
+        dev_null = open('/dev/null', 'rw')
+        os.dup2(dev_null.fileno(), sys.stdin.fileno())
+        os.dup2(dev_null.fileno(), sys.stdout.fileno())
+        os.dup2(dev_null.fileno(), sys.stderr.fileno())
 
 
 def daemonize_if(opts):
@@ -233,7 +237,7 @@ def daemonize_if(opts):
         return
     if sys.platform.startswith('win'):
         return
-    daemonize()
+    daemonize(False)
 
 
 def profile_func(filename=None):
@@ -495,7 +499,7 @@ def is_jid(jid):
     '''
     Returns True if the passed in value is a job id
     '''
-    if not isinstance(jid, basestring):
+    if not isinstance(jid, string_types):
         return False
     if len(jid) != 20:
         return False
@@ -1146,7 +1150,7 @@ def is_true(value=None):
     # Now check for truthiness
     if isinstance(value, (int, float)):
         return value > 0
-    elif isinstance(value, basestring):
+    elif isinstance(value, string_types):
         return str(value).lower() == 'true'
     else:
         return bool(value)
@@ -1755,3 +1759,34 @@ def is_bin_str(data):
     if len(text) / len(data) > 0.30:
         return True
     return False
+
+
+def repack_dictlist(data):
+    '''
+    Takes a list of one-element dicts (as found in many SLS schemas) and
+    repacks into a single dictionary.
+    '''
+    if isinstance(data, string_types):
+        try:
+            data = yaml.safe_load(data)
+        except yaml.parser.ParserError as err:
+            log.error(err)
+            return {}
+    if not isinstance(data, list) \
+            or [x for x in data
+                if not isinstance(x, (string_types, int, float, dict))]:
+        log.error('Invalid input: {0}'.format(pprint.pformat(data)))
+        log.error('Input must be a list of strings/dicts')
+        return {}
+    ret = {}
+    for element in data:
+        if isinstance(element, (string_types, int, float)):
+            ret[element] = None
+        else:
+            if len(element) != 1:
+                log.error('Invalid input: key/value pairs must contain '
+                          'only one element (data passed: {0}).'
+                          .format(element))
+                return {}
+            ret.update(element)
+    return ret

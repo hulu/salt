@@ -1325,7 +1325,7 @@ class State(object):
         if pre:
             reqs['prerequired'] = []
         for r_state in reqs:
-            if r_state in low:
+            if r_state in low and low[r_state] is not None:
                 for req in low[r_state]:
                     req = trim_req(req)
                     found = False
@@ -2199,6 +2199,8 @@ class BaseHighState(object):
                             .format(sls_match, env)
                     )
                 for sls in statefiles:
+                    if sls in mods:
+                        continue
                     state, errors = self.render_state(sls, env, mods, matches)
                     if state:
                         self.merge_included_states(highstate, state, errors)

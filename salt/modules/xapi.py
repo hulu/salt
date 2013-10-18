@@ -33,11 +33,15 @@ except ImportError:
 from salt.exceptions import CommandExecutionError
 import salt.utils
 
+# Define the module's virtual name
+__virtualname__ = 'virt'
 
 # This module has only been tested on Debian GNU/Linux and NetBSD, it
 # probably needs more path appending for other distributions.
 # The path to append is the path to python Xen libraries, where resides
 # XenAPI.
+
+
 def _check_xenapi():
     if __grains__['os'] == 'Debian':
         debian_xen_version = '/usr/lib/xen-common/bin/xen-version'
@@ -58,7 +62,7 @@ def _check_xenapi():
 
 def __virtual__():
     if _check_xenapi() is not False:
-        return 'virt'
+        return __virtualname__
     return False
 
 

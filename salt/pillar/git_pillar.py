@@ -30,6 +30,9 @@ from salt.pillar import Pillar
 # Set up logging
 log = logging.getLogger(__name__)
 
+# Define the module's virtual name
+__virtualname__ = 'git'
+
 
 def __virtual__():
     '''
@@ -44,7 +47,7 @@ def __virtual__():
         return False
     if not git.__version__ > '0.3.0':
         return False
-    return 'git'
+    return __virtualname__
 
 
 def _get_ref(repo, short):
@@ -97,11 +100,10 @@ def update(branch, repo_location):
     pid = os.getpid()
     repo = init(branch, repo_location)
     try:
-        repo.git.checkout(branch)
+        repo.git.checkout("origin/" + branch)
     except git.exc.GitCommandError as e:
         logging.error('Unable to checkout branch {0}: {1}'.format(branch, e))
         return False
-    repo.git.pull()
     return True
 
 

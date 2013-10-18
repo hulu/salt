@@ -134,9 +134,11 @@ def item(*args, **kwargs):
     return ret
 
 
-def setval(key, val):
+def setval(key, val, destructive=False):
     '''
     Set a grains value in the grains config file
+
+    :param Destructive: If an operation results in a key being removed, delete the key, too. Defaults to False.
 
     CLI Example:
 
@@ -170,7 +172,12 @@ def setval(key, val):
                 return 'Unable to read existing grains file: {0}'.format(e)
         if not isinstance(grains, dict):
             grains = {}
-    grains[key] = val
+    if val is None and destructive is True:
+        print('SETVAL DESTRUCTIVE ')
+        if key in grains:
+            del(grains[key])
+    else:
+        grains[key] = val
     # Cast defaultdict to dict; is there a more central place to put this?
     yaml.representer.SafeRepresenter.add_representer(collections.defaultdict,
             yaml.representer.SafeRepresenter.represent_dict)
@@ -228,11 +235,13 @@ def remove(key, val):
     return setval(key, grains)
 
 
-def delval(key):
+def delval(key, destructive=False):
     '''
     .. versionadded:: 0.17.0
 
     Delete a grain from the grains config file
+
+    :param Destructive: Delete the key, too. Defaults to False.
 
     CLI Example:
 
@@ -240,7 +249,8 @@ def delval(key):
 
         salt '*' grains.delval key
     '''
-    setval(key, None)
+
+    setval(key, None, destructive=destructive)
 
 
 def ls():  # pylint: disable=C0103

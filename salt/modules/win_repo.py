@@ -25,13 +25,16 @@ from salt._compat import string_types
 
 log = logging.getLogger(__name__)
 
+# Define the module's virtual name
+__virtualname__ = 'winrepo'
+
 
 def __virtual__():
     '''
     Set the winrepo module if the OS is Windows
     '''
     if salt.utils.is_windows():
-        return 'winrepo'
+        return __virtualname__
     return False
 
 
@@ -87,7 +90,7 @@ def update_git_repos():
 
         This function will not work unless git is installed and the git module
         is further updated to work on Windows. In the meantime just place all
-        Windows package files in the 'win_repo' directory.
+        Windows package files in the ``win_repo`` directory.
     '''
     ret = {}
     #mminion = salt.minion.MasterMinion(__opts__)
