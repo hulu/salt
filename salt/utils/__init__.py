@@ -48,10 +48,10 @@ except ImportError:
 
 try:
     import fcntl
-    HAS_FNCTL = True
+    HAS_FCNTL = True
 except ImportError:
     # fcntl is not available on windows
-    HAS_FNCTL = False
+    HAS_FCNTL = False
 
 try:
     import win32api
@@ -274,7 +274,7 @@ def which(exe=None):
         # default path based on busybox's default
         default_path = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
         search_path = os.environ.get('PATH', default_path)
-        path_ext = os.environ.get('PATHEXT', '')
+        path_ext = os.environ.get('PATHEXT', '.EXE')
         ext_list = path_ext.split(';')
 
         @real_memoize
@@ -964,7 +964,7 @@ def fopen(*args, **kwargs):
     survive into the new program after exec.
     '''
     fhandle = open(*args, **kwargs)
-    if HAS_FNCTL:
+    if HAS_FCNTL:
         # modify the file descriptor on systems with fcntl
         # unix and unix-like systems only
         try:
@@ -980,7 +980,7 @@ def fopen(*args, **kwargs):
 
 def flopen(*args, **kwargs):
     fhandle = open(*args, **kwargs)
-    if HAS_FNCTL:
+    if HAS_FCNTL:
         # modify the file descriptor on systems with fcntl
         # unix and unix-like systems only
         try:

@@ -163,7 +163,7 @@ def latest_version(*names, **kwargs):
     for name in names:
         ret[name] = ''
     pkgs = list_pkgs(versions_as_list=True)
-    repo = ['-o', 'APT::Default-Release={0!r}'.format(fromrepo)] \
+    repo = ['-o', 'APT::Default-Release={0}'.format(fromrepo)] \
         if fromrepo else ''
 
     # Refresh before looking for the latest version available
@@ -180,6 +180,7 @@ def latest_version(*names, **kwargs):
         if isinstance(repo, list):
             cmd = cmd + repo
         out = __salt__['cmd.run_all'](cmd, python_shell=False)
+        candidate = ''
         for line in out['stdout'].splitlines():
             if 'Candidate' in line:
                 candidate = line.split()
@@ -1138,18 +1139,12 @@ def mod_repo(repo, **kwargs):
             if not imported:
                 cmd = ('apt-key adv --keyserver {0} --logger-fd 1 '
                        '--recv-keys {1}')
-                out = __salt__['cmd.run_stdout'](cmd.format(ks, keyid),
-                                                 **kwargs)
-                if not (out.find('imported') or out.find('not changed')):
+                ret = __salt__['cmd.run_all'](cmd.format(ks, keyid),
+                                              **kwargs)
+                if ret['retcode'] != 0:
                     error_str = 'Error: key retrieval failed: {0}'
-                    raise Exception(
-                        error_str.format(
-                            cmd.format(
-                                ks,
-                                keyid
-                            )
-                        )
-                    )
+                    raise Exception(error_str.format(ret['stdout']))
+
     elif 'key_url' in kwargs:
         key_url = kwargs['key_url']
         fn_ = __salt__['cp.cache_file'](key_url)
