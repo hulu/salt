@@ -40,6 +40,7 @@ import re
 
 # Import salt libs
 import salt.utils
+from salt.exceptions import CommandExecutionError
 from salt.modules.pkg_resource import _repack_pkgs
 
 if salt.utils.is_windows():
@@ -418,6 +419,11 @@ def installed(
     if not isinstance(version, basestring) and version is not None:
         version = str(version)
 
+    if salt.utils.is_true(refresh) or os.path.isfile(rtag):
+        __salt__['pkg.refresh_db']()
+        if os.path.isfile(rtag):
+            os.remove(rtag)
+
     result = _find_install_targets(name, version, pkgs, sources,
                                    fromrepo=fromrepo, **kwargs)
     try:
@@ -449,26 +455,14 @@ def installed(
                 'comment': comment}
 
     comment = []
-    if salt.utils.is_true(refresh) or os.path.isfile(rtag):
-        pkg_ret = __salt__['pkg.install'](name,
-                                          refresh=True,
-                                          version=version,
-                                          fromrepo=fromrepo,
-                                          skip_verify=skip_verify,
-                                          pkgs=pkgs,
-                                          sources=sources,
-                                          **kwargs)
-        if os.path.isfile(rtag):
-            os.remove(rtag)
-    else:
-        pkg_ret = __salt__['pkg.install'](name,
-                                          refresh=False,
-                                          version=version,
-                                          fromrepo=fromrepo,
-                                          skip_verify=skip_verify,
-                                          pkgs=pkgs,
-                                          sources=sources,
-                                          **kwargs)
+    pkg_ret = __salt__['pkg.install'](name,
+                                      refresh=False,
+                                      version=version,
+                                      fromrepo=fromrepo,
+                                      skip_verify=skip_verify,
+                                      pkgs=pkgs,
+                                      sources=sources,
+                                      **kwargs)
     if isinstance(pkg_ret, dict):
         changes = pkg_ret
     elif isinstance(pkg_ret, basestring):
@@ -825,7 +819,13 @@ def removed(name, pkgs=None, **kwargs):
 
     .. versionadded:: 0.16.0
     '''
-    return _uninstall(action='remove', name=name, pkgs=pkgs, **kwargs)
+    try:
+        return _uninstall(action='remove', name=name, pkgs=pkgs, **kwargs)
+    except CommandExecutionError as exc:
+        return {'name': name,
+                'changes': {},
+                'result': False,
+                'comment': str(exc)}
 
 
 def purged(name, pkgs=None, **kwargs):
@@ -845,7 +845,13 @@ def purged(name, pkgs=None, **kwargs):
 
     .. versionadded:: 0.16.0
     '''
-    return _uninstall(action='purge', name=name, pkgs=pkgs, **kwargs)
+    try:
+        return _uninstall(action='purge', name=name, pkgs=pkgs, **kwargs)
+    except CommandExecutionError as exc:
+        return {'name': name,
+                'changes': {},
+                'result': False,
+                'comment': str(exc)}
 
 
 def mod_init(low):
