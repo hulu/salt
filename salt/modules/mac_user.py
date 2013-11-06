@@ -152,7 +152,7 @@ def delete(name,
     return _dscl('/Users/{0}'.format(name), ctype='delete')['retcode'] == 0
 
 
-def getent():
+def getent(refresh=False):
     '''
     Return the list of all info for all users
 
@@ -162,7 +162,7 @@ def getent():
 
         salt '*' user.getent
     '''
-    if 'user.getent' in __context__:
+    if 'user.getent' in __context__ and not refresh:
         return __context__['user.getent']
 
     ret = []
