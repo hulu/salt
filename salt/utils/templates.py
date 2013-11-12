@@ -55,7 +55,7 @@ def wrap_tmpl_func(render_str):
         kws.update(context)
         context = kws
         assert 'opts' in context
-        assert 'env' in context
+        assert 'saltenv' in context
 
         if isinstance(tmplsrc, basestring):
             if from_str:
@@ -109,7 +109,7 @@ def wrap_tmpl_func(render_str):
 
 def render_jinja_tmpl(tmplstr, context, tmplpath=None):
     opts = context['opts']
-    env = context['env']
+    saltenv = context['saltenv']
     loader = None
     newline = False
 
@@ -120,7 +120,7 @@ def render_jinja_tmpl(tmplstr, context, tmplpath=None):
     if tmplstr.endswith('\n'):
         newline = True
 
-    if not env:
+    if not saltenv:
         if tmplpath:
             # ie, the template is from a file outside the state tree
             #
@@ -131,7 +131,7 @@ def render_jinja_tmpl(tmplstr, context, tmplpath=None):
             loader = jinja2.FileSystemLoader(
                 context, os.path.dirname(tmplpath))
     else:
-        loader = JinjaSaltCacheLoader(opts, context['env'])
+        loader = JinjaSaltCacheLoader(opts, saltenv)
 
     env_args = {'extensions': [], 'loader': loader}
 
@@ -142,6 +142,17 @@ def render_jinja_tmpl(tmplstr, context, tmplpath=None):
     if hasattr(jinja2.ext, 'loopcontrols'):
         env_args['extensions'].append('jinja2.ext.loopcontrols')
     env_args['extensions'].append(JinjaSerializerExtension)
+
+    # Pass through trim_blocks and lstrip_blocks Jinja parameters
+    # trim_blocks removes newlines around Jinja blocks
+    # lstrip_blocks strips tabs and spaces from the beginning of
+    # line to the start of a block.
+    if opts.get('jinja_trim_blocks', False):
+        log.debug('Jinja2 trim_blocks is enabled')
+        env_args['trim_blocks'] = True
+    if opts.get('jinja_lstrip_blocks', False):
+        log.debug('Jinja2 lstrip_blocks is enabled')
+        env_args['lstrip_blocks'] = True
 
     if opts.get('allow_undefined', False):
         jinja_env = jinja2.Environment(**env_args)
@@ -196,15 +207,15 @@ def render_mako_tmpl(tmplstr, context, tmplpath=None):
     from mako.template import Template
     from salt.utils.mako import SaltMakoTemplateLookup
 
-    env = context['env']
+    saltenv = context['saltenv']
     lookup = None
-    if not env:
+    if not saltenv:
         if tmplpath:
             # ie, the template is from a file outside the state tree
             from mako.lookup import TemplateLookup
             lookup = TemplateLookup(directories=[os.path.dirname(tmplpath)])
     else:
-        lookup = SaltMakoTemplateLookup(context['opts'], context['env'])
+        lookup = SaltMakoTemplateLookup(context['opts'], saltenv)
     try:
         return Template(
             tmplstr,
@@ -273,9 +284,9 @@ def get_template_context(template, line, num_lines=5, marker=None):
     if line > num_template_lines:
         return template
 
-    context_start = max(0, line - num_lines - 1)  # subtract 1 for 0-based indexing
+    context_start = max(0, line - num_lines - 1)  # subt 1 for 0-based indexing
     context_end = min(num_template_lines, line + num_lines)
-    error_line_in_context = line - context_start - 1  # subtract 1 for 0-based indexing
+    error_line_in_context = line - context_start - 1  # subtr 1 for 0-based idx
 
     buf = []
     if context_start > 0:

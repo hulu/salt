@@ -62,7 +62,7 @@ def __clean_tmp(sfn):
     Clean out a template temp file
     '''
     if sfn.startswith(tempfile.gettempdir()):
-        # Don't remove if it exists in file_roots (any env)
+        # Don't remove if it exists in file_roots (any saltenv)
         all_roots = itertools.chain.from_iterable(
                 __opts__['file_roots'].itervalues())
         in_roots = any(sfn.startswith(root) for root in all_roots)
@@ -966,6 +966,8 @@ def replace(path,
     has_changes = False
     orig_file = []  # used if show_changes
     new_file = []  # used if show_changes
+    fstat_pre = os.stat(path)
+    fperm_pre = salt.utils.file_perms(fstat_pre)
     for line in fileinput.input(path,
             inplace=not dry_run, backup=False if dry_run else backup,
             bufsize=bufsize, mode='rb'):
@@ -989,6 +991,14 @@ def replace(path,
 
             if not dry_run:
                 print(result, end='', file=sys.stdout)
+
+    if not dry_run:
+        try:
+            os.chown(path, fstat_pre.st_uid, fstat_pre.st_gid)
+            os.chmod(path, fperm_pre)
+        except (IOError, OSError) as exc:
+            log.error('Unable to set ownership/permissions on {0}: {1}'
+                    .format(path, exc))
 
     if show_changes:
         return ''.join(difflib.unified_diff(orig_file, new_file))
@@ -1666,7 +1676,7 @@ def set_selinux_context(path,
         return ret
 
 
-def source_list(source, source_hash, env):
+def source_list(source, source_hash, saltenv):
     '''
     Check the source list and return the source to use
 
@@ -1678,19 +1688,29 @@ def source_list(source, source_hash, env):
     '''
     # get the master file list
     if isinstance(source, list):
-        mfiles = __salt__['cp.list_master'](env)
-        mdirs = __salt__['cp.list_master_dirs'](env)
+        mfiles = __salt__['cp.list_master'](saltenv)
+        mdirs = __salt__['cp.list_master_dirs'](saltenv)
         for single in source:
             if isinstance(single, dict):
                 single = next(iter(single))
+
+            env_splitter = '?saltenv='
+            if '?env=' in single:
+                salt.utils.warn_until(
+                    'Boron',
+                    'Passing a salt environment should be done using '
+                    '\'saltenv\' not \'env\'. This functionality will be '
+                    'removed in Salt Boron.'
+                )
+                env_splitter = '?env='
             try:
-                sname, senv = single.split('?env=')
+                sname, senv = single.split(env_splitter)
             except ValueError:
                 continue
             else:
-                mfiles += ['{0}?env={1}'.format(f, senv)
+                mfiles += ['{0}?saltenv={1}'.format(f, senv)
                            for f in __salt__['cp.list_master'](senv)]
-                mdirs += ['{0}?env={1}'.format(d, senv)
+                mdirs += ['{0}?saltenv={1}'.format(d, senv)
                           for d in __salt__['cp.list_master_dirs'](senv)]
 
         for single in source:
@@ -1729,7 +1749,7 @@ def get_managed(
         user,
         group,
         mode,
-        env,
+        saltenv,
         context,
         defaults,
         **kwargs):
@@ -1747,7 +1767,7 @@ def get_managed(
     sfn = ''
     source_sum = {}
     if template and source:
-        sfn = __salt__['cp.cache_file'](source, env)
+        sfn = __salt__['cp.cache_file'](source, saltenv)
         if not os.path.exists(sfn):
             return sfn, {}, 'Source file {0} not found'.format(source)
         if template in salt.utils.templates.TEMPLATE_REGISTRY:
@@ -1761,7 +1781,7 @@ def get_managed(
                 user=user,
                 group=group,
                 mode=mode,
-                env=env,
+                saltenv=saltenv,
                 context=context_dict,
                 salt=__salt__,
                 pillar=__pillar__,
@@ -1784,14 +1804,14 @@ def get_managed(
         # Copy the file down if there is a source
         if source:
             if salt._compat.urlparse(source).scheme == 'salt':
-                source_sum = __salt__['cp.hash_file'](source, env)
+                source_sum = __salt__['cp.hash_file'](source, saltenv)
                 if not source_sum:
                     return '', {}, 'Source file {0} not found'.format(source)
             elif source_hash:
                 protos = ['salt', 'http', 'ftp']
                 if salt._compat.urlparse(source_hash).scheme in protos:
                     # The source_hash is a file on a server
-                    hash_fn = __salt__['cp.cache_file'](source_hash)
+                    hash_fn = __salt__['cp.cache_file'](source_hash, saltenv)
                     if not hash_fn:
                         return '', {}, 'Source hash file {0} not found'.format(
                             source_hash)
@@ -1934,7 +1954,7 @@ def check_managed(
         makedirs,  # pylint: disable=W0621,W0613
         context,
         defaults,
-        env,
+        saltenv,
         contents=None,
         **kwargs):
     '''
@@ -1947,7 +1967,7 @@ def check_managed(
         salt '*' file.check_managed /etc/httpd/conf.d/httpd.conf salt://http/httpd.conf '{hash_type: 'md5', 'hsum': <md5sum>}' root, root, '755' jinja True None None base
     '''
     # If the source is a list then find which file exists
-    source, source_hash = source_list(source, source_hash, env)
+    source, source_hash = source_list(source, source_hash, saltenv)
 
     sfn = ''
     source_sum = None
@@ -1962,7 +1982,7 @@ def check_managed(
             user,
             group,
             mode,
-            env,
+            saltenv,
             context,
             defaults,
             **kwargs)
@@ -1970,7 +1990,7 @@ def check_managed(
             __clean_tmp(sfn)
             return False, comments
     changes = check_file_meta(name, sfn, source, source_sum, user,
-                              group, mode, env, template, contents)
+                              group, mode, saltenv, template, contents)
     __clean_tmp(sfn)
     if changes:
         log.info(changes)
@@ -1989,7 +2009,7 @@ def check_file_meta(
         user,
         group,
         mode,
-        env,
+        saltenv,
         template=None,  # pylint: disable=W0613
         contents=None):
     '''
@@ -2011,7 +2031,7 @@ def check_file_meta(
     if 'hsum' in source_sum:
         if source_sum['hsum'] != lstats['sum']:
             if not sfn and source:
-                sfn = __salt__['cp.cache_file'](source, env)
+                sfn = __salt__['cp.cache_file'](source, saltenv)
             if sfn:
                 if __salt__['config.option']('obfuscate_templates'):
                     changes['diff'] = '<Obfuscated Template>'
@@ -2067,7 +2087,8 @@ def check_file_meta(
 def get_diff(
         minionfile,
         masterfile,
-        env='base'):
+        env=None,
+        saltenv='base'):
     '''
     Return unified diff of file compared to file on master
 
@@ -2079,11 +2100,20 @@ def get_diff(
     '''
     ret = ''
 
+    if isinstance(env, salt._compat.string_types):
+        salt.utils.warn_until(
+            'Boron',
+            'Passing a salt environment should be done using \'saltenv\' not '
+            '\'env\'. This functionality will be removed in Salt Boron.'
+        )
+        # Backwards compatibility
+        saltenv = env
+
     if not os.path.exists(minionfile):
         ret = 'File {0} does not exist on the minion'.format(minionfile)
         return ret
 
-    sfn = __salt__['cp.cache_file'](masterfile, env)
+    sfn = __salt__['cp.cache_file'](masterfile, saltenv)
     if sfn:
         with contextlib.nested(salt.utils.fopen(sfn, 'r'),
                                salt.utils.fopen(minionfile, 'r')) \
@@ -2111,11 +2141,12 @@ def manage_file(name,
                 user,
                 group,
                 mode,
-                env,
+                saltenv,
                 backup,
                 template=None,  # pylint: disable=W0613
                 show_diff=True,
-                contents=None):
+                contents=None,
+                dir_mode=None):
     '''
     Checks the destination against what was retrieved with get_managed and
     makes the appropriate modifications (if necessary).
@@ -2141,7 +2172,7 @@ def manage_file(name,
         # Check if file needs to be replaced
         if source and source_sum['hsum'] != name_sum:
             if not sfn:
-                sfn = __salt__['cp.cache_file'](source, env)
+                sfn = __salt__['cp.cache_file'](source, saltenv)
             if not sfn:
                 return _error(
                     ret, 'Source file {0} not found'.format(source))
@@ -2243,7 +2274,7 @@ def manage_file(name,
             ret['changes']['diff'] = 'New file'
             # Apply the new file
             if not sfn:
-                sfn = __salt__['cp.cache_file'](source, env)
+                sfn = __salt__['cp.cache_file'](source, saltenv)
             if not sfn:
                 return _error(
                     ret, 'Source file {0} not found'.format(source))
@@ -2262,7 +2293,7 @@ def manage_file(name,
 
             if not os.path.isdir(os.path.dirname(name)):
                 if makedirs:
-                    makedirs(name, user=user, group=group, mode=mode)
+                    makedirs(name, user=user, group=group, mode=dir_mode or mode)
                 else:
                     __clean_tmp(sfn)
                     return _error(ret, 'Parent directory not present')

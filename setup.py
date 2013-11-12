@@ -8,6 +8,7 @@ from __future__ import with_statement
 
 import os
 import sys
+import glob
 from datetime import datetime
 from distutils.cmd import Command
 from distutils.command.build import build
@@ -117,11 +118,9 @@ class Clean(clean):
         for subdir in ('salt', 'tests', 'doc'):
             root = os.path.join(os.path.dirname(__file__), subdir)
             for dirname, dirnames, filenames in os.walk(root):
-                for filename in filenames:
-                    for ext in remove_extensions:
-                        if filename.endswith(ext):
-                            os.remove(os.path.join(dirname, filename))
-                            break
+                for to_remove_filename in glob.glob(
+                        '{0}/*.py[oc]'.format(dirname)):
+                    os.remove(to_remove_filename)
 
 
 INSTALL_VERSION_TEMPLATE = '''\
@@ -292,6 +291,9 @@ SETUP_KWARGS = {'name': NAME,
                              'salt.client',
                              'salt.client.ssh',
                              'salt.client.ssh.wrapper',
+                             'salt.cloud',
+                             'salt.cloud.utils',
+                             'salt.cloud.clouds',
                              'salt.ext',
                              'salt.auth',
                              'salt.wheel',
@@ -317,11 +319,13 @@ SETUP_KWARGS = {'name': NAME,
                 'package_data': {'salt.templates': [
                                     'rh_ip/*.jinja',
                                     'virt/*.jinja'
-                                    ]
+                                    ],
+                                 'salt.cloud': ['deploy/*.sh'],
                                 },
                 'data_files': [('share/man/man1',
                                 ['doc/man/salt-master.1',
                                  'doc/man/salt-key.1',
+                                 'doc/man/salt-cloud.1',
                                  'doc/man/salt.1',
                                  'doc/man/salt-cp.1',
                                  'doc/man/salt-call.1',
@@ -330,7 +334,9 @@ SETUP_KWARGS = {'name': NAME,
                                  'doc/man/salt-ssh.1',
                                  'doc/man/salt-minion.1',
                                  ]),
-                               ('share/man/man7', ['doc/man/salt.7']),
+                               ('share/man/man7',
+                                ['doc/man/salt.7',
+                                 ]),
                                ],
                 # Required for esky builds
                 'install_requires': REQUIREMENTS,
@@ -338,7 +344,6 @@ SETUP_KWARGS = {'name': NAME,
                 # package zip unsafe. Required for esky builds
                 'zip_safe': False
                 }
-
 
 # bbfreeze explicit includes
 # Sometimes the auto module traversal doesn't find everything, so we
@@ -405,6 +410,7 @@ if WITH_SETUPTOOLS:
                             'salt-call = salt.scripts:salt_call',
                             'salt-run = salt.scripts:salt_run',
                             'salt-ssh = salt.scripts:salt_ssh',
+                            'salt-cloud = salt.scripts:salt_cloud',
                             'salt = salt.scripts:salt_main'
                             ],
     }
@@ -423,6 +429,7 @@ else:
                                'scripts/salt-call',
                                'scripts/salt-run',
                                'scripts/salt-ssh',
+                               'scripts/salt-cloud',
                                'scripts/salt']
 
 if __name__ == '__main__':

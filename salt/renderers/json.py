@@ -6,7 +6,7 @@ import json
 
 
 def render(json_data,
-           env='',  # pylint: disable=W0613
+           saltenv='base',  # pylint: disable=W0613
            sls='',  # pylint: disable=W0613
            **kws):  # pylint: disable=W0613
     '''
