@@ -31,7 +31,6 @@ import types
 import warnings
 import yaml
 from calendar import month_abbr as months
-from posix import stat_result
 
 try:
     import timelib
@@ -185,6 +184,41 @@ def get_colors(use=True):
                 colors[color] = colors[use]
 
     return colors
+
+
+def get_context(template, line, num_lines=5, marker=None):
+    '''
+    Returns debugging context around a line in a given string
+
+    Returns:: string
+    '''
+    template_lines = template.splitlines()
+    num_template_lines = len(template_lines)
+
+    # in test, a single line template would return a crazy line number like,
+    # 357.  do this sanity check and if the given line is obviously wrong, just
+    # return the entire template
+    if line > num_template_lines:
+        return template
+
+    context_start = max(0, line - num_lines - 1)  # subt 1 for 0-based indexing
+    context_end = min(num_template_lines, line + num_lines)
+    error_line_in_context = line - context_start - 1  # subtr 1 for 0-based idx
+
+    buf = []
+    if context_start > 0:
+        buf.append('[...]')
+        error_line_in_context += 1
+
+    buf.extend(template_lines[context_start:context_end])
+
+    if context_end < num_template_lines:
+        buf.append('[...]')
+
+    if marker:
+        buf[error_line_in_context] += marker
+
+    return '---\n{0}\n---'.format('\n'.join(buf))
 
 
 def daemonize(redirect_out=True):
@@ -956,30 +990,6 @@ def str_to_num(text):
             return float(text)
         except ValueError:
             return text
-
-
-def file_perms(path):
-    '''
-    the posix.stat_result struct returned from os.stat() has a parameter
-    st_mode, which does not play nicely with os.chmod(). This function will
-    accept either a file path or a posix.stat_result struct, and will return an
-    integer representing the mode. This integer can be passed directly to
-    os.chmod(), but if you want a human-readable permission string you'll need
-    to use oct() to convert the return value to octal.
-
-    If any problems are encountered, they will be logged and None will be
-    returned.
-    '''
-    if isinstance(path, string_types):
-        try:
-            path = os.stat(path)
-        except (IOError, OSError) as exc:
-            log.error('Unable to stat {0}: {1}'.format(path, exc))
-            return None
-    if not isinstance(path, stat_result):
-        log.error('Invalid data passed to salt.utils.file_perms()')
-        return None
-    return path.st_mode & 4095
 
 
 def fopen(*args, **kwargs):
