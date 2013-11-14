@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 '''
 The setup script for salt
@@ -291,9 +292,6 @@ SETUP_KWARGS = {'name': NAME,
                              'salt.client',
                              'salt.client.ssh',
                              'salt.client.ssh.wrapper',
-                             'salt.cloud',
-                             'salt.cloud.utils',
-                             'salt.cloud.clouds',
                              'salt.ext',
                              'salt.auth',
                              'salt.wheel',
@@ -320,18 +318,10 @@ SETUP_KWARGS = {'name': NAME,
                                     'rh_ip/*.jinja',
                                     'virt/*.jinja'
                                     ],
-                                 'salt.cloud': ['deploy/*.sh'],
                                 },
                 'data_files': [('share/man/man1',
-                                ['doc/man/salt-master.1',
-                                 'doc/man/salt-key.1',
-                                 'doc/man/salt-cloud.1',
-                                 'doc/man/salt.1',
-                                 'doc/man/salt-cp.1',
+                                ['doc/man/salt-cp.1',
                                  'doc/man/salt-call.1',
-                                 'doc/man/salt-syndic.1',
-                                 'doc/man/salt-run.1',
-                                 'doc/man/salt-ssh.1',
                                  'doc/man/salt-minion.1',
                                  ]),
                                ('share/man/man7',
@@ -344,6 +334,22 @@ SETUP_KWARGS = {'name': NAME,
                 # package zip unsafe. Required for esky builds
                 'zip_safe': False
                 }
+
+if IS_WINDOWS_PLATFORM is False:
+    SETUP_KWARGS['packages'].extend(['salt.cloud',
+                                     'salt.cloud.utils',
+                                     'salt.cloud.clouds'])
+    SETUP_KWARGS['package_data']['salt.cloud'] = ['deploy/*.sh']
+    SETUP_KWARGS['data_files'][0][1].extend([
+        'doc/man/salt-master.1',
+        'doc/man/salt-key.1',
+        'doc/man/salt.1',
+        'doc/man/salt-syndic.1',
+        'doc/man/salt-run.1',
+        'doc/man/salt-ssh.1',
+        'doc/man/salt-cloud.1'
+    ])
+
 
 # bbfreeze explicit includes
 # Sometimes the auto module traversal doesn't find everything, so we
@@ -402,18 +408,21 @@ if HAS_ESKY:
 
 if WITH_SETUPTOOLS:
     SETUP_KWARGS['entry_points'] = {
-        'console_scripts': ['salt-master = salt.scripts:salt_master',
-                            'salt-minion = salt.scripts:salt_minion',
-                            'salt-syndic = salt.scripts:salt_syndic',
-                            'salt-key = salt.scripts:salt_key',
+        'console_scripts': ['salt-call = salt.scripts:salt_call',
                             'salt-cp = salt.scripts:salt_cp',
-                            'salt-call = salt.scripts:salt_call',
-                            'salt-run = salt.scripts:salt_run',
-                            'salt-ssh = salt.scripts:salt_ssh',
-                            'salt-cloud = salt.scripts:salt_cloud',
-                            'salt = salt.scripts:salt_main'
-                            ],
+                            'salt-minion = salt.scripts:salt_minion',
+                            ]
     }
+    if IS_WINDOWS_PLATFORM is False:
+        SETUP_KWARGS['entry_points']['console_scripts'].extend([
+            'salt = salt.scripts:salt_main',
+            'salt-cloud = salt.scripts:salt_cloud',
+            'salt-key = salt.scripts:salt_key',
+            'salt-master = salt.scripts:salt_master',
+            'salt-run = salt.scripts:salt_run',
+            'salt-ssh = salt.scripts:salt_ssh',
+            'salt-syndic = salt.scripts:salt_syndic',
+        ])
 
     # Required for running the tests suite
     SETUP_KWARGS['dependency_links'] = [
@@ -421,16 +430,21 @@ if WITH_SETUPTOOLS:
     ]
     SETUP_KWARGS['tests_require'] = ['SaltTesting']
 else:
-    SETUP_KWARGS['scripts'] = ['scripts/salt-master',
-                               'scripts/salt-minion',
-                               'scripts/salt-syndic',
-                               'scripts/salt-key',
+    SETUP_KWARGS['scripts'] = ['scripts/salt-call',
                                'scripts/salt-cp',
-                               'scripts/salt-call',
-                               'scripts/salt-run',
-                               'scripts/salt-ssh',
-                               'scripts/salt-cloud',
-                               'scripts/salt']
+                               'scripts/salt-minion',
+                               ]
+
+    if IS_WINDOWS_PLATFORM is False:
+        SETUP_KWARGS['scripts'].extend([
+            'scripts/salt',
+            'scripts/salt-cloud',
+            'scripts/salt-key',
+            'scripts/salt-master',
+            'scripts/salt-run',
+            'scripts/salt-ssh',
+            'scripts/salt-syndic',
+        ])
 
 if __name__ == '__main__':
     setup(**SETUP_KWARGS)
