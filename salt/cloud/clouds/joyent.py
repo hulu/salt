@@ -49,6 +49,7 @@ associated with that vm. An example profile might look like:
 
 # Import python libs
 import os
+import copy
 import urllib
 import httplib
 import urllib2
@@ -346,13 +347,15 @@ def create(vm_):
             )
 
         # Store what was used to the deploy the VM
-        ret['deploy_kwargs'] = deploy_kwargs
+        event_kwargs = copy.deepcopy(deploy_kwargs)
+        del(event_kwargs['minion_pem'])
+        ret['deploy_kwargs'] = event_kwargs
 
         salt.cloud.utils.fire_event(
             'event',
             'executing deploy script',
             'salt/cloud/{0}/deploying'.format(vm_['name']),
-            {'kwargs': deploy_kwargs},
+            {'kwargs': event_kwargs},
         )
 
         deployed = False

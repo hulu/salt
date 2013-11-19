@@ -449,6 +449,14 @@ def _read_conf_file(path):
                 'Error parsing configuration file: {0} - {1}'.format(path, err)
             )
             conf_opts = {}
+        # only interpret documents as a valid conf, not things like strings,
+        # which might have been caused by invalid yaml syntax
+        if not isinstance(conf_opts, dict):
+            log.error(
+                'Error parsing configuration file: {0} - conf should be a '
+                'document, not {1}.'.format(path, type(conf_opts))
+            )
+            conf_opts = {}
         # allow using numeric ids: convert int to string
         if 'id' in conf_opts:
             conf_opts['id'] = str(conf_opts['id'])
@@ -596,6 +604,17 @@ def minion_config(path,
         )
     if defaults is None:
         defaults = DEFAULT_MINION_OPTS
+
+    if not os.environ.get(env_var, None):
+        # No valid setting was given using the configuration variable.
+        # Lets see is SALT_CONFIG_DIR is of any use
+        salt_config_dir = os.environ.get('SALT_CONFIG_DIR', None)
+        if salt_config_dir:
+            env_config_file_path = os.path.join(salt_config_dir, 'minion')
+            if salt_config_dir and os.path.isfile(env_config_file_path):
+                # We can get a configuration file using SALT_CONFIG_DIR, let's
+                # update the environment with this information
+                os.environ[env_var] = env_config_file_path
 
     overrides = load_config(path, env_var, DEFAULT_MINION_OPTS['conf_file'])
     default_include = overrides.get('default_include',
@@ -904,6 +923,17 @@ def master_config(path, env_var='SALT_MASTER_CONFIG', defaults=None):
     '''
     if defaults is None:
         defaults = DEFAULT_MASTER_OPTS
+
+    if not os.environ.get(env_var, None):
+        # No valid setting was given using the configuration variable.
+        # Lets see is SALT_CONFIG_DIR is of any use
+        salt_config_dir = os.environ.get('SALT_CONFIG_DIR', None)
+        if salt_config_dir:
+            env_config_file_path = os.path.join(salt_config_dir, 'master')
+            if salt_config_dir and os.path.isfile(env_config_file_path):
+                # We can get a configuration file using SALT_CONFIG_DIR, let's
+                # update the environment with this information
+                os.environ[env_var] = env_config_file_path
 
     overrides = load_config(path, env_var, DEFAULT_MASTER_OPTS['conf_file'])
     default_include = overrides.get('default_include',

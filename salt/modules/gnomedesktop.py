@@ -5,20 +5,13 @@ GNOME implementations
 
 try:
     import pwd
-    import psutil
     from gi.repository import Gio, GLib
     HAS_GLIB = True
 except ImportError:
     HAS_GLIB = False
 
 import logging
-import os
 import re
-import subprocess
-import sys
-import time
-
-import salt.modules.cmdmod as salt_cmd
 
 log = logging.getLogger(__name__)
 
@@ -115,7 +108,7 @@ def getIdleDelay(**kwargs):
         salt '*' gnome.getIdleDelay user=<username>
 
     '''
-    _gsession = _GSettings(user=user,
+    _gsession = _GSettings(user=kwargs.get('user'),
                            schema='org.gnome.desktop.session',
                            key='idle-delay')
     return _gsession._get()
@@ -132,7 +125,7 @@ def setIdleDelay(delaySeconds, **kwargs):
         salt '*' gnome.setIdleDelay <seconds> user=<username>
 
     '''
-    _gsession = _GSettings(user=user,
+    _gsession = _GSettings(user=kwargs.get('user'),
                            schema='org.gnome.desktop.session',
                            key='idle-delay')
     return _gsession._set(delaySeconds)
@@ -149,7 +142,7 @@ def getClockFormat(**kwargs):
         salt '*' gnome.getClockFormat user=<username>
 
     '''
-    _gsession = _GSettings(user=user,
+    _gsession = _GSettings(user=kwargs.get('user'),
                            schema='org.gnome.desktop.interface',
                            key='clock-format')
     return _gsession._get()
@@ -168,7 +161,7 @@ def setClockFormat(clockFormat, **kwargs):
     '''
     if clockFormat != '12h' and clockFormat != '24h':
         return False
-    _gsession = _GSettings(user=user,
+    _gsession = _GSettings(user=kwargs.get('user'),
                            schema='org.gnome.desktop.interface',
                            key='clock-format')
     return _gsession._set(clockFormat)
@@ -185,7 +178,7 @@ def getClockShowDate(**kwargs):
         salt '*' gnome.getClockShowDate user=<username>
 
     '''
-    _gsession = _GSettings(user=user,
+    _gsession = _GSettings(user=kwargs.get('user'),
                            schema='org.gnome.desktop.interface',
                            key='clock-show-date')
     return _gsession._get()
@@ -204,7 +197,7 @@ def setClockShowDate(kvalue, **kwargs):
     '''
     if kvalue is not True and kvalue is not False:
         return False
-    _gsession = _GSettings(user=user,
+    _gsession = _GSettings(user=kwargs.get('user'),
                            schema='org.gnome.desktop.interface',
                            key='clock-show-date')
     return _gsession._set(kvalue)
@@ -221,7 +214,7 @@ def getIdleActivation(**kwargs):
         salt '*' gnome.getIdleActivation user=<username>
 
     '''
-    _gsession = _GSettings(user=user,
+    _gsession = _GSettings(user=kwargs.get('user'),
                            schema='org.gnome.desktop.screensaver',
                            key='idle-activation-enabled')
     return _gsession._get()
@@ -240,7 +233,7 @@ def setIdleActivation(kvalue, **kwargs):
     '''
     if kvalue is not True and kvalue is not False:
         return False
-    _gsession = _GSettings(user=user,
+    _gsession = _GSettings(user=kwargs.get('user'),
                            schema='org.gnome.desktop.screensaver',
                            key='idle-activation-enabled')
     return _gsession._set(kvalue)

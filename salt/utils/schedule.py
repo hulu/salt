@@ -22,6 +22,8 @@ The scheduler also supports ensuring that there are no more than N copies of
 a particular routine running.  Use this for jobs that may be long-running
 and could step on each other or pile up in case of infrastructure outage.
 
+The default for maxrunning is 1.
+
 code-block:: yaml
 
     schedule:
@@ -96,8 +98,10 @@ class Schedule(object):
         # Check to see if there are other jobs with this
         # signature running.  If there are more than maxrunning
         # jobs present then don't start another.
-        # If jid_include is not set for this job we can ignore all this
-        if 'jid_include' in data and data['jid_include']:
+        # If jid_include is False for this job we can ignore all this
+        # NOTE--jid_include defaults to True, thus if it is missing from the data
+        # dict we treat it like it was there and is True
+        if 'jid_include' not in data or data['jid_include']:
             jobcount = 0
             for basefilename in os.listdir(salt.minion.get_proc_dir(self.opts['cachedir'])):
                 fn = os.path.join(salt.minion.get_proc_dir(self.opts['cachedir']), basefilename)
@@ -122,7 +126,7 @@ class Schedule(object):
 
         ret['pid'] = os.getpid()
 
-        if 'jid_include' in data and data['jid_include']:
+        if 'jid_include' not in data or data['jid_include']:
             log.debug('schedule.handle_func: adding this job to the jobcache '
                       'with data {0}'.format(ret))
             # write this to /var/cache/salt/minion/proc
@@ -227,12 +231,17 @@ class Schedule(object):
             else:
                 log.debug('Running scheduled job: {0}'.format(job))
 
-            if 'jid_include' in data:
+            if 'jid_include' not in data or data['jid_include']:
+                data['jid_include'] = True
                 log.debug('schedule: This job was scheduled with jid_include, '
-                          'adding to cache')
+                          'adding to cache (jid_include defaults to True)')
                 if 'maxrunning' in data:
                     log.debug('schedule: This job was scheduled with a max '
                               'number of {0}'.format(data['maxrunning']))
+                else:
+                    log.info('schedule: maxrunning parameter was not specified for '
+                              'job {0}, defaulting to 1.'.format(job))
+                    data['maxrunning'] = 1
 
             if self.opts.get('multiprocessing', True):
                 thread_cls = multiprocessing.Process
