@@ -17,7 +17,7 @@ from salt.utils.decorators import which as _which
 import shlex
 import pipes
 if hasattr(shlex, 'quote'):
-    _quote = shlex.quote
+    _quote = shlex.quote  # pylint: disable=E1101
 elif hasattr(pipes, 'quote'):
     _quote = pipes.quote
 else:
