@@ -139,7 +139,10 @@ def bootstrap(force=False):
     return result['stdout']
 
 
-def list_(filter, all_versions=False, pre_versions=False, source=None):
+def list_(filter,  # pylint: disable=W0622
+          all_versions=False,
+          pre_versions=False,
+          source=None):
     '''
     Instructs Chocolatey to pull a vague package list from the repository.
 

@@ -34,7 +34,7 @@ def _valid_composer(composer):
     return False
 
 
-def install(dir,
+def install(dir,  # pylint: disable=W0622
             composer=None,
             php=None,
             runas=None,
