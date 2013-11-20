@@ -66,7 +66,7 @@ from salt._compat import string_types
 
 # Import 3rd-party libs
 try:
-    import docker
+    import docker  # pylint: disable=W0611
     HAS_DOCKER = True
 except ImportError:
     HAS_DOCKER = False
