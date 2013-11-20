@@ -1575,7 +1575,7 @@ def is_hyper():
         salt '*' virt.is_hyper
     '''
     try:
-        import libvirt
+        import libvirt  # pylint: disable=W0621
     except ImportError:
         # not a usable hypervisor without libvirt module
         return False
