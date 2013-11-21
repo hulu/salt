@@ -124,7 +124,7 @@ def _parsed_version(user=None, host=None, port=None, maintenance_db=None,
     )
 
     if psql_version:
-        return distutils.version.LooseVersion(psql_version)
+        return distutils.version.LooseVersion(psql_version)  # pylint: disable=E1101
     else:
         log.warning('Attempt to parse version of Postgres server failed. Is the server responding?')
         return None
