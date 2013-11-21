@@ -54,7 +54,7 @@ import logging
 from libcloud.compute.base import NodeAuthSSHKey
 
 # Import generic libcloud functions
-from salt.cloud.libcloudfuncs import *   # pylint: disable-msg=W0614,W0401
+from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
 
 # Import salt.cloud libs
 import salt.cloud.config as config
@@ -316,6 +316,9 @@ def create(vm_):
         # Store what was used to the deploy the VM
         event_kwargs = copy.deepcopy(deploy_kwargs)
         del(event_kwargs['minion_pem'])
+        del(event_kwargs['minion_pub'])
+        if 'password' in kwargs:
+            del(event_kwargs['password'])
         ret['deploy_kwargs'] = event_kwargs
 
         salt.cloud.utils.fire_event(

@@ -60,16 +60,20 @@ class CloudClient(object):
         Set the opts dict to defaults and allow for opts to be overridden in
         the kwargs
         '''
-        self.opts['parallel'] = False
-        self.opts['keep_tmp'] = False
-        self.opts['deploy'] = True
-        self.opts['update_bootstrap'] = False
-        self.opts['show_deploy_args'] = False
-        self.opts['script_args'] = ''
-
-        self.opts.update(salt.cloud.config.CLOUD_CONFIG_DEFAULTS)
-        self.opts.update(kwargs)
-        return self.opts
+        # Let's start with the default salt cloud configuration
+        opts = salt.cloud.config.CLOUD_CONFIG_DEFAULTS.copy()
+        # Update it with the loaded configuration
+        opts.update(self.opts.copy())
+        # Reset some of the settings to sane values
+        opts['parallel'] = False
+        opts['keep_tmp'] = False
+        opts['deploy'] = True
+        opts['update_bootstrap'] = False
+        opts['show_deploy_args'] = False
+        opts['script_args'] = ''
+        # Update it with the passed kwargs
+        opts.update(kwargs)
+        return opts
 
     def low(self, fun, low):
         '''
@@ -840,7 +844,7 @@ class Cloud(object):
                     continue
                 if self.opts.get('show_deploy_args', False) is False:
                     ret[name].pop('deploy_kwargs', None)
-            except (SaltCloudSystemExit, SaltCloudConfigError), exc:
+            except (SaltCloudSystemExit, SaltCloudConfigError) as exc:
                 if len(names) == 1:
                     raise
                 ret[name] = {'Error': exc.message}
@@ -1074,10 +1078,10 @@ class Map(Cloud):
             temp_ = Template(fp.read())
             # render as yaml
             yaml_str_ = temp_.render()
-            map = yaml.safe_load(yaml_str_)
+            map_ = yaml.safe_load(yaml_str_)
         except MakoException:
-            map = yaml.safe_load(fp.read())
-        return map
+            map_ = yaml.safe_load(fp.read())
+        return map_
 
     def read(self):
         '''

@@ -18,6 +18,11 @@ log = logging.getLogger(__name__)
 # Define the module's virtual name
 __virtualname__ = 'gnome'
 
+# Don't shadow built-in's.
+__func_alias__ = {
+    'set_': 'set'
+}
+
 
 def __virtual__():
     '''
@@ -28,7 +33,7 @@ def __virtual__():
     return False
 
 
-class _GSettings:
+class _GSettings(object):
     def __init__(self, user, schema, key):
         self.SCHEMA = schema
         self.KEY = key
@@ -254,7 +259,7 @@ def get(schema=None, key=None, user=None, value=None, **kwargs):
     return _gsession._get()
 
 
-def set(schema=None, key=None, user=None, value=None, **kwargs):
+def set_(schema=None, key=None, user=None, value=None, **kwargs):
     '''
     Set key in a particular GNOME schema
 

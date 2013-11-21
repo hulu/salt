@@ -140,7 +140,7 @@ except Exception:
     pass
 
 # Import generic libcloud functions
-from salt.cloud.libcloudfuncs import *   # pylint: disable-msg=W0614,W0401
+from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
 
 # Import salt libs
 import salt.utils
@@ -521,7 +521,7 @@ def create(vm_):
                     )
                 )
             )
-        except Exception, err:
+        except Exception as err:
             log.error(
                 'Failed to get nodes list: {0}'.format(
                     err
@@ -640,16 +640,32 @@ def create(vm_):
     if not ip_address:
         raise SaltCloudSystemExit('A valid IP address was not found')
 
+    ssh_username = config.get_config_value(
+        'ssh_username', vm_, __opts__, default='root'
+    )
     deploy_kwargs = {
         'host': ip_address,
         'name': vm_['name'],
         'sock_dir': __opts__['sock_dir'],
+        'tmp_dir': config.get_config_value(
+            'tmp_dir', vm_, __opts__, default='/tmp/.saltcloud'
+        ),
+        'deploy_command': config.get_config_value(
+            'deploy_command', vm_, __opts__,
+            default='/tmp/.saltcloud/deploy.sh',
+        ),
         'start_action': __opts__['start_action'],
         'parallel': __opts__['parallel'],
         'minion_pem': vm_['priv_key'],
         'minion_pub': vm_['pub_key'],
         'keep_tmp': __opts__['keep_tmp'],
         'preseed_minion_keys': vm_.get('preseed_minion_keys', None),
+        'sudo': config.get_config_value(
+            'sudo', vm_, __opts__, default=(ssh_username != 'root')
+        ),
+        'sudo_password': config.get_config_value(
+            'sudo_password', vm_, __opts__, default=None
+        ),
         'display_ssh_output': config.get_config_value(
             'display_ssh_output', vm_, __opts__, default=True
         ),
@@ -660,11 +676,7 @@ def create(vm_):
         'minion_conf': salt.cloud.utils.minion_config(__opts__, vm_)
     }
 
-    ssh_username = config.get_config_value(
-        'ssh_username', vm_, __opts__, default='root'
-    )
     if ssh_username != 'root':
-        deploy_kwargs['deploy_command'] = '/tmp/deploy.sh'
         deploy_kwargs['username'] = ssh_username
         deploy_kwargs['tty'] = True
 
@@ -680,13 +692,6 @@ def create(vm_):
         log.debug('Logging into SSH using password')
 
     ret = {}
-    sudo = config.get_config_value(
-        'sudo', vm_, __opts__, default=(ssh_username != 'root')
-    )
-    if sudo is not None:
-        deploy_kwargs['sudo'] = sudo
-        log.debug('Running root commands using sudo')
-
     if config.get_config_value('deploy', vm_, __opts__) is True:
         deploy_script = script(vm_)
         deploy_kwargs['script'] = deploy_script.script
@@ -722,6 +727,10 @@ def create(vm_):
         # Store what was used to the deploy the VM
         event_kwargs = copy.deepcopy(deploy_kwargs)
         del(event_kwargs['minion_pem'])
+        del(event_kwargs['minion_pub'])
+        del(event_kwargs['sudo_password'])
+        if 'password' in kwargs:
+            del(event_kwargs['password'])
         ret['deploy_kwargs'] = event_kwargs
 
         salt.cloud.utils.fire_event(

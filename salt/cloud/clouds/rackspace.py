@@ -49,7 +49,7 @@ import pprint
 from libcloud.compute.base import NodeState
 
 # Import generic libcloud functions
-from salt.cloud.libcloudfuncs import *   # pylint: disable-msg=W0614,W0401
+from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
 
 # Import salt libs
 import salt.utils
@@ -143,6 +143,9 @@ def get_conn():
                     computed_provider
                 )
             )
+            driver = get_driver(Provider.RACKSPACE)
+        except Exception:
+            # http://goo.gl/qFgY42
             driver = get_driver(Provider.RACKSPACE)
 
     return driver(
@@ -255,7 +258,7 @@ def create(vm_):
                     )
                 )
             )
-        except Exception, err:
+        except Exception as err:
             log.error(
                 'Failed to get nodes list: {0}'.format(
                     err
@@ -334,15 +337,26 @@ def create(vm_):
             'No IP addresses could be found.'
         )
 
+    ssh_username = config.get_config_value(
+        'ssh_username', vm_, __opts__, default='root'
+    )
+
     ret = {}
     if deploy is True:
         deploy_script = script(vm_)
         deploy_kwargs = {
             'host': ip_address,
-            'username': 'root',
+            'username': ssh_username,
             'password': data.extra['password'],
             'script': deploy_script.script,
             'name': vm_['name'],
+            'tmp_dir': config.get_config_value(
+                'tmp_dir', vm_, __opts__, default='/tmp/.saltcloud'
+            ),
+            'deploy_command': config.get_config_value(
+                'deploy_command', vm_, __opts__,
+                default='/tmp/.saltcloud/deploy.sh',
+            ),
             'start_action': __opts__['start_action'],
             'parallel': __opts__['parallel'],
             'sock_dir': __opts__['sock_dir'],
@@ -351,6 +365,15 @@ def create(vm_):
             'minion_pub': vm_['pub_key'],
             'keep_tmp': __opts__['keep_tmp'],
             'preseed_minion_keys': vm_.get('preseed_minion_keys', None),
+            'sudo': config.get_config_value(
+                'sudo', vm_, __opts__, default=(ssh_username != 'root')
+            ),
+            'sudo_password': config.get_config_value(
+                'sudo_password', vm_, __opts__, default=None
+            ),
+            'tty': config.get_config_value(
+                'tty', vm_, __opts__, default=False
+            ),
             'display_ssh_output': config.get_config_value(
                 'display_ssh_output', vm_, __opts__, default=True
             ),
@@ -392,6 +415,10 @@ def create(vm_):
         # Store what was used to the deploy the VM
         event_kwargs = copy.deepcopy(deploy_kwargs)
         del(event_kwargs['minion_pem'])
+        del(event_kwargs['minion_pub'])
+        del(event_kwargs['sudo_password'])
+        if 'password' in kwargs:
+            del(event_kwargs['password'])
         ret['deploy_kwargs'] = event_kwargs
 
         salt.cloud.utils.fire_event(

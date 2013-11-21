@@ -88,7 +88,7 @@ from salt._compat import ElementTree as ET
 # Import salt.cloud libs
 import salt.cloud.utils
 import salt.cloud.config as config
-from salt.cloud.libcloudfuncs import *   # pylint: disable-msg=W0614,W0401
+from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
 from salt.cloud.exceptions import (
     SaltCloudException,
     SaltCloudSystemExit,
@@ -1280,12 +1280,23 @@ def create(vm_=None, call=None):
             'host': ip_address,
             'username': username,
             'key_filename': key_filename,
-            'deploy_command': '/tmp/deploy.sh',
-            'tty': True,
+            'tmp_dir': config.get_config_value(
+                'tmp_dir', vm_, __opts__, default='/tmp/.saltcloud'
+            ),
+            'deploy_command': config.get_config_value(
+                'deploy_command', vm_, __opts__,
+                default='/tmp/.saltcloud/deploy.sh',
+            ),
+            'tty': config.get_config_value(
+                'tty', vm_, __opts__, default=True
+            ),
             'script': deploy_script,
             'name': vm_['name'],
             'sudo': config.get_config_value(
                 'sudo', vm_, __opts__, default=(username != 'root')
+            ),
+            'sudo_password': config.get_config_value(
+                'sudo_password', vm_, __opts__, default=None
             ),
             'start_action': __opts__['start_action'],
             'parallel': __opts__['parallel'],
@@ -1336,6 +1347,10 @@ def create(vm_=None, call=None):
         # Store what was used to the deploy the VM
         event_kwargs = copy.deepcopy(deploy_kwargs)
         del(event_kwargs['minion_pem'])
+        del(event_kwargs['minion_pub'])
+        del(event_kwargs['sudo_password'])
+        if 'password' in event_kwargs:
+            del(event_kwargs['password'])
         ret['deploy_kwargs'] = event_kwargs
 
         salt.cloud.utils.fire_event(

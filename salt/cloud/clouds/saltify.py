@@ -97,7 +97,13 @@ def create(vm_):
         'username': ssh_username,
         'script': deploy_script,
         'name': vm_['name'],
-        'deploy_command': '/tmp/deploy.sh',
+        'tmp_dir': config.get_config_value(
+            'tmp_dir', vm_, __opts__, default='/tmp/.saltcloud'
+        ),
+        'deploy_command': config.get_config_value(
+            'deploy_command', vm_, __opts__,
+            default='/tmp/.saltcloud/deploy.sh',
+        ),
         'start_action': __opts__['start_action'],
         'parallel': __opts__['parallel'],
         'sock_dir': __opts__['sock_dir'],
@@ -107,6 +113,12 @@ def create(vm_):
         'keep_tmp': __opts__['keep_tmp'],
         'sudo': config.get_config_value(
             'sudo', vm_, __opts__, default=(ssh_username != 'root')
+        ),
+        'sudo_password': config.get_config_value(
+            'sudo_password', vm_, __opts__, default=None
+        ),
+        'tty': config.get_config_value(
+            'tty', vm_, __opts__, default=True
         ),
         'password': config.get_config_value(
             'password', vm_, __opts__, search_global=False
@@ -151,6 +163,10 @@ def create(vm_):
     # Store what was used to the deploy the VM
     event_kwargs = copy.deepcopy(deploy_kwargs)
     del(event_kwargs['minion_pem'])
+    del(event_kwargs['minion_pub'])
+    del(event_kwargs['sudo_password'])
+    if 'password' in event_kwargs:
+        del(event_kwargs['password'])
     ret['deploy_kwargs'] = event_kwargs
 
     salt.cloud.utils.fire_event(
