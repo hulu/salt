@@ -237,8 +237,8 @@ def export(name,
 def dirty(name,
           target,  # pylint: disable=W0613
           user=None,  # pylint: disable=W0613
-          username=None,
-          password=None,
+          username=None,  # pylint: disable=W0613
+          password=None,  # pylint: disable=W0613
           ignore_unversioned=False):  # pylint: disable=W0613
     '''
     Determine if the working directory has been changed.
