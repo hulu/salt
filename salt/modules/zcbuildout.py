@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-__docformat__ = 'restructuredtext en'
 '''
 Management of zc.buildout
 ===========================
@@ -34,24 +33,16 @@ def __virtual__():
         return __virtualname__
     return False
 
-from threading import Thread
-import copy
-import fcntl
-import logging
+# Import python libs
 import os
-import pkg_resources
 import re
-import shutil
-import subprocess
 import sys
 import traceback
 import urllib2
 
-from salt.modules import cmdmod
+# Import salt libs
 from salt.exceptions import CommandExecutionError
 from salt._compat import string_types
-import salt.utils
-from salt.utils.odict import OrderedDict
 
 
 INVALID_RESPONSE = 'We did not get any expectable answer from buildout'
@@ -64,7 +55,6 @@ base_status = {
     'logs': {'debug': []},
     'comment': '',
     'out': None,
-    'logs': [],
     'logs_by_level': {},
     'outlog': None,
     'outlog_by_level': None,
@@ -113,7 +103,7 @@ def _salt_callback(func):
     return _call_callback
 
 
-class Logger():
+class _Logger():
     levels = ('info', 'warn', 'debug', 'error')
 
     def __init__(self):
@@ -158,7 +148,7 @@ class Logger():
         return self._by_level
 
 
-LOG = Logger()
+LOG = _Logger()
 
 
 def _set_status(m,
@@ -220,7 +210,8 @@ def _Popen(command,
            runas=None,
            env=(),
            exitcode=0):
-    """Run a command
+    '''
+    Run a command
     output
         return output if true
     directory
@@ -233,7 +224,7 @@ def _Popen(command,
         fails if cmd does not return this exit code
         (set to None to disable check)
 
-    """
+    '''
     ret = None
     directory = os.path.abspath(directory)
     if isinstance(command, list):
@@ -250,15 +241,15 @@ def _Popen(command,
 
 
 class ResultTransmission(Exception):
-    """General Buildout Error."""
+    '''General Buildout Error.'''
 
 
 class BuildoutError(CommandExecutionError):
-    """General Buildout Error."""
+    '''General Buildout Error.'''
 
 
 class MrDeveloperError(BuildoutError):
-    """Arrives when mr.developer fails"""
+    '''Arrives when mr.developer fails'''
 
 
 def _has_old_distribute(python=sys.executable, runas=None, env=()):
@@ -340,7 +331,7 @@ def _get_bootstrap_content(directory="."):
                 os.path.abspath(directory), 'bootstrap.py'))
         oldcontent = fic.read()
         fic.close()
-    except:
+    except os.error:
         oldcontent = ""
     return oldcontent
 
@@ -361,7 +352,7 @@ def _get_buildout_ver(directory="."):
         files = _find_cfgs(directory)
         for f in files:
             fic = open(f)
-            buildout1re = re.compile('^zc\.buildout\s*=\s*1', re_f)
+            buildout1re = re.compile(r'^zc\.buildout\s*=\s*1', re_f)
             dfic = fic.read()
             if (
                     ('buildout.dumppick' in dfic)
@@ -377,7 +368,7 @@ def _get_buildout_ver(directory="."):
             or '--distribute' in bcontent
         ):
             buildoutver = 1
-    except:
+    except os.error:
         pass
     return buildoutver
 
@@ -398,6 +389,7 @@ def _dot_buildout(directory):
     """
     return os.path.join(
         os.path.abspath(directory), '.buildout')
+
 
 @_salt_callback
 def upgrade_bootstrap(directory=".",
@@ -455,7 +447,7 @@ def upgrade_bootstrap(directory=".",
                 open(os.path.join(
                     dbuild,
                     '{0}.updated_bootstrap'.format(buildout_ver)))
-            except Exception:
+            except os.error:
                 LOG.info('Bootstrap updated from repository')
                 data = urllib2.urlopen(booturl).read()
                 updated = True
@@ -476,7 +468,7 @@ def upgrade_bootstrap(directory=".",
             ), 'w')
             afic.write('foo')
             afic.close()
-    except:
+    except os.error:
         if oldcontent:
             fic = open(b_py, 'w')
             fic.write(oldcontent)
