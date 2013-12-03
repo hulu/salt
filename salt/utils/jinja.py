@@ -33,7 +33,7 @@ __all__ = [
 
 # To dump OrderedDict objects as regular dicts. Used by the yaml
 # template filter.
-class OrderedDictDumper(yaml.Dumper):
+class OrderedDictDumper(yaml.Dumper):  # pylint: disable=W0232
     pass
 yaml.add_representer(OrderedDict,
                      yaml.representer.SafeRepresenter.represent_dict,
@@ -278,15 +278,15 @@ class SerializerExtension(Extension, object):
             'load_json': self.load_json
         })
 
-        if self.environment.finalize is None:
-            self.environment.finalize = self.finalizer
+        if self.environment.finalize is None:  # pylint: disable=E1101
+            self.environment.finalize = self.finalizer  # pylint: disable=E1101
         else:
-            finalizer = self.environment.finalize
+            finalizer = self.environment.finalize  # pylint: disable=E1101
 
             @wraps(finalizer)
             def wrapper(self, data):
                 return finalizer(self.finalizer(data))
-            self.environment.finalize = wrapper
+            self.environment.finalize = wrapper  # pylint: disable=E1101
 
     def finalizer(self, data):
         '''
