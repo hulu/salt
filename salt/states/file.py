@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-Operations on regular files, special files, directories, and symlinks.
-=======================================================================
+Operations on regular files, special files, directories, and symlinks
+=====================================================================
 
 Salt States can aggressively manipulate files on a system. There are a number
 of ways in which files can be managed.
@@ -233,6 +233,7 @@ log = logging.getLogger(__name__)
 COMMENT_REGEX = r'^([[:space:]]*){0}[[:space:]]?'
 
 _ACCUMULATORS = {}
+_ACCUMULATORS_DEPS = {}
 
 
 def _check_user(user, group):
@@ -1835,6 +1836,7 @@ def blockreplace(name,
             marker_end='#-- end managed zone --',
             content='',
             append_if_not_found=False,
+            prepend_if_not_found=False,
             backup='.bak',
             show_changes=True):
     '''
@@ -1864,6 +1866,8 @@ def blockreplace(name,
         marker_start and marker_stop.
     :param append_if_not_found: False by default, if markers are not found and
         set to True then the markers and content will be appended to the file
+    :param prepend_if_not_found: False by default, if markers are not found and
+        set to True then the markers and content will be prepended to the file
     :param backup: The file extension to use for a backup of the file if any
         edit is made. Set to ``False`` to skip making a backup.
     :param dry_run: Don't make any edits to the file
@@ -1920,17 +1924,27 @@ def blockreplace(name,
 
     if name in _ACCUMULATORS:
         accumulator = _ACCUMULATORS[name]
-        for acc, acc_content in accumulator.iteritems():
+        # if we have multiple accumulators for a file, only apply the one required
+        # at a time
+        deps = _ACCUMULATORS_DEPS.get(name, [])
+        filtered = [a for a in deps if
+                    __low__['__id__'] in deps[a] and a in accumulator]
+        if not filtered:
+            filtered = [a for a in accumulator]
+        for acc in filtered:
+            acc_content = accumulator[acc]
             for line in acc_content:
                 if content == '':
                     content = line
                 else:
                     content += "\n" + line
+
     changes = __salt__['file.blockreplace'](name,
                                        marker_start,
                                        marker_end,
                                        content=content,
                                        append_if_not_found=append_if_not_found,
+                                       prepend_if_not_found=prepend_if_not_found,
                                        backup=backup,
                                        dry_run=__opts__['test'],
                                        show_changes=show_changes)
@@ -2747,19 +2761,27 @@ def accumulated(name, filename, text, **kwargs):
         'result': True,
         'comment': ''
     }
-    if not filter(lambda x: 'file' in x,
-                  kwargs.get('require_in', []) + kwargs.get('watch_in', [])):
+    require_in = __low__.get('require_in', [])
+    watch_in = __low__.get('watch_in', [])
+    deps = require_in + watch_in
+    if not filter(lambda x: 'file' in x, deps):
         ret['result'] = False
         ret['comment'] = 'Orphaned accumulator {0} in {1}:{2}'.format(
             name,
-            kwargs['__sls__'],
-            kwargs['__id__']
+            __low__['__sls__'],
+            __low__['__id__']
         )
         return ret
     if isinstance(text, string_types):
         text = (text,)
     if filename not in _ACCUMULATORS:
         _ACCUMULATORS[filename] = {}
+    if filename not in _ACCUMULATORS_DEPS:
+        _ACCUMULATORS_DEPS[filename] = {}
+    if name not in _ACCUMULATORS_DEPS[filename]:
+        _ACCUMULATORS_DEPS[filename][name] = []
+    for accumulator in deps:
+        _ACCUMULATORS_DEPS[filename][name].extend(accumulator.values())
     if name not in _ACCUMULATORS[filename]:
         _ACCUMULATORS[filename][name] = []
     for chunk in text:

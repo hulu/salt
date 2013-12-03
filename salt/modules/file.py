@@ -597,6 +597,10 @@ def sed(path,
     # Largely inspired by Fabric's contrib.files.sed()
     # XXX:dc: Do we really want to always force escaping?
     #
+
+    if not os.path.exists(path):
+        return False
+
     # Mandate that before and after are strings
     before = str(before)
     after = str(after)
@@ -894,15 +898,15 @@ def _get_flags(flags):
 
 
 def replace(path,
-        pattern,
-        repl,
-        count=0,
-        flags=0,
-        bufsize=1,
-        backup='.bak',
-        dry_run=False,
-        search_only=False,
-        show_changes=True,
+            pattern,
+            repl,
+            count=0,
+            flags=0,
+            bufsize=1,
+            backup='.bak',
+            dry_run=False,
+            search_only=False,
+            show_changes=True,
         ):
     '''
     Replace occurances of a pattern in a file
@@ -971,8 +975,10 @@ def replace(path,
         pre_group = get_group(path)
         pre_mode = __salt__['config.manage_mode'](get_mode(path))
     for line in fileinput.input(path,
-            inplace=not dry_run, backup=False if dry_run else backup,
-            bufsize=bufsize, mode='rb'):
+                                inplace=not dry_run,
+                                backup=False if dry_run else backup,
+                                bufsize=bufsize,
+                                mode='rb'):
 
         if search_only:
             # Just search; bail as early as a match is found
@@ -1008,6 +1014,7 @@ def blockreplace(path,
         marker_end='#-- end managed zone --',
         content='',
         append_if_not_found=False,
+        prepend_if_not_found=False,
         backup='.bak',
         dry_run=False,
         show_changes=True,
@@ -1049,6 +1056,11 @@ def blockreplace(path,
         If markers are not found and set to ``True`` then, the markers and
         content will be appended to the file.
 
+    prepend_if_not_found : False
+        If markers are not found and set to ``True`` then, the markers and
+        content will be prepended to the file.
+
+
     backup
         The file extension to use for a backup of the file if any edit is made.
         Set to ``False`` to skip making a backup.
@@ -1070,6 +1082,9 @@ def blockreplace(path,
     '''
     if not os.path.exists(path):
         raise SaltInvocationError('File not found: {0}'.format(path))
+
+    if append_if_not_found and prepend_if_not_found:
+        raise SaltInvocationError('Choose between append or prepend_if_not_found')
 
     if not salt.utils.istextfile(path):
         raise SaltInvocationError(
@@ -1129,7 +1144,13 @@ def blockreplace(path,
         )
 
     if not done:
-        if append_if_not_found:
+        if prepend_if_not_found:
+            # add the markers and content at the beginning of file
+            new_file.insert(0, marker_end + '\n')
+            new_file.insert(0, content + '\n')
+            new_file.insert(0, marker_start + '\n')
+            done = True
+        elif append_if_not_found:
             # add the markers and content at the end of file
             new_file.append(marker_start + '\n')
             new_file.append(content + '\n')
@@ -1501,7 +1522,9 @@ def copy(src, dst):
         pre_mode = __salt__['config.manage_mode'](get_mode(src))
 
     try:
+        current_umask = os.umask(63)
         shutil.copyfile(src, dst)
+        os.umask(current_umask)
     except OSError:
         raise CommandExecutionError(
             'Could not copy {0!r} to {1!r}'.format(src, dst)
@@ -2262,6 +2285,11 @@ def manage_file(name,
                         ret, 'Failed to commit change, permission error')
             __clean_tmp(tmp)
 
+        if mode is None:
+            mask = os.umask(0)
+            os.umask(mask)
+            # Apply umask and remove exec bit
+            mode = (0o0777 ^ mask) & 0o0666
         ret, perms = check_perms(name, ret, user, group, mode)
 
         if ret['changes']:
@@ -2342,12 +2370,10 @@ def manage_file(name,
             with salt.utils.fopen(tmp, 'w') as tmp_:
                 tmp_.write(str(contents))
             # Copy into place
-            current_umask = os.umask(63)
             salt.utils.copyfile(tmp,
                                 name,
                                 __salt__['config.backup_mode'](backup),
                                 __opts__['cachedir'])
-            os.umask(current_umask)
             __clean_tmp(tmp)
         # Now copy the file contents if there is a source file
         elif sfn:
@@ -2358,6 +2384,11 @@ def manage_file(name,
             __clean_tmp(sfn)
 
         # Check and set the permissions if necessary
+        if mode is None:
+            mask = os.umask(0)
+            os.umask(mask)
+            # Apply umask and remove exec bit
+            mode = (0o0777 ^ mask) & 0o0666
         ret, perms = check_perms(name, ret, user, group, mode)
 
         if not ret['comment']:
@@ -2899,3 +2930,54 @@ def delete_backup(path, backup_id):
     return ret
 
 remove_backup = delete_backup
+
+
+def grep(path,
+         pattern,
+         *args):
+    '''
+    Grep for a string in the specified file
+
+    .. note::
+        This function's return value is slated for refinement in future
+        versions of Salt
+
+    path
+        A file path
+    pattern
+        A string. For example:
+        ``test``
+        ``a[0-5]``
+    args
+        grep options. For example:
+        ``" -v"``
+        ``" -i -B2"``
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.grep /etc/passwd nobody
+        salt '*' file.grep /etc/sysconfig/network-scripts/ifcfg-eth0 ipaddr " -i"
+        salt '*' file.grep /etc/sysconfig/network-scripts/ifcfg-eth0 ipaddr " -i -B2"
+        salt '*' file.grep "/etc/sysconfig/network-scripts/*" ipaddr " -i -l"
+    '''
+    if args:
+        options = ' '.join(args)
+    else:
+        options = ''
+    cmd = (
+        r'''grep  {options} {pattern} {path}'''
+        .format(
+            options=options,
+            pattern=pattern,
+            path=path,
+        )
+    )
+
+    try:
+        ret = __salt__['cmd.run_all'](cmd)
+    except (IOError, OSError) as exc:
+        raise CommandExecutionError(exc.strerror)
+
+    return ret

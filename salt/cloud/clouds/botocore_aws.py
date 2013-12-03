@@ -5,6 +5,10 @@ The AWS Cloud Module
 
 The AWS cloud module is used to interact with the Amazon Web Services system.
 
+This module has been replaced by the EC2 cloud module, and is no longer
+supported. The documentation shown here is for reference only; it is highly
+recommended to change all usages of this driver over to the EC2 driver.
+
 To use the AWS cloud module, using the old cloud providers configuration
 syntax, the following configuration parameters need to be set in the main cloud
 configuration file:
@@ -50,8 +54,8 @@ import stat
 import logging
 
 # Import salt.cloud libs
-import salt.cloud.config as config
-from salt.cloud.utils import namespaced_function
+import salt.config as config
+from salt.utils import namespaced_function
 from salt.cloud.libcloudfuncs import *        # pylint: disable=W0614,W0401
 from salt.cloud.exceptions import SaltCloudException, SaltCloudSystemExit
 
@@ -217,10 +221,10 @@ def _toggle_term_protect(name, enabled):
     vm_ = get_configured_provider()
     session = botocore.session.get_session()  # pylint: disable=E0602
     session.set_credentials(
-        access_key=config.get_config_value(
+        access_key=config.get_cloud_config_value(
             'id', vm_, __opts__, search_global=False
         ),
-        secret_key=config.get_config_value(
+        secret_key=config.get_cloud_config_value(
             'key', vm_, __opts__, search_global=False
         )
     )

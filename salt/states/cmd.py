@@ -279,6 +279,7 @@ def wait(name,
          user=None,  # pylint: disable=W0613
          group=None,  # pylint: disable=W0613
          shell=None,  # pylint: disable=W0613
+         env=(),
          stateful=False,  # pylint: disable=W0613
          umask=None,  # pylint: disable=W0613
          **kwargs):  # pylint: disable=W0613
@@ -309,6 +310,10 @@ def wait(name,
 
     shell
         The shell to use for execution, defaults to /bin/sh
+
+    env
+        Pass in a list or dict of environment variables to be applied to the
+        command upon execution
 
     umask
          The umask (in octal) to use when running the command.
@@ -409,7 +414,8 @@ def run(name,
         timeout=None,
         **kwargs):
     '''
-    Run a command if certain circumstances are met
+    Run a command if certain circumstances are met.  Use ``cmd.wait`` if you
+    want to use the ``watch`` requisite.
 
     name
         The command to execute, remember that the command will execute with the

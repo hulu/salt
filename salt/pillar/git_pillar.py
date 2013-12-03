@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 '''
-Clone a remote git repository and use the filesystem as a pillar directory.
+Clone a remote git repository and use the filesystem as a Pillar source
 
-This external pillar source can be configured in the master config file like
+This external Pillar source can be configured in the master config file like
 so:
 
 .. code-block:: yaml
@@ -115,7 +115,16 @@ def init(branch, repo_location):
     if not repo.remotes:
         try:
             repo.create_remote('origin', repo_location)
-        except Exception:
+            # ignore git ssl verification if requested
+            if __opts__.get('pillar_gitfs_ssl_verify', True):
+                repo.git.config('http.sslVerify', 'true')
+            else:
+                repo.git.config('http.sslVerify', 'false')
+        except os.error:
+            # This exception occurs when two processes are trying to write
+            # to the git config at once, go ahead and pass over it since
+            # this is the only write
+            # This should place a lock down
             pass
     repo.git.fetch()
     return repo

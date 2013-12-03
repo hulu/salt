@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 '''
 Set up the Salt integration test suite
 '''
@@ -96,7 +98,7 @@ def run_tests(*test_cases, **kwargs):
                 help='Disable colour printing.'
             )
 
-        def run_testcase(self, testcase, needs_daemon=True):
+        def run_testcase(self, testcase, needs_daemon=True):  # pylint: disable=W0221
             if needs_daemon:
                 print('Setting up Salt daemons to execute tests')
                 with TestDaemon(self):
@@ -459,7 +461,7 @@ class TestDaemon(object):
                 sys.stdout.flush()
             time.sleep(1)
             now = datetime.now()
-        else:
+        else:  # pylint: disable=W0120
             sys.stdout.write(
                 '\n {RED_BOLD}*{ENDC} ERROR: Failed to get information '
                 'back\n'.format(**self.colors)
@@ -522,7 +524,7 @@ class TestDaemon(object):
 
             time.sleep(1)
             now = datetime.now()
-        else:
+        else:  # pylint: disable=W0120
             print(
                 '\n {RED_BOLD}*{ENDC} WARNING: Minions failed to connect '
                 'back. Tests requiring them WILL fail'.format(**self.colors)
@@ -797,6 +799,13 @@ class ShellCase(AdaptedConfigurationTestCaseMixIn, ShellTestCase):
     def run_call(self, arg_str, with_retcode=False):
         arg_str = '--config-dir {0} {1}'.format(self.get_config_dir(), arg_str)
         return self.run_script('salt-call', arg_str, with_retcode=with_retcode)
+
+    def run_cloud(self, arg_str, catch_stderr=False, timeout=None):
+        '''
+        Execute salt-cloud
+        '''
+        arg_str = '-c {0} {1}'.format(self.get_config_dir(), arg_str)
+        return self.run_script('salt-cloud', arg_str, catch_stderr, timeout)
 
 
 class ShellCaseCommonTestsMixIn(CheckShellBinaryNameAndVersionMixIn):
