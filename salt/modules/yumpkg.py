@@ -99,7 +99,7 @@ try:
             # Will sometimes contain more detailed error messages.
             self.messages[package] = msgs
 
-    class _YumBase(yum.YumBase):
+    class _YumBase(yum.YumBase):  # pylint: disable=W0232
         def doLoggingSetup(self, debuglevel, errorlevel,
                            syslog_indent=None,
                            syslog_facility=None,
