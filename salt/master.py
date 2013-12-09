@@ -267,9 +267,9 @@ class Master(SMaster):
                     # Fire new minions present event
                     data = {'new': list(new),
                             'lost': list(lost)}
-                    event.fire_event(data, tagify('change', 'presense'))
+                    event.fire_event(data, tagify('change', 'presence'))
                 data = {'present': present}
-                event.fire_event(data, tagify('present', 'presense'))
+                event.fire_event(data, tagify('present', 'presence'))
                 old_present = present
             try:
                 time.sleep(loop_interval)
@@ -1153,6 +1153,14 @@ class AESFuncs(object):
             # Can overwrite master files!!
             return False
         if not salt.utils.verify.valid_id(self.opts, load['id']):
+            return False
+        file_recv_max_size = 1024*1024 * self.opts.get('file_recv_max_size', 100)
+        if len(load['data']) + load.get('loc', 0) > file_recv_max_size:
+            log.error(
+                'Exceeding file_recv_max_size limit: {0}'.format(
+                    file_recv_max_size
+                )
+            )
             return False
         if 'tok' not in load:
             log.error(

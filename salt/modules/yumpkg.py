@@ -136,32 +136,8 @@ __virtualname__ = 'pkg'
 
 def __virtual__():
     '''
-    Confine this module to yum based systems
+    Deprecated, yumpkg5 is being used now.
     '''
-    if not HAS_YUMDEPS:
-        return False
-
-    # Work only on RHEL/Fedora based distros with python 2.6 or greater
-    # TODO: Someone decide if we can just test os_family and pythonversion
-    os_grain = __grains__['os']
-    os_family = __grains__['os_family']
-    try:
-        os_major = int(__grains__['osrelease'].split('.')[0])
-    except ValueError:
-        os_major = 0
-
-    if os_grain == 'Fedora':
-        # Fedora <= 10 used Python 2.5 and below
-        if os_major >= 11:
-            return __virtualname__
-    elif os_grain == 'XCP':
-        if os_major >= 2:
-            return __virtualname__
-    elif os_grain == 'XenServer':
-        if os_major > 6:
-            return __virtualname__
-    elif os_family == 'RedHat' and os_major >= 6:
-        return __virtualname__
     return False
 
 
@@ -234,15 +210,15 @@ def _pkg_arch(name):
     that packages that are for the system architecture should not have the
     architecture specified in the passed string.
     '''
-    all_arches = rpmUtils.arch.getArchList()
-    if not any(name.endswith('.{0}'.format(x)) for x in all_arches):
-        return name, __grains__['cpuarch']
     try:
         pkgname, pkgarch = name.rsplit('.', 1)
     except ValueError:
         return name, __grains__['cpuarch']
-    else:
-        return pkgname, pkgarch
+
+    if pkgarch not in rpmUtils.arch.getArchList():
+        return name, __grains__['cpuarch']
+
+    return pkgname, pkgarch
 
 
 def latest_version(*names, **kwargs):

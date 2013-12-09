@@ -218,6 +218,10 @@ def get_context(template, line, num_lines=5, marker=None):
     if marker:
         buf[error_line_in_context] += marker
 
+    # warning: jinja content may contain unicode strings
+    # instead of utf-8.
+    buf = [i.encode('UTF-8') if isinstance(i, unicode) else i for i in buf]
+
     return '---\n{0}\n---'.format('\n'.join(buf))
 
 
@@ -438,18 +442,6 @@ def ip_bracket(addr):
     if addr and ':' in addr and not addr.startswith('['):
         return '[{0}]'.format(addr)
     return addr
-
-
-def port_responds(hostname, port):
-    '''
-    Determines whether or not we can establish a TCP connection to a port
-    '''
-    s = socket.socket()
-    try:
-        s.connect((hostname, int(port)))
-        return True
-    except socket.error, e:
-        return False
 
 
 def dns_check(addr, safe=False, ipv6=False):
