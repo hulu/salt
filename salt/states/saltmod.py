@@ -54,7 +54,7 @@ def state(
         env=None,
         test=False,
         fail_minions='',
-        allow_fail=0,
+        allow_fail=0,  # pylint: disable=W0613
         **kwargs):
     '''
     Invoke a state run on a given target
@@ -163,7 +163,7 @@ def function(
         ssh=False,
         tgt_type=None,
         ret='',
-        arg=(),
+        arg=(),  # pylint: disable=W0613
         **kwargs):
     '''
     Execute a single module function on a remote minion via salt or salt-ssh
