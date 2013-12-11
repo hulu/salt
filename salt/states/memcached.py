@@ -9,7 +9,7 @@ This module is used to manage memcached server.
 
 # Import third party libs
 try:
-    import memcache
+    import memcache  # pylint: disable=W0611
     HAS_MEMCACHE = True
 except ImportError:
     HAS_MEMCACHE = False
