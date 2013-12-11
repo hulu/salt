@@ -232,7 +232,7 @@ def query(params=None, setname=None, requesturl=None, location=None,
           return_url=False, return_root=False):
 
     provider = get_configured_provider()
-    service_url = provider.get('service_url', 'amazonaws.com')
+    service_url = provider.get('service_url', 'amazonaws.com')  # pylint: disable=E1103
 
     timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -242,12 +242,12 @@ def query(params=None, setname=None, requesturl=None, location=None,
     if not requesturl:
         method = 'GET'
 
-        endpoint = provider.get(
+        endpoint = provider.get(  # pylint: disable=E1103
             'endpoint',
             'ec2.{0}.{1}'.format(location, service_url)
         )
 
-        ec2_api_version = provider.get(
+        ec2_api_version = provider.get(  # pylint: disable=E1103
             'ec2_api_version',
             DEFAULT_EC2_API_VERSION
         )
