@@ -101,9 +101,9 @@ try:
 
     class _YumBase(yum.YumBase):  # pylint: disable=W0232
         def doLoggingSetup(self, debuglevel, errorlevel,
-                           syslog_indent=None,
-                           syslog_facility=None,
-                           syslog_device='/dev/log'):
+                           syslog_indent=None,  # pylint: disable=E1101
+                           syslog_facility=None,  # pylint: disable=E1101
+                           syslog_device='/dev/log'):  # pylint: disable=E1101
             '''
             This method is overridden in salt because we don't want syslog
             logging to happen.
@@ -159,7 +159,7 @@ def list_upgrades(refresh=True):
     yumbase = _YumBase()
     versions_list = {}
     for pkgtype in ['updates']:
-        pkglist = yumbase.doPackageLists(pkgtype)
+        pkglist = yumbase.doPackageLists(pkgtype)  # pylint: disable=E1101
         for pkg in pkgs:
             exactmatch, matched, unmatched = yum.packages.parsePackages(
                 pkglist, [pkg]
@@ -270,7 +270,7 @@ def latest_version(*names, **kwargs):
     # latest version it will not show up here.  If we want to use wildcards
     # here we can, but for now its exact match only.
     for pkgtype in ('available', 'updates'):
-        pkglist = yumbase.doPackageLists(pkgtype)
+        pkglist = yumbase.doPackageLists(pkgtype)  # pylint: disable=E1101
         exactmatch, matched, unmatched = yum.packages.parsePackages(
             pkglist, [namearch_map[x]['name'] for x in names]
         )
@@ -347,7 +347,7 @@ def list_pkgs(versions_as_list=False, **kwargs):
 
     ret = {}
     yb = _YumBase()
-    for p in yb.rpmdb:
+    for p in yb.rpmdb:  # pylint: disable=E1101
         name = p.name
         if __grains__.get('cpuarch', '') == 'x86_64' \
                 and re.match(r'i\d86', p.arch):
@@ -396,12 +396,12 @@ def check_db(*names, **kwargs):
     for name in names:
         pkgname, pkgarch = _pkg_arch(name)
         ret.setdefault(name, {})['found'] = bool(
-            [x for x in yumbase.searchPackages(('name', 'arch'), (pkgname,))
+            [x for x in yumbase.searchPackages(('name', 'arch'), (pkgname,))  # pylint: disable=E1101
              if x.name == pkgname and x.arch in (pkgarch, 'noarch')]
         )
         if ret[name]['found'] is False:
             provides = [
-                x for x in yumbase.whatProvides(
+                x for x in yumbase.whatProvides(  # pylint: disable=E1101
                     pkgname, None, None
                 ).returnPackages()
                 if x.arch in (pkgarch, 'noarch')
@@ -426,7 +426,7 @@ def refresh_db():
         salt '*' pkg.refresh_db
     '''
     yumbase = _YumBase()
-    yumbase.cleanMetadata()
+    yumbase.cleanMetadata()  # pylint: disable=E1101
     return True
 
 
@@ -622,8 +622,8 @@ def install(name=None,
     old = list_pkgs()
 
     yumbase = _YumBase()
-    setattr(yumbase.conf, 'assumeyes', True)
-    setattr(yumbase.conf, 'gpgcheck', not skip_verify)
+    setattr(yumbase.conf, 'assumeyes', True)  # pylint: disable=E1101
+    setattr(yumbase.conf, 'gpgcheck', not skip_verify)  # pylint: disable=E1101
 
     version = kwargs.get('version')  # pylint: disable=W0621
     if version:
@@ -645,12 +645,12 @@ def install(name=None,
                 log.info(
                     'Selecting "{0}" for local installation'.format(pkgname)
                 )
-                installed = yumbase.installLocal(pkgname)
+                installed = yumbase.installLocal(pkgname)  # pylint: disable=E1101
                 # if yum didn't install anything, maybe its a downgrade?
                 log.debug('Added {0} transactions'.format(len(installed)))
                 if len(installed) == 0 and pkgname not in old.keys():
                     log.info('Upgrade failed, trying local downgrade')
-                    yumbase.downgradeLocal(pkgname)
+                    yumbase.downgradeLocal(pkgname)  # pylint: disable=E1101
             else:
                 version = pkg_params[pkgname]
                 if version is not None:
@@ -669,23 +669,23 @@ def install(name=None,
                     target = pkgname
                 log.info('Selecting "{0}" for installation'.format(target))
                 # Changed to pattern to allow specific package versions
-                installed = yumbase.install(pattern=target)
+                installed = yumbase.install(pattern=target)  # pylint: disable=E1101
                 # if yum didn't install anything, maybe its a downgrade?
                 log.debug('Added {0} transactions'.format(len(installed)))
                 if len(installed) == 0 and target not in old.keys():
                     log.info('Upgrade failed, trying downgrade')
-                    yumbase.downgrade(pattern=target)
+                    yumbase.downgrade(pattern=target)  # pylint: disable=E1101
 
         # Resolve Deps before attempting install. This needs to be improved by
         # also tracking any deps that may get upgraded/installed during this
         # process. For now only the version of the package(s) you request be
         # installed is tracked.
         log.info('Resolving dependencies')
-        yumbase.resolveDeps()
+        yumbase.resolveDeps()  # pylint: disable=E1101
         log.info('Processing transaction')
         yumlogger = _YumLogger()
-        yumbase.processTransaction(rpmDisplay=yumlogger)
-        yumlogger.log_accumulated_errors()
+        yumbase.processTransaction(rpmDisplay=yumlogger)  # pylint: disable=E1101
+        yumlogger.log_accumulated_errors()  # pylint: disable=E1101
         yumbase.closeRpmDB()
     except Exception as e:
         log.error('Install failed: {0}'.format(e))
@@ -714,7 +714,7 @@ def upgrade(refresh=True):
         refresh_db()
 
     yumbase = _YumBase()
-    setattr(yumbase.conf, 'assumeyes', True)
+    setattr(yumbase.conf, 'assumeyes', True)  # pylint: disable=E1101
 
     old = list_pkgs()
 
@@ -722,14 +722,14 @@ def upgrade(refresh=True):
         # ideally we would look in the yum transaction and get info on all the
         # packages that are going to be upgraded and only look up old/new
         # version info on those packages.
-        yumbase.update()
+        yumbase.update()  # pylint: disable=E1101
         log.info('Resolving dependencies')
-        yumbase.resolveDeps()
+        yumbase.resolveDeps()  # pylint: disable=E1101
         log.info('Processing transaction')
         yumlogger = _YumLogger()
-        yumbase.processTransaction(rpmDisplay=yumlogger)
+        yumbase.processTransaction(rpmDisplay=yumlogger)  # pylint: disable=E1101
         yumlogger.log_accumulated_errors()
-        yumbase.closeRpmDB()
+        yumbase.closeRpmDB()  # pylint: disable=E1101
     except Exception as e:
         log.error('Upgrade failed: {0}'.format(e))
 
@@ -773,7 +773,7 @@ def remove(name=None, pkgs=None, **kwargs):
         return {}
 
     yumbase = _YumBase()
-    setattr(yumbase.conf, 'assumeyes', True)
+    setattr(yumbase.conf, 'assumeyes', True)  # pylint: disable=E1101
 
     # same comments as in upgrade for remove.
     for target in targets:
@@ -788,22 +788,22 @@ def remove(name=None, pkgs=None, **kwargs):
                 arch = arch.lstrip('.')
         else:
             arch = None
-        yumbase.remove(name=target, arch=arch)
+        yumbase.remove(name=target, arch=arch)  # pylint: disable=E1101
 
     log.info('Performing transaction test')
     try:
         callback = yum.callbacks.ProcessTransNoOutputCallback()
-        result = yumbase._doTestTransaction(callback)
+        result = yumbase._doTestTransaction(callback)  # pylint: disable=E1101
     except yum.Errors.YumRPMCheckError as exc:
         raise CommandExecutionError('\n'.join(exc.__dict__['value']))
 
     log.info('Resolving dependencies')
-    yumbase.resolveDeps()
+    yumbase.resolveDeps()  # pylint: disable=E1101
     log.info('Processing transaction')
     yumlogger = _YumLogger()
-    yumbase.processTransaction(rpmDisplay=yumlogger)
+    yumbase.processTransaction(rpmDisplay=yumlogger)  # pylint: disable=E1101
     yumlogger.log_accumulated_errors()
-    yumbase.closeRpmDB()
+    yumbase.closeRpmDB()  # pylint: disable=E1101
 
     __context__.pop('pkg.list_pkgs', None)
     new = list_pkgs()
@@ -866,7 +866,7 @@ def group_list():
     '''
     ret = {'installed': [], 'available': [], 'available languages': {}}
     yumbase = _YumBase()
-    (installed, available) = yumbase.doGroupLists()
+    (installed, available) = yumbase.doGroupLists()  # pylint: disable=E1101
     for group in installed:
         ret['installed'].append(group.name)
     for group in available:
@@ -890,7 +890,7 @@ def group_info(groupname):
         salt '*' pkg.group_info 'Perl Support'
     '''
     yumbase = _YumBase()
-    (installed, available) = yumbase.doGroupLists()
+    (installed, available) = yumbase.doGroupLists()  # pylint: disable=E1101
     for group in installed + available:
         if group.name.lower() == groupname.lower():
             return {'mandatory packages': group.mandatory_packages,
@@ -918,7 +918,7 @@ def group_diff(groupname):
     }
     pkgs = list_pkgs()
     yumbase = _YumBase()
-    (installed, available) = yumbase.doGroupLists()
+    (installed, available) = yumbase.doGroupLists()  # pylint: disable=E1101
     for group in installed:
         if group.name == groupname:
             for pkg in group.mandatory_packages:
