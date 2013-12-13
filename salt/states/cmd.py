@@ -155,6 +155,10 @@ from salt._compat import string_types
 
 log = logging.getLogger(__name__)
 
+__func_alias__ = {
+    'wait': 'watch'
+}
+
 
 def _reinterpreted_state(state):
     '''
@@ -410,6 +414,7 @@ def run(name,
         env=(),
         stateful=False,
         umask=None,
+        output_loglevel='info',
         quiet=False,
         timeout=None,
         **kwargs):
@@ -453,13 +458,39 @@ def run(name,
     umask
         The umask (in octal) to use when running the command.
 
+    output_loglevel
+        Control the loglevel at which the output from the command is logged.
+        Note that the command being run will still be logged at loglevel INFO
+        regardless, unless ``quiet`` is used for this value.
+
     quiet
         The command will be executed quietly, meaning no log entries of the
-        actual command or its return data
+        actual command or its return data. This is deprecated as of the
+        **Hydrogen** release, and is being replaced with
+        ``output_loglevel: quiet``.
 
     timeout
         If the command has not terminated after timeout seconds, send the
         subprocess sigterm, and if sigterm is ignored, follow up with sigkill
+
+    .. note::
+
+        cmd.run supports the usage of ``reload_modules``. This functionality
+        allows you to force Salt to reload all modules. You should only use
+        ``reload_modules`` if your cmd.run does some sort of installation
+        (such as ``pip``), if you do not reload the modules future items in
+        your state which rely on the software being installed will fail.
+
+        .. code-block:: yaml
+
+            cmd.run:
+              - name: /usr/bin/python /usr/local/sbin/get-pip.py
+              - unless: which pip
+              - require:
+                - pkg: python
+                - file: /usr/local/sbin/get-pip.py
+              - reload_modules: True
+
     '''
     ### NOTE: The keyword arguments in **kwargs are ignored in this state, but
     ###       cannot be removed from the function definition, otherwise the use
@@ -525,6 +556,7 @@ def run(name,
                   'shell': shell or __grains__['shell'],
                   'env': env,
                   'umask': umask,
+                  'output_loglevel': output_loglevel,
                   'quiet': quiet}
 
     try:
@@ -536,7 +568,9 @@ def run(name,
         # Wow, we passed the test, run this sucker!
         if not __opts__['test']:
             try:
-                cmd_all = __salt__['cmd.run_all'](name, timeout=timeout, **cmd_kwargs)
+                cmd_all = __salt__['cmd.run_all'](
+                    name, timeout=timeout, **cmd_kwargs
+                )
             except CommandExecutionError as err:
                 ret['comment'] = str(err)
                 return ret
@@ -807,7 +841,7 @@ def mod_watch(name, **kwargs):
     '''
     Execute a cmd function based on a watch call
     '''
-    if kwargs['sfun'] == 'wait' or kwargs['sfun'] == 'run':
+    if kwargs['sfun'] in ('wait', 'run', 'watch'):
         if kwargs.get('stateful'):
             kwargs.pop('stateful')
             return _reinterpreted_state(run(name, **kwargs))

@@ -603,13 +603,21 @@ class Minion(object):
         '''
         {'aes': self._handle_aes,
          'pub': self._handle_pub,
-         'clear': self._handle_clear}[payload['enc']](payload['load'])
+         'clear': self._handle_clear}[payload['enc']](payload['load'],
+                                                      payload['sig'] if 'sig' in payload else None)
 
-    def _handle_aes(self, load):
+    def _handle_aes(self, load, sig=None):
         '''
-        Takes the AES encrypted load, decrypts it, and runs the encapsulated
-        instructions
+        Takes the AES encrypted load, checks the signature if pub signatures
+        are turned on, decrypts it, and runs the encapsulated instructions
         '''
+        # Verify that the signature is valid
+        master_pubkey_path = os.path.join(self.opts['pki_dir'], 'minion_master.pub')
+
+        if sig and self.functions['config.get']('sign_pub_messages'):
+            if not salt.crypt.verify_signature(master_pubkey_path, load, sig):
+                raise AuthenticationError('Message signature failed to validate.')
+
         try:
             data = self.crypticle.loads(load)
         except AuthenticationError:
@@ -622,6 +630,7 @@ class Minion(object):
 
             self.authenticate()
             data = self.crypticle.loads(load)
+
         # Verify that the publication is valid
         if 'tgt' not in data or 'jid' not in data or 'fun' not in data \
            or 'arg' not in data:
@@ -1374,7 +1383,7 @@ class Syndic(Minion):
         opts['loop_interval'] = 1
         Minion.__init__(self, opts)
 
-    def _handle_aes(self, load):
+    def _handle_aes(self, load, sig=None):
         '''
         Takes the AES encrypted load, decrypts it, and runs the encapsulated
         instructions

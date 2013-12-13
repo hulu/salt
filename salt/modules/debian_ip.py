@@ -112,6 +112,12 @@ _DEB_CONFIG_BONDING_OPTS = [
     'ad_select', 'xmit_hash_policy', 'arp_validate',
     'fail_over_mac', 'all_slaves_active', 'resend_igmp'
 ]
+_DEB_CONFIG_BRIDGEING_OPTS = [
+    'ageing', 'bridgeprio', 'fd', 'gcint',
+    'hello', 'hw', 'maxage', 'maxwait',
+    'pathcost', 'portprio', 'ports',
+    'stp', 'waitport'
+]
 _DEB_ROUTES_FILE = '/etc/network/routes'
 _DEB_NETWORK_FILE = '/etc/network/interfaces'
 _DEB_NETWORK_DIR = '/etc/network/interfaces.d'
@@ -201,8 +207,9 @@ def _read_file(path):
     try:
         with salt.utils.fopen(path, 'rb') as contents:
             return contents.readlines()
-    except Exception:
+    except (OSError, IOError):
         return ''
+
 
 def _parse_resolve():
     '''
@@ -211,6 +218,7 @@ def _parse_resolve():
 
     contents = _read_file(_DEB_RESOLV_FILE)
     return contents
+
 
 def _parse_domainname():
     '''
@@ -226,6 +234,7 @@ def _parse_domainname():
             return match.group("domain_name")
     return ""
 
+
 def _parse_hostname():
     '''
     Parse /etc/hostname and return hostname
@@ -233,6 +242,7 @@ def _parse_hostname():
 
     contents = _read_file(_DEB_HOSTNAME_FILE)
     return contents[0].split('\n')[0]
+
 
 def _parse_current_network_settings():
     '''
@@ -263,6 +273,7 @@ def _parse_current_network_settings():
 
     opts['hostname'] = hostname
     return opts
+
 
 def _parse_interfaces():
     '''
@@ -340,22 +351,21 @@ def _parse_interfaces():
                             sline.pop(0)
                             value = ' '.join(sline)
 
-                            if not 'bonding' in adapters[iface_name]:
-                                adapters[iface_name]['bonding'] = {}
-                            adapters[iface_name]['bonding'][opt] = value
+                            if not 'bonding' in adapters[iface_name]['data'][context]:
+                                adapters[iface_name]['data'][context]['bonding'] = {}
+                            adapters[iface_name]['data'][context]['bonding'][opt] = value
 
                         if sline[0].startswith('bridge'):
                             opt = sline[0].split('_', 1)[1]
                             sline.pop(0)
                             value = ' '.join(sline)
 
-                            if not 'bridge_options' in adapters[iface_name]['data'][context]:
-                                adapters[iface_name]['data'][context]['bridge_options'] = {}
-                            adapters[iface_name]['data'][context]['bridge_options'][opt] = value
+                            if not 'bridgeing' in adapters[iface_name]['data'][context]:
+                                adapters[iface_name]['data'][context]['bridgeing'] = {}
+                            adapters[iface_name]['data'][context]['bridgeing'][opt] = value
 
                         if sline[0].startswith('dns-nameservers'):
-                            sline.pop(0)
-                            if not cmd_key in adapters[iface_name]['data'][context]:
+                            if not 'dns' in adapters[iface_name]['data'][context]:
                                 adapters[iface_name]['data'][context]['dns'] = []
                             adapters[iface_name]['data'][context]['dns'] = sline
 
@@ -387,11 +397,13 @@ def _parse_interfaces():
                                 adapters[word] = {}
                             adapters[word]['hotplug'] = True
 
-    # Return a sorted list of the keys for ethtool options to ensure a consistent order
+    # Return a sorted list of the keys for bond, bridge and ethtool options to
+    # ensure a consistent order
     for iface_name in adapters:
-        if 'ethtool' in adapters[iface_name]['data']['inet']:
-            ethtool_keys = sorted(adapters[iface_name]['data']['inet']['ethtool'].keys())
-            adapters[iface_name]['data']['inet']['ethtool_keys'] = ethtool_keys
+        for opt in ['ethtool', 'bonding', 'bridgeing']:
+            if opt in adapters[iface_name]['data']['inet']:
+                opt_keys = sorted(adapters[iface_name]['data']['inet'][opt].keys())
+                adapters[iface_name]['data']['inet'][opt + '_keys'] = opt_keys
 
     return adapters
 
@@ -424,7 +436,7 @@ def _parse_ethtool_opts(opts, iface):
         try:
             int(opts['mtu'])
             config.update({'mtu': opts['mtu']})
-        except Exception:
+        except ValueError:
             _raise_error_iface(iface, 'mtu', ['integer'])
 
     if 'speed' in opts:
@@ -565,7 +577,7 @@ def _parse_settings_bond_0(opts, iface, bond_def):
         try:
             int(opts['arp_interval'])
             bond.update({'arp_interval': opts['arp_interval']})
-        except Exception:
+        except ValueError:
             _raise_error_iface(iface, 'arp_interval', ['integer'])
     else:
         _log_default_iface(iface, 'arp_interval', bond_def['arp_interval'])
@@ -589,7 +601,7 @@ def _parse_settings_bond_1(opts, iface, bond_def):
             try:
                 int(opts[binding])
                 bond.update({binding: opts[binding]})
-            except Exception:
+            except ValueError:
                 _raise_error_iface(iface, binding, ['integer'])
         else:
             _log_default_iface(iface, binding, bond_def[binding])
@@ -638,7 +650,7 @@ def _parse_settings_bond_2(opts, iface, bond_def):
         try:
             int(opts['arp_interval'])
             bond.update({'arp_interval': opts['arp_interval']})
-        except Exception:
+        except ValueError:
             _raise_error_iface(iface, 'arp_interval', ['integer'])
     else:
         _log_default_iface(iface, 'arp_interval', bond_def['arp_interval'])
@@ -648,7 +660,7 @@ def _parse_settings_bond_2(opts, iface, bond_def):
         bond.update({'primary': opts['primary']})
 
     if 'hashing-algorithm' in opts:
-        valid = ['layer2', 'layer3+4']
+        valid = ['layer2', 'layer2+3', 'layer3+4']
         if opts['hashing-algorithm'] in valid:
             bond.update({'xmit_hash_policy': opts['hashing-algorithm']})
         else:
@@ -672,7 +684,7 @@ def _parse_settings_bond_3(opts, iface, bond_def):
             try:
                 int(opts[binding])
                 bond.update({binding: opts[binding]})
-            except Exception:
+            except ValueError:
                 _raise_error_iface(iface, binding, ['integer'])
         else:
             _log_default_iface(iface, binding, bond_def[binding])
@@ -716,7 +728,7 @@ def _parse_settings_bond_4(opts, iface, bond_def):
             try:
                 int(opts[binding])
                 bond.update({binding: opts[binding]})
-            except Exception:
+            except ValueError:
                 _raise_error_iface(iface, binding, valid)
         else:
             _log_default_iface(iface, binding, bond_def[binding])
@@ -735,7 +747,7 @@ def _parse_settings_bond_4(opts, iface, bond_def):
         bond.update({'use_carrier': bond_def['use_carrier']})
 
     if 'hashing-algorithm' in opts:
-        valid = ['layer2', 'layer3+4']
+        valid = ['layer2', 'layer2+3', 'layer3+4']
         if opts['hashing-algorithm'] in valid:
             bond.update({'xmit_hash_policy': opts['hashing-algorithm']})
         else:
@@ -759,7 +771,7 @@ def _parse_settings_bond_5(opts, iface, bond_def):
             try:
                 int(opts[binding])
                 bond.update({binding: opts[binding]})
-            except Exception:
+            except ValueError:
                 _raise_error_iface(iface, binding, ['integer'])
         else:
             _log_default_iface(iface, binding, bond_def[binding])
@@ -795,7 +807,7 @@ def _parse_settings_bond_6(opts, iface, bond_def):
             try:
                 int(opts[binding])
                 bond.update({binding: opts[binding]})
-            except Exception:
+            except ValueError:
                 _raise_error_iface(iface, binding, ['integer'])
         else:
             _log_default_iface(iface, binding, bond_def[binding])
@@ -816,14 +828,78 @@ def _parse_settings_bond_6(opts, iface, bond_def):
     return bond
 
 
+def _parse_bridge_opts(opts, iface):
+    '''
+    Filters given options and outputs valid settings for BRIDGEING_OPTS
+    If an option has a value that is not expected, this
+    function will log what the Interface, Setting and what it was
+    expecting.
+    '''
+    config = {}
+
+    if 'ports' in opts:
+        config.update({'ports': opts['ports']})
+
+    for opt in ['ageing', 'fd', 'gcint', 'hello', 'maxage']:
+        if opt in opts:
+            try:
+                float(opts[opt])
+                config.update({opt: opts[opt]})
+            except ValueError:
+                _raise_error_iface(iface, opt, ['float'])
+
+    for opt in ['bridgeprio', 'maxwait']:
+        if opt in opts:
+            if isinstance(opts[opt], int):
+                config.update({opt: opts[opt]})
+            else:
+                _raise_error_iface(iface, opt, ['integer'])
+
+    if 'hw' in opts:
+        # match 12 hex digits with either : or - as separators between pairs
+        if re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$",
+                    opts['hw'].lower()):
+            config.update({'hw': opts['hw']})
+        else:
+            _raise_error_iface(iface, 'hw', ['valid MAC address'])
+
+    for opt in ['pathcost', 'portprio']:
+        if opt in opts:
+            try:
+                port, cost_or_prio = opts[opt].split()
+                int(cost_or_prio)
+                config.update({opt: '{0} {1}'.format(port, cost_or_prio)})
+            except ValueError:
+                _raise_error_iface(iface, opt, ['interface integer'])
+
+    if 'stp' in opts:
+        if opts['stp'] in _CONFIG_TRUE:
+            config.update({'stp': 'on'})
+        elif opts['stp'] in _CONFIG_FALSE:
+            config.update({'stp': 'off'})
+        else:
+            _raise_error_iface(iface, 'stp', _CONFIG_TRUE + _CONFIG_FALSE)
+
+    if 'waitport' in opts:
+        if isinstance(opts['waitport'], int):
+            config.update({'waitport': opts['waitport']})
+        else:
+            values = opts['waitport'].split()
+            time = values.pop(0)
+            if time.isdigit() and values:
+                config.update({'waitport': '{0} {1}'.format(time, ' '.join(values))})
+            else:
+                _raise_error_iface(iface, opt, ['integer [interfaces]'])
+
+    return config
+
+
 def _parse_settings_eth(opts, iface_type, enabled, iface):
     '''
     Filters given options and outputs valid settings for a
     network interface.
     '''
     adapters = {}
-    adapters[iface] = []
-
     adapters[iface] = {}
 
     adapters[iface]['type'] = iface_type
@@ -850,14 +926,21 @@ def _parse_settings_eth(opts, iface_type, enabled, iface):
     if iface_type == 'bond':
         bonding = _parse_settings_bond(opts, iface)
         if bonding:
-            adapters[iface]['bonding'] = bonding
-            adapters[iface]['bonding']['slaves'] = opts['slaves']
+            adapters[iface]['data']['inet']['bonding'] = bonding
+            adapters[iface]['data']['inet']['bonding']['slaves'] = opts['slaves']
+            adapters[iface]['data']['inet']['bonding_keys'] = sorted(bonding.keys())
 
     if iface_type == 'slave':
         adapters[iface]['master'] = opts['master']
 
     if iface_type == 'vlan':
         adapters[iface]['data']['inet']['vlan_raw_device'] = re.sub(r'\.\d*', '', iface)
+
+    if iface_type == 'bridge':
+        bridgeing = _parse_bridge_opts(opts, iface)
+        if bridgeing:
+            adapters[iface]['data']['inet']['bridgeing'] = bridgeing
+            adapters[iface]['data']['inet']['bridgeing_keys'] = sorted(bridgeing.keys())
 
     if 'proto' in opts:
         valid = ['bootp', 'dhcp', 'none', 'static', 'manual', 'loopback']
@@ -876,13 +959,6 @@ def _parse_settings_eth(opts, iface_type, enabled, iface):
     for opt in ['netmask', 'network', 'gateway', 'addr']:
         if opt in opts:
             adapters[iface]['data']['inet'][opt] = opts[opt]
-
-    for opt in ['bridge_ports', 'bridge_stp', 'bridge_waitport', 'bridge_fd']:
-        if opt in opts:
-            key = opt.split('_')[1]
-            if not 'bridge_options' in adapters[iface]['data']['inet']:
-                adapters[iface]['data']['inet']['bridge_options'] = {}
-            adapters[iface]['data']['inet']['bridge_options'][key] = opts[opt]
 
     if 'dns' in opts:
         adapters[iface]['data']['inet']['dns'] = opts['dns']
@@ -934,7 +1010,7 @@ def _parse_network_settings(opts, current):
         try:
             opts['networking'] = current['networking']
             _log_default_network('networking', current['networking'])
-        except Exception:
+        except ValueError:
             _raise_error_network('networking', valid)
 
     if opts['networking'] in valid:
@@ -949,7 +1025,7 @@ def _parse_network_settings(opts, current):
         try:
             opts['hostname'] = current['hostname']
             _log_default_network('hostname', current['hostname'])
-        except Exception:
+        except ValueError:
             _raise_error_network('hostname', ['server1.example.com'])
 
     if opts['hostname']:
@@ -970,6 +1046,7 @@ def _parse_network_settings(opts, current):
     #    if opt not in ['networking', 'hostname', 'nozeroconf']:
     #        result[opt] = opts[opt]
     return result
+
 
 def _parse_routes(iface, opts):
     '''
@@ -1037,6 +1114,7 @@ def _write_file_network(data, filename):
 
     fout.close()
 
+
 def _read_temp(data):
     '''
     Return what would be written to disk
@@ -1065,7 +1143,7 @@ def _read_temp_ifaces(iface, data):
     return [item + '\n' for item in ifcfg.split('\n')]
 
 
-def _write_file_ifaces(iface, data, folder):
+def _write_file_ifaces(iface, data):
     '''
     Writes a file to disk
     '''
@@ -1087,7 +1165,7 @@ def _write_file_ifaces(iface, data, folder):
             adapters[adapter]['data']['inet']['proto'] = 'manual'
 
         tmp = template.render({'name': adapter, 'data': adapters[adapter]})
-        ifcfg += tmp
+        ifcfg = tmp + ifcfg
         if adapter == iface:
             saved_ifcfg = tmp
 
@@ -1183,8 +1261,8 @@ def build_interface(iface, iface_type, enabled, **settings):
             raise AttributeError(msg)
 
     if iface_type == 'bridge':
-        if 'bridge_ports' not in settings:
-            msg = 'bridge_ports is a required setting for bridge interfaces'
+        if 'ports' not in settings:
+            msg = 'ports is a required setting for bridge interfaces'
             log.error(msg)
             raise AttributeError(msg)
         __salt__['pkg.install']('bridge-utils')
@@ -1195,7 +1273,7 @@ def build_interface(iface, iface_type, enabled, **settings):
     if settings['test']:
         return _read_temp_ifaces(iface, opts[iface])
 
-    ifcfg = _write_file_ifaces(iface, opts[iface], _DEB_NETWORK_DIR)
+    ifcfg = _write_file_ifaces(iface, opts[iface])
 
     # ensure lines in list end with newline, so difflib works
     return [item + '\n' for item in ifcfg]
@@ -1330,6 +1408,7 @@ def get_network_settings():
 
     network = template.render(settings)
     return _read_temp(network)
+
 
 def get_routes(iface):
     '''

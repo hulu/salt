@@ -263,7 +263,7 @@ def daemonize(redirect_out=True):
     # not cleanly redirected and the parent process dies when the
     # multiprocessing process attempts to access stdout or err.
     if redirect_out:
-        dev_null = open('/dev/null', 'w')
+        dev_null = open('/dev/null', 'r+')
         os.dup2(dev_null.fileno(), sys.stdin.fileno())
         os.dup2(dev_null.fileno(), sys.stdout.fileno())
         os.dup2(dev_null.fileno(), sys.stderr.fileno())
@@ -337,12 +337,12 @@ def which(exe=None):
 
         search_path = search_path.split(os.pathsep)
         if not is_windows():
-	    # Add any dirs in the default_path which are not in search_path. If
-	    # there was no PATH variable found in os.environ, then this will be
-	    # a no-op. This ensures that all dirs in the default_path are
-	    # searched, which lets salt.utils.which() work well when invoked by
-	    # salt-call running from cron (which, depending on platform, may
-	    # have a severely limited PATH).
+            # Add any dirs in the default_path which are not in search_path. If
+            # there was no PATH variable found in os.environ, then this will be
+            # a no-op. This ensures that all dirs in the default_path are
+            # searched, which lets salt.utils.which() work well when invoked by
+            # salt-call running from cron (which, depending on platform, may
+            # have a severely limited PATH).
             search_path.extend(
                 [
                     x for x in default_path.split(os.pathsep)
@@ -361,7 +361,7 @@ def which(exe=None):
                     # safely rely on that behaviour
                     if os.access(full_path + ext, os.X_OK):
                         return full_path + ext
-        log.debug(
+        log.trace(
             '{0!r} could not be found in the following search '
             'path: {1!r}'.format(
                 exe, search_path

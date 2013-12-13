@@ -61,8 +61,9 @@ def render(yaml_data,
         if not data:
             data = {}
         else:
-            if __salt__['config.get']('yaml_utf8', False):
-                data = _yaml_result_unicode_to_utf8(data)
+            if 'config.get' in __salt__:
+                if __salt__['config.get']('yaml_utf8', False):
+                    data = _yaml_result_unicode_to_utf8(data)
         log.debug('Results of YAML rendering: \n{0}'.format(data))
         return data
 
