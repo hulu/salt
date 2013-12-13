@@ -101,9 +101,9 @@ try:
 
     class _YumBase(yum.YumBase):  # pylint: disable=W0232
         def doLoggingSetup(self, debuglevel, errorlevel,
-                           syslog_indent=None,  # pylint: disable=E1101
-                           syslog_facility=None,  # pylint: disable=E1101
-                           syslog_device='/dev/log'):  # pylint: disable=E1101
+                           syslog_indent=None,  # pylint: disable=E1101,W0613
+                           syslog_facility=None,  # pylint: disable=E1101,W0613
+                           syslog_device='/dev/log'):  # pylint: disable=E1101,W0613
             '''
             This method is overridden in salt because we don't want syslog
             logging to happen.
@@ -717,7 +717,7 @@ def install(name=None,
         yumlogger = _YumLogger()
         yumbase.processTransaction(rpmDisplay=yumlogger)  # pylint: disable=E1101
         yumlogger.log_accumulated_errors()  # pylint: disable=E1101
-        yumbase.closeRpmDB()
+        yumbase.closeRpmDB()  # pylint: disable=E1101
     except Exception as e:
         log.error('Install failed: {0}'.format(e))
 
