@@ -650,7 +650,7 @@ class DaemonMixIn(object):
     def daemonize_if_required(self):
         if self.options.daemon:
             # Late import so logging works correctly
-            import salt.utils  # pylint: disable=W0404
+            import salt.utils  # pylint: disable=W0404,W0621
             salt.utils.daemonize()
 
 
