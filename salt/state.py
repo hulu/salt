@@ -2306,7 +2306,7 @@ class BaseHighState(object):
                         ext[name][comps[0]].append(comps[1])
             state.setdefault('__extend__', []).append(ext)
 
-    def _handle_exclude(self, state, sls, saltenv, errors):
+    def _handle_exclude(self, state, sls, saltenv, errors):  # pylint: disable=W0613
         '''
         Take the exclude dec out of the state and apply it to the highstate
         global dec
@@ -2573,7 +2573,7 @@ class MasterHighState(HighState):
     Execute highstate compilation from the master
     '''
     def __init__(self, master_opts, minion_opts, grains, id_,
-                 saltenv=None,
+                 saltenv=None,  # pylint: disable=W0613
                  env=None):
         if env is not None:
             salt.utils.warn_until(

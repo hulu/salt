@@ -124,7 +124,7 @@ def absent(name):
     return ret
 
 
-def profile(name, profile):
+def profile(name, profile):  # pylint: disable=W0621
     '''
     Create a single instance on a cloud provider, using a salt-cloud profile.
 
