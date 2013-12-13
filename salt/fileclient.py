@@ -263,7 +263,7 @@ class Client(object):
         ldest = self._file_local_list(localfilesdest)
         return sorted(fdest.union(ldest))
 
-    def file_list(self, saltenv='base', prefix='', env=None):
+    def file_list(self, saltenv='base', prefix='', env=None):  # pylint: disable=W0613
         '''
         This function must be overwritten
         '''
@@ -279,7 +279,7 @@ class Client(object):
 
         return []
 
-    def dir_list(self, saltenv='base', prefix='', env=None):
+    def dir_list(self, saltenv='base', prefix='', env=None):  # pylint: disable=W0613
         '''
         This function must be overwritten
         '''
@@ -295,7 +295,7 @@ class Client(object):
 
         return []
 
-    def symlink_list(self, saltenv='base', prefix='', env=None):
+    def symlink_list(self, saltenv='base', prefix='', env=None):  # pylint: disable=W0613
         '''
         This function must be overwritten
         '''
