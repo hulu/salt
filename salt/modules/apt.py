@@ -17,7 +17,9 @@ import yaml
 # Import salt libs
 import salt.utils
 from salt._compat import string_types
-from salt.exceptions import CommandExecutionError, SaltInvocationError
+from salt.exceptions import (
+    CommandExecutionError, MinionError, SaltInvocationError
+)
 
 
 log = logging.getLogger(__name__)
@@ -114,12 +116,13 @@ def _get_virtual():
     Return a dict of virtual package information
     '''
     if 'pkg._get_virtual' not in __context__:
-        cmd = 'grep-available -F Provides -s Package,Provides -e "^.+$"'
-        out = __salt__['cmd.run_stdout'](cmd, output_loglevel='debug')
-        virtpkg_re = re.compile(r'Package: (\S+)\nProvides: ([\S, ]+)')
         __context__['pkg._get_virtual'] = {}
-        for realpkg, provides in virtpkg_re.findall(out):
-            __context__['pkg._get_virtual'][realpkg] = provides.split(', ')
+        if __salt__['cmd.has_exec']('grep-available'):
+            cmd = 'grep-available -F Provides -s Package,Provides -e "^.+$"'
+            out = __salt__['cmd.run_stdout'](cmd, output_loglevel='debug')
+            virtpkg_re = re.compile(r'Package: (\S+)\nProvides: ([\S, ]+)')
+            for realpkg, provides in virtpkg_re.findall(out):
+                __context__['pkg._get_virtual'][realpkg] = provides.split(', ')
     return __context__['pkg._get_virtual']
 
 
@@ -361,6 +364,7 @@ def install(name=None,
         Passes ``--force-yes`` to the apt-get command.  Don't use this unless
         you know what you're doing.
 
+        .. versionadded:: 0.17.4
 
     Returns a dict containing the new package names and versions::
 
@@ -373,10 +377,12 @@ def install(name=None,
     if debconf:
         __salt__['debconf.set_file'](debconf)
 
-    pkg_params, pkg_type = __salt__['pkg_resource.parse_targets'](name,
-                                                                  pkgs,
-                                                                  sources,
-                                                                  **kwargs)
+    try:
+        pkg_params, pkg_type = __salt__['pkg_resource.parse_targets'](
+            name, pkgs, sources, **kwargs
+        )
+    except MinionError as exc:
+        raise CommandExecutionError(exc)
 
     # Support old "repo" argument
     repo = kwargs.get('repo', '')
@@ -437,8 +443,11 @@ def _uninstall(action='remove', name=None, pkgs=None, **kwargs):
     remove and purge do identical things but with different apt-get commands,
     this function performs the common logic.
     '''
+    try:
+        pkg_params = __salt__['pkg_resource.parse_targets'](name, pkgs)[0]
+    except MinionError as exc:
+        raise CommandExecutionError(exc)
 
-    pkg_params = __salt__['pkg_resource.parse_targets'](name, pkgs)[0]
     old = list_pkgs()
     old_removed = list_pkgs(removed=True)
     targets = [x for x in pkg_params if x in old]

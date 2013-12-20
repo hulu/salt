@@ -11,7 +11,9 @@ import re
 
 # Import salt libs
 import salt.utils
-from salt.exceptions import SaltInvocationError
+from salt.exceptions import (
+    CommandExecutionError, MinionError, SaltInvocationError
+)
 
 log = logging.getLogger(__name__)
 
@@ -157,23 +159,21 @@ def latest_version(*names, **kwargs):
     if len(names) == 0:
         return ''
 
-    '''
-    Initialize the return dict with empty strings, and populate namearch_map.
-    namearch_map will provide a means of distinguishing between multiple
-    matches for the same package name, for example a target of 'glibc' on an
-    x86_64 arch would return both x86_64 and i686 versions when searched
-    using repoquery:
-
-    $ repoquery --all --pkgnarrow=available glibc
-    glibc-0:2.12-1.132.el6.i686
-    glibc-0:2.12-1.132.el6.x86_64
-
-    Note that the logic in the for loop below would place the osarch into the
-    map for noarch packages, but those cases are accounted for when iterating
-    through the repoquery results later on. If the repoquery match for that
-    package is a noarch, then the package is assumed to be noarch, and the
-    namearch_map is ignored.
-    '''
+    # Initialize the return dict with empty strings, and populate namearch_map.
+    # namearch_map will provide a means of distinguishing between multiple
+    # matches for the same package name, for example a target of 'glibc' on an
+    # x86_64 arch would return both x86_64 and i686 versions when searched
+    # using repoquery:
+    #
+    # $ repoquery --all --pkgnarrow=available glibc
+    # glibc-0:2.12-1.132.el6.i686
+    # glibc-0:2.12-1.132.el6.x86_64
+    #
+    # Note that the logic in the for loop below would place the osarch into the
+    # map for noarch packages, but those cases are accounted for when iterating
+    # through the repoquery results later on. If the repoquery match for that
+    # package is a noarch, then the package is assumed to be noarch, and the
+    # namearch_map is ignored.
     ret = {}
     namearch_map = {}
     for name in names:
@@ -503,10 +503,13 @@ def install(name=None,
     if salt.utils.is_true(refresh):
         refresh_db()
 
-    pkg_params, pkg_type = __salt__['pkg_resource.parse_targets'](name,
-                                                                  pkgs,
-                                                                  sources,
-                                                                  **kwargs)
+    try:
+        pkg_params, pkg_type = __salt__['pkg_resource.parse_targets'](
+            name, pkgs, sources, **kwargs
+        )
+    except MinionError as exc:
+        raise CommandExecutionError(exc)
+
     if pkg_params is None or len(pkg_params) == 0:
         return {}
 
@@ -623,7 +626,11 @@ def remove(name=None, pkgs=None, **kwargs):
         salt '*' pkg.remove <package1>,<package2>,<package3>
         salt '*' pkg.remove pkgs='["foo", "bar"]'
     '''
-    pkg_params = __salt__['pkg_resource.parse_targets'](name, pkgs)[0]
+    try:
+        pkg_params = __salt__['pkg_resource.parse_targets'](name, pkgs)[0]
+    except MinionError as exc:
+        raise CommandExecutionError(exc)
+
     old = list_pkgs()
     targets = [x for x in pkg_params if x in old]
     if not targets:
