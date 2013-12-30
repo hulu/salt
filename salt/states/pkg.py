@@ -332,6 +332,10 @@ def installed(
         :mod:`yumpkg5 <salt.modules.yumpkg5>`, and
         :mod:`zypper <salt.modules.zypper>`.
 
+    refresh
+        Update the repo database of available packages prior to installing the
+        requested package.
+
     Usage::
 
         httpd:
@@ -339,7 +343,7 @@ def installed(
             - fromrepo: mycustomrepo
             - skip_verify: True
             - version: 2.0.6~ubuntu3
-
+            - refresh: True
 
     Multiple Package Installation Options: (not supported in Windows or pkgng)
 
@@ -415,14 +419,10 @@ def installed(
               - qux: /minion/path/to/qux.rpm
     '''
     rtag = __gen_rtag()
+    refresh = bool(salt.utils.is_true(refresh) or os.path.isfile(rtag))
 
     if not isinstance(version, basestring) and version is not None:
         version = str(version)
-
-    if salt.utils.is_true(refresh) or os.path.isfile(rtag):
-        __salt__['pkg.refresh_db']()
-        if os.path.isfile(rtag):
-            os.remove(rtag)
 
     result = _find_install_targets(name, version, pkgs, sources,
                                    fromrepo=fromrepo, **kwargs)
@@ -464,6 +464,9 @@ def installed(
                                           pkgs=pkgs,
                                           sources=sources,
                                           **kwargs)
+
+        if os.path.isfile(rtag):
+            os.remove(rtag)
     except CommandExecutionError as exc:
         return {'name': name,
                 'changes': {},

@@ -53,7 +53,7 @@ except ImportError:
 # Import salt libs
 from salt.exceptions import (
     AuthenticationError, CommandExecutionError, CommandNotFoundError,
-    SaltInvocationError, SaltReqTimeoutError, SaltClientError
+    SaltInvocationError, SaltReqTimeoutError, SaltClientError, SaltSystemExit
 )
 import salt.client
 import salt.crypt
@@ -112,6 +112,11 @@ def resolve_dns(opts):
                         pass
             else:
                 ret['master_ip'] = '127.0.0.1'
+        except SaltSystemExit:
+            err = 'Master address: {0} could not be resolved. Invalid or unresolveable address.'.format(
+                opts.get('master', 'Unknown'))
+            log.error(err)
+            raise SaltSystemExit(code=42, msg=err)
     else:
         ret['master_ip'] = '127.0.0.1'
 
@@ -1100,13 +1105,31 @@ class Minion(object):
         )
 
         # Check to make sure the sock_dir is available, create if not
-        minion_sock_dir = os.path.join(salt.syspaths.SOCK_DIR, 'minion')
+        default_minion_sock_dir = os.path.join(
+            salt.syspaths.SOCK_DIR,
+            'minion'
+        )
+        minion_sock_dir = self.opts.get('sock_dir', default_minion_sock_dir)
+
         if not os.path.isdir(minion_sock_dir):
+            # Let's try to create the directory defined on the configuration
+            # file
             try:
                 os.makedirs(minion_sock_dir, 0755)
-            except OSError as e:
-                log.error('Could not create SOCK_DIR: {0}'.format(e))
-                raise
+            except OSError as exc:
+                log.error('Could not create SOCK_DIR: {0}'.format(exc))
+                # Let's not fail yet and try using the default path
+                if minion_sock_dir == default_minion_sock_dir:
+                    # We're already trying the default system path, stop now!
+                    raise
+
+            if not os.path.isdir(default_minion_sock_dir):
+                try:
+                    os.makedirs(default_minion_sock_dir, 0755)
+                except OSError as exc:
+                    log.error('Could not create SOCK_DIR: {0}'.format(exc))
+                    # Let's stop at this stage
+                    raise
 
         # Create the pull socket
         self.epull_sock = self.context.socket(zmq.PULL)

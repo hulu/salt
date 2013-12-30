@@ -58,6 +58,7 @@ Full list of builtin state modules
     npm
     ntp
     openstack_config
+    pagerduty
     pecl
     pip_state
     pkg
@@ -100,4 +101,5 @@ Full list of builtin state modules
     win_path
     win_servermanager
     win_system
+    xmpp
     zcbuildout

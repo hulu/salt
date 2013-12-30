@@ -14,9 +14,10 @@ factor, so if an existing cron that looks like this:
 
 .. code-block:: yaml
 
-    /home/user:
+    Watch for modifications in /home/user:
         incron.present:
             - user: root
+            - path: /home/user
             - mask:
                 - IN_MODIFY
             - cmd: 'echo "$$ $@"'
@@ -25,9 +26,10 @@ Is changed to this:
 
 .. code-block:: yaml
 
-    /home/user:
+    Watch for modifications and access in /home/user:
         incron.present:
             - user: root
+            - path: /home/user
             - mask:
                 - IN_MODIFY
                 - IN_ACCESS
@@ -39,14 +41,6 @@ then a new cron job will be added to the user's crontab.
 .. versionadded:: 0.17.0
 
 '''
-
-# Import python libs
-import os
-
-# Import salt libs
-import salt._compat
-import salt.utils
-from salt.modules.cron import _needs_change
 
 
 def _check_cron(user,
@@ -93,6 +87,7 @@ def _get_cron_info():
 
 
 def present(name,
+            path,
             mask,
             cmd,
             user='root'):
@@ -104,6 +99,9 @@ def present(name,
     ``man 5 incrontab``.
 
     name
+        Unique comment describing the entry
+
+    path
         The path that should be watched
 
     user
@@ -117,7 +115,6 @@ def present(name,
         The cmd that should be executed
 
     '''
-    path = name
     mask = ',' . join(mask)
 
     ret = {'changes': {},
@@ -163,6 +160,7 @@ def present(name,
 
 
 def absent(name,
+           path,
            mask,
            cmd,
            user='root'):
@@ -171,6 +169,9 @@ def absent(name,
     the name is matched when removing a incron job.
 
     name
+        Unique comment describing the entry
+
+    path
         The path that should be watched
 
     user
@@ -185,7 +186,6 @@ def absent(name,
 
     '''
 
-    path = name
     mask = ',' . join(mask)
 
     ret = {'name': name,
