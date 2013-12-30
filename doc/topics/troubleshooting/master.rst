@@ -11,7 +11,7 @@ the foreground:
 
 .. code-block:: bash
 
-  salt-master -l debug
+    # salt-master -l debug
 
 Anyone wanting to run Salt daemons via a process supervisor such as `monit`_,
 `runit`_, or `supervisord`_, should omit the ``-d`` argument to the daemons and
@@ -75,7 +75,11 @@ can simply be appended to ``/etc/security/limits.conf``.
 
 As with any change to resource limits, it is best to stay logged into your
 current shell and open another shell to run ``ulimit -n`` again and verify that
-the changes were applied correctly.
+the changes were applied correctly. Additionally, if your master is running
+upstart, it may be necessary to specify the ``nofile`` limit in
+``/etc/default/salt-master`` if upstart isn't respecting your resource limits::
+
+    limit nofile 4096 4096
 
 .. note::
 
@@ -129,23 +133,26 @@ Or with the following Salt state:
 Live Python Debug Output
 ========================
 
-If the master seems to be unresponsive, a SIGUSR1 can be passed to
-the processes to display where in the code they are running. If encountering a
-situation like this, this debug information can be invaluable. First make
-sure the master is running in the foreground:
+If the master seems to be unresponsive, a SIGUSR1 can be passed to the
+salt-master threads to display what piece of code is executing. This debug
+information can be invaluable in tracking down bugs.
+
+To pass a SIGUSR1 to the master, first make sure the minion is running in the
+foreground. Stop the service if it is running as a daemon, and start it in the
+foreground like so:
 
 .. code-block:: bash
 
-    salt-master -l debug
+    # salt-master -l debug
 
 Then pass the signal to the master when it seems to be unresponsive:
 
 .. code-block:: bash
 
-    killall -SIGUSR1 salt-master
+    # killall -SIGUSR1 salt-master
 
 When filing an issue or sending questions to the mailing list for a problem
-with an unresponsive daemon this information can be invaluable.
+with an unresponsive daemon, be sure to include this information if possible.
 
 Commands Time Out or Do Not Return Output
 =========================================
@@ -167,4 +174,3 @@ the ``root_dir`` setting. This can result in unintended behavior if you are
 expecting files such as ``/etc/salt/pki`` to be pulled from the location
 specified with ``-c``. Modify the ``root_dir`` setting to address this
 behavior.
-
