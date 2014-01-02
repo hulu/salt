@@ -76,6 +76,9 @@ def wait(name, **kwargs):  # pylint: disable=W0613
             'result': True,
             'comment': ''}
 
+# Alias module.watch to module.wait
+watch = wait
+
 
 def run(name, **kwargs):
     '''

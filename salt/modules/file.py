@@ -46,6 +46,15 @@ import salt._compat
 
 log = logging.getLogger(__name__)
 
+HASHES = [
+            ['sha512', 128],
+            ['sha384', 96],
+            ['sha256', 64],
+            ['sha224', 56],
+            ['sha1', 40],
+            ['md5', 32],
+         ]
+
 
 def __virtual__():
     '''
@@ -1462,6 +1471,85 @@ def touch(name, atime=None, mtime=None):
     return os.path.exists(name)
 
 
+def seek_read(path, size, offset):
+    '''
+    Seek to a position on a file and write to it
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.seek_read /path/to/file 4096 0
+    '''
+    seek_fh = os.open(path, os.O_RDONLY)
+    os.lseek(seek_fh, int(offset), 0)
+    data = os.read(seek_fh, int(size))
+    os.close(seek_fh)
+    return data
+
+
+def seek_write(path, data, offset):
+    '''
+    Seek to a position on a file and write to it
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.seek_write /path/to/file 'some data' 4096
+    '''
+    seek_fh = os.open(path, os.O_WRONLY)
+    os.lseek(seek_fh, int(offset), 0)
+    ret = os.write(seek_fh, data)
+    os.fsync(seek_fh)
+    os.close(seek_fh)
+    return ret
+
+
+def truncate(path, length):
+    '''
+    Seek to a position on a file and write to it
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.truncate /path/to/file 512
+    '''
+    seek_fh = open(path, 'r+')
+    seek_fh.truncate(int(length))
+    seek_fh.close()
+
+
+def link(src, link):
+    '''
+    Create a hard link to a file
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.link /path/to/file /path/to/link
+    '''
+    if not os.path.isabs(src):
+        raise SaltInvocationError('File path must be absolute.')
+
+    try:
+        os.link(src, link)
+        return True
+    except (OSError, IOError):
+        raise CommandExecutionError('Could not create {0!r}'.format(link))
+    return False
+
+
 def symlink(src, link):
     '''
     Create a symbolic link to a file
@@ -1536,6 +1624,135 @@ def copy(src, dst):
     return True
 
 
+def lstat(path):
+    '''
+    Returns the lstat attributes for the given file or dir. Does not support
+    symbolic links.
+
+    CLI Example:
+
+    .. versionadded:: Hydrogen
+
+    .. code-block:: bash
+
+        salt '*' file.lstat /path/to/file
+    '''
+    if not os.path.isabs(path):
+        raise SaltInvocationError('Path to file must be absolute.')
+
+    try:
+        lst = os.lstat(path)
+        return dict((key, getattr(lst, key)) for key in ('st_atime', 'st_ctime',
+            'st_gid', 'st_mode', 'st_mtime', 'st_nlink', 'st_size', 'st_uid'))
+    except Exception:
+        return {}
+
+
+
+def access(path, mode):
+    '''
+    Test whether the Salt process has the specified access to the file. One of
+    the following modes must be specified:
+
+        f: Test the existence of the path
+        r: Test the readability of the path
+        w: Test the writability of the path
+        x: Test whether the path can be executed
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.access /path/to/file f
+        salt '*' file.access /path/to/file x
+    '''
+    if not os.path.isabs(path):
+        raise SaltInvocationError('Path to link must be absolute.')
+
+    modes = {'f': os.F_OK,
+             'r': os.R_OK,
+             'w': os.W_OK,
+             'x': os.X_OK}
+
+    if mode in modes:
+        return os.access(path, modes[mode])
+    elif mode in modes.values():
+        return os.access(path, mode)
+    else:
+        raise SaltInvocationError('Invalid mode specified.')
+
+
+def readlink(path):
+    '''
+    Return the path that a symlink points to
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.readlink /path/to/link
+    '''
+    if not os.path.isabs(path):
+        raise SaltInvocationError('Path to link must be absolute.')
+
+    if not os.path.islink(path):
+        raise SaltInvocationError('A valid link was not specified.')
+
+    return os.readlink(path)
+
+
+def readdir(path):
+    '''
+    Return a list containing the contents of a directory
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.readdir /path/to/dir/
+    '''
+    if not os.path.isabs(path):
+        raise SaltInvocationError('Dir path must be absolute.')
+
+    if not os.path.isdir(path):
+        raise SaltInvocationError('A valid directory was not specified.')
+
+    dirents = ['.', '..']
+    dirents.extend(os.listdir(path))
+    return dirents
+
+
+def statvfs(path):
+    '''
+    Perform a statvfs call against the filesystem that the file resides on
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.statvfs /path/to/file
+    '''
+    if not os.path.isabs(path):
+        raise SaltInvocationError('File path must be absolute.')
+
+    try:
+        stv = os.statvfs(path)
+        return dict((key, getattr(stv, key)) for key in ('f_bavail', 'f_bfree',
+            'f_blocks', 'f_bsize', 'f_favail', 'f_ffree', 'f_files', 'f_flag',
+            'f_frsize', 'f_namemax'))
+    except (OSError, IOError):
+        raise CommandExecutionError('Could not create {0!r}'.format(link))
+    return False
+
+
 def stats(path, hash_type='md5', follow_symlink=False):
     '''
     Return a dict containing the stats for a given file
@@ -1581,6 +1798,31 @@ def stats(path, hash_type='md5', follow_symlink=False):
         ret['type'] = 'socket'
     ret['target'] = os.path.realpath(path)
     return ret
+
+
+def rmdir(path):
+    '''
+    Remove the specified directory. Fails if a directory is not empty.
+
+    .. versionadded:: Hydrogen
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.rmdir /tmp/foo/
+    '''
+    if not os.path.isabs(path):
+        raise SaltInvocationError('File path must be absolute.')
+
+    if not os.path.isdir(path):
+        raise SaltInvocationError('A valid directory was not specified.')
+
+    try:
+        os.rmdir(path)
+        return True
+    except OSError as exc:
+        return exc.strerror
 
 
 def remove(path):
@@ -1843,25 +2085,12 @@ def get_managed(
                     if not hash_fn:
                         return '', {}, 'Source hash file {0} not found'.format(
                             source_hash)
-                    hash_fn_fopen = salt.utils.fopen(hash_fn, 'r')
-                    for line in hash_fn_fopen.read().splitlines():
-                        line = line.strip()
-                        if ' ' not in line:
-                            hashstr = line
-                            break
-                        elif line.startswith('{0} '.format(name)):
-                            hashstr = line.split()[1]
-                            break
-                    else:
-                        hashstr = ''  # NOT FOUND
-                    comps = hashstr.split('=')
-                    if len(comps) < 2:
-                        return '', {}, ('Source hash file {0} contains an '
-                                        'invalid hash format, it must be in '
-                                        'the format <hash type>=<hash>'
-                                        ).format(source_hash)
-                    source_sum['hsum'] = comps[1].strip()
-                    source_sum['hash_type'] = comps[0].strip()
+                    source_sum = extract_hash(hash_fn, '', name)
+                    if source_sum is None:
+                        return '', {}, ('Source hash file {0} contains an invalid '
+                            'hash format, it must be in the format <hash type>=<hash>.'
+                            ).format(source_hash)
+
                 else:
                     # The source_hash is a hash string
                     comps = source_hash.split('=')
@@ -1876,6 +2105,70 @@ def get_managed(
                 return '', {}, ('Unable to determine upstream hash of'
                                 ' source file {0}').format(source)
     return sfn, source_sum, ''
+
+
+def extract_hash(hash_fn, hash_type='md5', file_name=''):
+    '''
+    This routine is called from the :mod:`file.managed
+    <salt.states.file.managed>` state to pull a hash from a remote file.
+    Regular expressions are used line by line on the ``source_hash`` file, to
+    find a potential candidate of the indicated hash type.  This avoids many
+    problems of arbitrary file lay out rules. It specifically permits pulling
+    hash codes from debian ``*.dsc`` files.
+
+    For example:
+
+    .. code-block:: yaml
+
+        openerp_7.0-latest-1.tar.gz:
+          file.managed:
+            - name: /tmp/openerp_7.0-20121227-075624-1_all.deb
+            - source: http://nightly.openerp.com/7.0/nightly/deb/openerp_7.0-20121227-075624-1.tar.gz
+            - source_hash: http://nightly.openerp.com/7.0/nightly/deb/openerp_7.0-20121227-075624-1.dsc
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' file.extract_hash /etc/foo sha512 /path/to/hash/file
+    '''
+    source_sum = None
+    partial_id = False
+    name_sought = re.findall(r'^(.+)/([^/]+)$', '/x' + file_name)[0][1]
+    log.debug('modules.file.py - extract_hash(): Extracting hash for file named: {}'.format(name_sought))
+    hash_fn_fopen = salt.utils.fopen(hash_fn, 'r')
+    for hash_variant in HASHES:
+        if hash_type == '' or hash_type == hash_variant[0]:
+            log.debug('modules.file.py - extract_hash(): Will use regex to get'
+                ' a purely hexadecimal number of length ({0}), presumably hash'
+                ' type : {1}'.format(hash_variant[1], hash_variant[0]))
+            hash_fn_fopen.seek(0)
+            for line in hash_fn_fopen.read().splitlines():
+                hash_array = re.findall(r'(?i)(?<![a-z0-9])[a-f0-9]{' + str(hash_variant[1]) + '}(?![a-z0-9])', line)
+                log.debug('modules.file.py - extract_hash(): '
+                    'From "line": {} got : {}'.format(line, hash_array))
+                if hash_array:
+                    if not partial_id:
+                        source_sum = {'hsum': hash_array[0], 'hash_type': hash_variant[0]}
+                        partial_id = True
+
+                    log.debug('modules.file.py - extract_hash(): Found : {} -- {}'.format(
+                                            source_sum['hash_type'], source_sum['hsum']))
+
+                    if re.search(name_sought, line):
+                        source_sum = {'hsum': hash_array[0], 'hash_type': hash_variant[0]}
+                        log.debug('modules.file.py - extract_hash: '
+                        'For {} -- returning the {} hash "{}".'.format(
+                                 name_sought, source_sum['hash_type'], source_sum['hsum']))
+                        return source_sum
+
+    if partial_id:
+        log.debug('modules.file.py - extract_hash: '
+                'Returning the partially identified {} hash "{}".'.format(
+                       source_sum['hash_type'], source_sum['hsum']))
+    else:
+        log.debug('modules.file.py - extract_hash: Returning None.')
+    return source_sum
 
 
 def check_perms(name, ret, user, group, mode):
