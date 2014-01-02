@@ -396,7 +396,7 @@ def exists(name):
         salt '*' lxc.exists name
     '''
     l = list_()
-    return name in (l['running'] + l['stopped'] + l['frozen'])
+    return name in (l['running'] + l['stopped'] + l['frozen'])  # pylint: disable=C0325
 
 
 def state(name):
