@@ -617,7 +617,7 @@ def local_port_tcp(port):
                 if line.strip().startswith('sl'):
                     continue
                 iret = _parse_tcp_line(line)
-                sl = iter(iret).next()
+                sl = iter(iret).next()  # pylint: disable=C0103
                 if iret[sl]['local_port'] == port:
                     ret.add(iret[sl]['remote_addr'])
         return ret
@@ -632,7 +632,7 @@ def _parse_tcp_line(line):
     '''
     ret = {}
     comps = line.strip().split()
-    sl = comps[0].rstrip(':')
+    sl = comps[0].rstrip(':')  # pylint: disable=C0103
     ret[sl] = {}
     l_addr, l_port = comps[1].split(':')
     r_addr, r_port = comps[2].split(':')
