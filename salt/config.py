@@ -742,7 +742,7 @@ def syndic_config(master_config_path,
 
 # ----- Salt Cloud Configuration Functions ---------------------------------->
 def cloud_config(path, env_var='SALT_CLOUD_CONFIG', defaults=None,
-                 master_config_path=None, master_config=None,
+                 master_config_path=None, master_config=None,  # pylint: disable=W0621
                  providers_config_path=None, providers_config=None,
                  vm_config_path=None, vm_config=None,
                  profiles_config_path=None, profiles_config=None):
