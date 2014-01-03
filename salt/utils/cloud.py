@@ -389,7 +389,7 @@ def deploy_windows(host, port=445, timeout=900, username='Administrator',
                    keep_tmp=False, script_args=None, script_env=None,
                    port_timeout=15, preseed_minion_keys=None,
                    win_installer=None, master=None, tmp_dir='C:\\salttmp',
-                   **kwargs):
+                   **kwargs):  # pylint: disable=W0613
     '''
     Copy the install files to a remote Windows box, and execute them
     '''
