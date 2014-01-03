@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=W0632
 '''
 The EC2 Cloud Module
 ====================
