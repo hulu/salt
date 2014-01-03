@@ -337,11 +337,11 @@ class Terminal(object):
             Terminates the process
             '''
             try:
-                _subprocess.TerminateProcess(self._handle, 1)
+                _subprocess.TerminateProcess(self._handle, 1)  # pylint: disable=E1101
             except OSError:
                 # ERROR_ACCESS_DENIED (winerror 5) is received when the
                 # process already died.
-                ecode = _subprocess.GetExitCodeProcess(self._handle)
+                ecode = _subprocess.GetExitCodeProcess(self._handle)  # pylint: disable=E1101
                 if ecode == _subprocess.STILL_ACTIVE:
                     raise
                 self.exitstatus = ecode
