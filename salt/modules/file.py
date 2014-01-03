@@ -1527,7 +1527,7 @@ def truncate(path, length):
     seek_fh.close()
 
 
-def link(src, link):
+def link(src, link):  # pylint: disable=W0621
     '''
     Create a hard link to a file
 
@@ -1550,7 +1550,7 @@ def link(src, link):
     return False
 
 
-def symlink(src, link):
+def symlink(src, link):  # pylint: disable=W0621
     '''
     Create a symbolic link to a file
 
