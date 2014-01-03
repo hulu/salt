@@ -357,9 +357,9 @@ def options(name, conf_file=None):
     for key, val in config.items(section_name):
         val = salt.utils.str_to_num(val.split(';')[0].strip())
         if isinstance(val, string_types):
-            if val.lower() == 'true':
+            if val.lower() == 'true':  # pylint: disable=E1103
                 val = True
-            elif val.lower() == 'false':
+            elif val.lower() == 'false':  # pylint: disable=E1103
                 val = False
         ret[key] = val
     return ret
