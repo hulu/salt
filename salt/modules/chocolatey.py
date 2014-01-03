@@ -256,7 +256,7 @@ def list_windowsfeatures():
     return result['stdout']
 
 
-def install(name, version=None, source=None, force=False):
+def install(name, version=None, source=None, force=False):  # pylint: disable=W0621
     '''
     Instructs Chocolatey to install a package.
 
@@ -334,7 +334,7 @@ def install_cygwin(name):
     return result['stdout']
 
 
-def install_gem(name, version=None):
+def install_gem(name, version=None):  # pylint: disable=W0621
     '''
     Instructs Chocolatey to install a package via Ruby's Gems.
 
@@ -371,7 +371,7 @@ def install_gem(name, version=None):
     return result['stdout']
 
 
-def install_missing(name, version=None, source=None):
+def install_missing(name, version=None, source=None):  # pylint: disable=W0621
     '''
     Instructs Chocolatey to install a package if it doesn't already exist.
 
@@ -415,7 +415,7 @@ def install_missing(name, version=None, source=None):
     return result['stdout']
 
 
-def install_python(name, version=None):
+def install_python(name, version=None):  # pylint: disable=W0621
     '''
     Instructs Chocolatey to install a package via Python's easy_install.
 
@@ -513,7 +513,7 @@ def install_webpi(name):
     return result['stdout']
 
 
-def uninstall(name, version=None):
+def uninstall(name, version=None):  # pylint: disable=W0621
     '''
     Instructs Chocolatey to uninstall a package.
 
