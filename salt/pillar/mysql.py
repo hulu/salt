@@ -89,7 +89,7 @@ def _get_serv():
         conn.close()
 
 
-def ext_pillar(minion_id, pillar, mysql_query, *args, **kwargs):
+def ext_pillar(minion_id, pillar, mysql_query, *args, **kwargs):  # pylint: disable=W0613
     '''
     Execute the query and return its data as a set
     '''
