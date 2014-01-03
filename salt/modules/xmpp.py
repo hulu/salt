@@ -67,7 +67,7 @@ class SendMsgBot(_ClientXMPP):
 
         self.add_event_handler('session_start', self.start)
 
-    def start(self, event):
+    def start(self, event):  # pylint: disable=W0613
         self.send_presence()
 
         self.send_message(mto=self.recipient,
