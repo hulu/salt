@@ -411,8 +411,8 @@ def _dot_buildout(directory):
 def upgrade_bootstrap(directory='.',
                       onlyif=None,
                       unless=None,
-                      runas=None,
-                      env=(),
+                      runas=None,  # pylint: disable=W0613
+                      env=(),  # pylint: disable=W0613
                       offline=False,
                       buildout_ver=None):
     '''
