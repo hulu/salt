@@ -558,7 +558,6 @@ def create_container(image,
                      dns=None,
                      volumes=None,
                      volumes_from=None,
-                     privileged=False,
                      name=None,
                      *args, **kwargs):
     '''
@@ -592,8 +591,6 @@ def create_container(image,
         let stdin open
     volumes_from
         container to get volumes definition from
-    privileged
-        run container in privileged mode
     name
         name given to container
 
@@ -638,7 +635,6 @@ def create_container(image,
             dns=dns,
             volumes=mountpoints,
             volumes_from=volumes_from,
-            privileged=privileged,
             name=name,
         )
         container = info['Id']
@@ -876,6 +872,7 @@ def restart(container, timeout=10, *args, **kwargs):
 
 def start(container, binds=None, ports=None, port_bindings=None,
           lxc_conf=None, publish_all_ports=None, links=None,
+          privileged=False,
           *args, **kwargs):
     '''
     restart the specified container
@@ -901,9 +898,15 @@ def start(container, binds=None, ports=None, port_bindings=None,
     try:
         dcontainer = _get_container_infos(container)['id']
         if not is_running(container):
-            client.start(dcontainer, binds=binds, port_bindings=port_bindings,
+            bindings = None
+            if port_bindings is not None:
+                bindings = {}
+                for k, v in port_bindings.iteritems():
+                    bindings[k] = (v.get('HostIp', ''), v['HostPort'])
+            client.start(dcontainer, binds=binds, port_bindings=bindings,
                          lxc_conf=lxc_conf,
-                         publish_all_ports=publish_all_ports, links=links)
+                         publish_all_ports=publish_all_ports, links=links,
+                         privileged=privileged)
             if is_running(dcontainer):
                 valid(status,
                       comment='Container {0} was started'.format(container),

@@ -59,8 +59,8 @@ Available Functions
               - container: mysuperdocker
               - port_bindings:
                   "5000/tcp":
-                      - HostIp: ""
-                      - HostPort: "5000"
+                      HostIp: ""
+                      HostPort: "5000"
 
 
 - absent
@@ -206,10 +206,10 @@ def mod_watch(name, sfun=None, *args, **kw):
                              comment=comment)
         return status
     elif sfun == 'running':
-        # Force a restart agaisnt new container
+        # Force a restart against new container
         restarter = __salt__['docker.restart']
         status = _ret_status(restarter(kw['container']), name=name,
-                             changes={name: status['result']})
+                             changes={name: True})
         return status
 
     return {'name': name,
@@ -305,7 +305,6 @@ def installed(name,
               dns=None,
               volumes=None,
               volumes_from=None,
-              privileged=False,
               *args, **kwargs):
     '''
     Ensure that a container with the given name exists;
@@ -390,8 +389,7 @@ def installed(name,
         dns=dns,
         volumes=dvolumes,
         volumes_from=volumes_from,
-        name=name,
-        privileged=privileged)
+        name=name)
     out = create(*a, **kw)
     # if container has been created, even if not started, we mark
     # it as installed
@@ -541,7 +539,8 @@ def run(name,
 
 
 def running(name, container=None, port_bindings=None, binds=None,
-            publish_all_ports=False, links=None, lxc_conf=None):
+            publish_all_ports=False, links=None, lxc_conf=None,
+            privileged=False):
     '''
     Ensure that a container is running. (`docker inspect`)
 
@@ -577,8 +576,8 @@ def running(name, container=None, port_bindings=None, binds=None,
 
             - port_bindings:
                 "5000/tcp":
-                    - HostIp: ""
-                    - HostPort: "5000"
+                    HostIp: ""
+                    HostPort: "5000"
     '''
     is_running = __salt('docker.is_running')(container)
     if is_running:
@@ -588,7 +587,7 @@ def running(name, container=None, port_bindings=None, binds=None,
         started = __salt__['docker.start'](
             container, binds=binds, port_bindings=port_bindings,
             lxc_conf=lxc_conf, publish_all_ports=publish_all_ports,
-            links=links)
+            links=links, privileged=privileged)
         is_running = __salt__['docker.is_running'](container)
         if is_running:
             return _valid(

@@ -91,21 +91,22 @@ def download_unittest_reports(options):
     print('Downloading remote unittest reports...')
     sys.stdout.flush()
 
-    if os.path.isdir('xml-test-reports'):
-        shutil.rmtree('xml-test-reports')
+    workspace = options.workspace
+    xml_reports_path = os.path.join(workspace, 'xml-test-reports')
+    if os.path.isdir(xml_reports_path):
+        shutil.rmtree(xml_reports_path)
 
-    os.makedirs('xml-test-reports')
+    os.makedirs(xml_reports_path)
 
     cmds = (
         'salt {0} archive.tar zcvf /tmp/xml-test-reports.tar.gz \'*.xml\' cwd=/tmp/xml-unitests-output/',
         'salt {0} cp.push /tmp/xml-test-reports.tar.gz',
-        'mv -f /var/cache/salt/master/minions/{0}/files/tmp/xml-test-reports.tar.gz {1}',
-        'tar zxvf {1}/xml-test-reports.tar.gz -C {1}/xml-test-reports',
+        'mv -f /var/cache/salt/master/minions/{0}/files/tmp/xml-test-reports.tar.gz {1} && '
+        'tar zxvf {1}/xml-test-reports.tar.gz -C {1}/xml-test-reports && '
         'rm -f {1}/xml-test-reports.tar.gz'
     )
 
     vm_name = options.download_unittest_reports
-    workspace = options.workspace
     for cmd in cmds:
         cmd = cmd.format(vm_name, workspace)
         print('Running CMD: {0}'.format(cmd))
@@ -228,8 +229,9 @@ def run(opts):
         opts.download_unittest_reports = vm_name
 
     cmd = (
-        'salt-cloud -l debug --script-args "-D -n git {commit}" -p '
-        '{provider}_{platform} {0}'.format(vm_name, **opts.__dict__)
+        'salt-cloud -l debug'
+        ' --script-args "-D -g {salt_url} -n git {commit}"'
+        ' -p {provider}_{platform} {0}'.format(vm_name, **opts.__dict__)
     )
     print('Running CMD: {0}'.format(cmd))
     sys.stdout.flush()
