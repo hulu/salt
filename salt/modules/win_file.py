@@ -461,7 +461,7 @@ def set_attributes(path, archive=None, hidden=None, normal=None,
     return win32file.SetFileAttributes(path, intAttributes)
 
 
-def set_mode(path, mode):
+def set_mode(path, mode):  # pylint: disable=W0613
     '''
     Set the mode of a file
 
