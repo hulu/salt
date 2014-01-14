@@ -57,8 +57,11 @@ if salt.utils.is_windows():
             _namespaced_function(_reverse_cmp_pkg_versions, globals())
     # The following imports are used by the namespaced win_pkg funcs
     # and need to be included in their globals.
-    import msgpack  # pylint: disable=W0611
-    from distutils.version import LooseVersion  # pylint: disable=E0611,W0611
+    try:
+        import msgpack
+    except ImportError:
+        import msgpack_pure as msgpack
+    from distutils.version import LooseVersion  # pylint: disable=E0611,F0401
 
 log = logging.getLogger(__name__)
 
