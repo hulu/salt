@@ -58,10 +58,10 @@ if salt.utils.is_windows():
     # The following imports are used by the namespaced win_pkg funcs
     # and need to be included in their globals.
     try:
-        import msgpack
+        import msgpack  # pylint: disable=W0611
     except ImportError:
         import msgpack_pure as msgpack
-    from distutils.version import LooseVersion  # pylint: disable=E0611,F0401
+    from distutils.version import LooseVersion  # pylint: disable=E0611,F0401,W0611
 
 log = logging.getLogger(__name__)
 
