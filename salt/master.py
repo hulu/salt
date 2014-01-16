@@ -50,7 +50,7 @@ import salt.utils.event
 import salt.utils.verify
 import salt.utils.minions
 import salt.utils.gzip_util
-from salt.utils.debug import enable_sigusr1_handler, inspect_stack
+from salt.utils.debug import enable_sigusr1_handler, enable_sigusr2_handler, inspect_stack
 from salt.exceptions import SaltMasterError, MasterExit
 from salt.utils.event import tagify
 from salt.pillar import git_pillar
@@ -359,6 +359,7 @@ class Master(SMaster):
         )
 
         enable_sigusr1_handler()
+        enable_sigusr2_handler()
 
         self.__set_max_open_files()
         clear_old_jobs_proc = multiprocessing.Process(
@@ -635,7 +636,6 @@ class MWorker(multiprocessing.Process):
         log.info('Worker binding to socket {0}'.format(w_uri))
         try:
             socket.connect(w_uri)
-
             while True:
                 try:
                     package = socket.recv()
@@ -1621,7 +1621,13 @@ class AESFuncs(object):
         # Run the func
         if hasattr(self, func):
             try:
+                start = time.time()
                 ret = getattr(self, func)(load)
+                log.trace(
+                        'Master function call {0} took {1} seconds'.format(
+                            func, time.time() - start
+                            )
+                        )
             except Exception:
                 ret = ''
                 log.error(

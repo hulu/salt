@@ -43,6 +43,28 @@ def _handle_sigusr1(sig,  # pylint: disable=W0613
             _makepretty(output, stack)
 
 
+def _handle_sigusr2(sig, stack):
+    '''
+    Signal handler for SIGUSR2, only available on Unix-like systems
+    '''
+    try:
+        import yappi
+    except ImportError:
+        return
+    if yappi.is_running():
+        yappi.stop()
+        filename = 'callgrind.salt-{0}-{1}'.format(int(time.time()), os.getpid())
+        destfile = os.path.join(tempfile.gettempdir(), filename)
+        yappi.get_func_stats().save(destfile, type='CALLGRIND')
+        if sys.stderr.isatty():
+            sys.stderr.write('Saved profiling data to: {0}\n'.format(destfile))
+        yappi.clear_stats()
+    else:
+        if sys.stderr.isatty():
+            sys.stderr.write('Profiling started\n')
+        yappi.start()
+
+
 def enable_sig_handler(signal_name, handler):
     '''
     Add signal handler for signal name if it exists on given platform
@@ -60,6 +82,13 @@ def enable_sigusr1_handler():
     # Also canonical BSD-way of printing profress is SIGINFO
     # which on BSD-deriviatives can be sent via Ctrl+T
     enable_sig_handler('SIGINFO', _handle_sigusr1)
+
+
+def enable_sigusr2_handler():
+    '''
+    Toggle YAPPI profiler
+    '''
+    enable_sig_handler('SIGUSR2', _handle_sigusr2)
 
 
 def inspect_stack():
