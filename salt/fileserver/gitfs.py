@@ -98,9 +98,9 @@ def _verify_gitpython(quiet=False):
         if HAS_PYGIT2 and not quiet:
             log.error(recommend_pygit2)
         return False
-    gitver = distutils.version.LooseVersion(git.__version__)
+    gitver = distutils.version.LooseVersion(git.__version__)  # pylint: disable=E0611
     minver_str = '0.3.0'
-    minver = distutils.version.LooseVersion(minver_str)
+    minver = distutils.version.LooseVersion(minver_str)  # pylint: disable=E0611
     errors = []
     if gitver < minver:
         errors.append(
@@ -137,10 +137,10 @@ def _verify_pygit2(quiet=False):
         if HAS_GITPYTHON and not quiet:
             log.error(recommend_gitpython)
         return False
-    pygit2ver = distutils.version.LooseVersion(pygit2.__version__)
-    libgit2ver = distutils.version.LooseVersion(pygit2.LIBGIT2_VERSION)
+    pygit2ver = distutils.version.LooseVersion(pygit2.__version__)  # pylint: disable=E0611
+    libgit2ver = distutils.version.LooseVersion(pygit2.LIBGIT2_VERSION)  # pylint: disable=E0611
     minver_str = '0.19.0'
-    minver = distutils.version.LooseVersion(minver_str)
+    minver = distutils.version.LooseVersion(minver_str)  # pylint: disable=E0611
     errors = []
     if pygit2ver < minver:
         errors.append(
