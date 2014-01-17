@@ -351,7 +351,7 @@ def wait_for_passwd(host, port=22, ssh_timeout=15, username='root',
                 log.debug('Using {0} as the key_filename'.format(key_filename))
             elif password:
                 kwargs['password'] = password
-                log.debug('Using {0} as the password'.format(password))
+                log.debug('Using password authentication'.format(password))
 
             trycount += 1
             log.debug(
@@ -863,6 +863,10 @@ def fire_event(key, msg, tag, args=None, sock_dir=None):
         else:
             args = {key: msg}
         event.fire_event(args, tag)
+
+    # https://github.com/zeromq/pyzmq/issues/173#issuecomment-4037083
+    # Assertion failed: get_load () == 0 (poller_base.cpp:32)
+    time.sleep(0.025)
 
 
 def scp_file(dest_path, contents, kwargs):
