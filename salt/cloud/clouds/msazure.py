@@ -510,7 +510,7 @@ def create(vm_):
         log.error('Failed to get a value for the hostname.')
         return False
 
-    hostname = hostname.replace('http://', '').replace('/', '')
+    hostname = hostname.replace('http://', '').replace('/', '')  # pylint: disable=E1103
 
     ssh_username = config.get_cloud_config_value(
         'ssh_username', vm_, __opts__, default='root'
