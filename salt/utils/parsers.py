@@ -2138,7 +2138,7 @@ class SaltCloudParser(OptionParser,
     _loglevel_config_setting_name_ = 'log_level_logfile'
     _default_logging_logfile_ = os.path.join(syspaths.LOGS_DIR, 'cloud')
 
-    def print_versions_report(self, file=sys.stdout):
+    def print_versions_report(self, file=sys.stdout):  # pylint: disable=W0622
         print >> file, '\n'.join(
             version.versions_report(include_salt_cloud=True))
         self.exit()
