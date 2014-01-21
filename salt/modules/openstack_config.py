@@ -40,7 +40,7 @@ def __virtual__():
     return 'openstack_config'
 
 
-def _fallback(*args, **kw):
+def _fallback(*args, **kw):  # pylint: disable=W0613
     return 'The "openstack-config" command needs to be installed for this function to work.  Typically this is included in the "openstack-utils" package.'
 
 
