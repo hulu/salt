@@ -513,12 +513,12 @@ def group_install(name,
         raise SaltInvocationError('\'groups\' must be a list')
 
     if isinstance(skip, string_types):
-        skip = skip.split(',')
+        skip = skip.split(',')  # pylint: disable=E1103
     if not isinstance(skip, (list, tuple)):
         raise SaltInvocationError('\'skip\' must be a list')
 
     if isinstance(include, string_types):
-        include = include.split(',')
+        include = include.split(',')  # pylint: disable=E1103
     if not isinstance(include, (list, tuple)):
         raise SaltInvocationError('\'include\' must be a list')
 
