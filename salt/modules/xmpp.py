@@ -65,16 +65,16 @@ class SendMsgBot(_ClientXMPP):
         self.recipient = recipient
         self.msg = msg
 
-        self.add_event_handler('session_start', self.start)
+        self.add_event_handler('session_start', self.start)  # pylint: disable=E1101
 
     def start(self, event):  # pylint: disable=W0613
-        self.send_presence()
+        self.send_presence()  # pylint: disable=E1101
 
-        self.send_message(mto=self.recipient,
+        self.send_message(mto=self.recipient,  # pylint: disable=E1101
                           mbody=self.msg,
                           mtype='chat')
 
-        self.disconnect(wait=True)
+        self.disconnect(wait=True)  # pylint: disable=E1101
 
 
 def send_msg(recipient, message, jid=None, password=None, profile=None):
@@ -94,10 +94,10 @@ def send_msg(recipient, message, jid=None, password=None, profile=None):
         password = creds.get('xmpp.password')
 
     xmpp = SendMsgBot(jid, password, recipient, message)
-    xmpp.register_plugin('xep_0030')  # Service Discovery
-    xmpp.register_plugin('xep_0199')  # XMPP Ping
+    xmpp.register_plugin('xep_0030')  # pylint: disable=E1101
+    xmpp.register_plugin('xep_0199')  # pylint: disable=E1101
 
-    if xmpp.connect():
-        xmpp.process(block=True)
+    if xmpp.connect():  # pylint: disable=E1101
+        xmpp.process(block=True)  # pylint: disable=E1101
         return True
     return False
