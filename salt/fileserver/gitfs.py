@@ -587,7 +587,7 @@ def find_file(path, short='base', **kwargs):
             if not ref:
                 # Branch or tag not found in repo, try the next
                 continue
-            tree = ref.get_object().tree
+            tree = ref.get_object().tree  # pylint: disable=E1103
             try:
                 blob = repo[tree[path].oid]
             except KeyError:
@@ -824,7 +824,7 @@ def _file_list_pygit2(repo, ref_tgt, gitfs_root):
     ref = _get_ref_pygit2(repo, ref_tgt)
     if not ref:
         return ret
-    tree = ref.get_object().tree
+    tree = ref.get_object().tree  # pylint: disable=E1103
     if gitfs_root:
         try:
             tree = repo[tree[gitfs_root].oid]
@@ -933,7 +933,7 @@ def _file_list_emptydirs_pygit2(repo, ref_tgt, gitfs_root):
     ref = _get_ref_pygit2(repo, ref_tgt)
     if not ref:
         return ret
-    tree = ref.get_object().tree
+    tree = ref.get_object().tree  # pylint: disable=E1103
     if gitfs_root:
         try:
             tree = repo[tree[gitfs_root].oid]
@@ -1032,7 +1032,7 @@ def _dir_list_pygit2(repo, ref_tgt, gitfs_root):
     ref = _get_ref_pygit2(repo, ref_tgt)
     if not ref:
         return ret
-    tree = ref.get_object().tree
+    tree = ref.get_object().tree  # pylint: disable=E1103
     if gitfs_root:
         try:
             tree = repo[tree[gitfs_root].oid]
