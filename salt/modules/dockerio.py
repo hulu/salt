@@ -365,7 +365,7 @@ def _get_container_infos(container):
     return status['out']
 
 
-def get_containers(all=True,
+def get_containers(all=True,  # pylint: disable=W0622
                    trunc=False,
                    since=None,
                    before=None,
@@ -1310,7 +1310,11 @@ def tag(image, repository, tag=None, force=False, *args, **kwargs):
     return status
 
 
-def get_images(name=None, quiet=False, all=True, *args, **kwargs):
+def get_images(name=None,
+               quiet=False,
+               all=True,  # pylint: disable=W0622
+               *args,
+               **kwargs):
     '''
     List docker images
 
