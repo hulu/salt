@@ -2282,7 +2282,7 @@ def check_managed(
         salt '*' file.check_managed /etc/httpd/conf.d/httpd.conf salt://http/httpd.conf '{hash_type: 'md5', 'hsum': <md5sum>}' root, root, '755' jinja True None None base
     '''
     # If the source is a list then find which file exists
-    source, source_hash = source_list(source, source_hash, saltenv)
+    source, source_hash = source_list(source, source_hash, saltenv)  # pylint: disable=W0633
 
     sfn = ''
     source_sum = None
