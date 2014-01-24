@@ -2211,6 +2211,9 @@ class BaseHighState(object):
                     if not isinstance(state[name], dict):
                         # Include's or excludes as lists?
                         continue
+                    if not isinstance(state[name][s_dec], list):
+                        # Bad syntax, let the verify seq pick it up later on
+                        continue
 
                     found = False
                     if s_dec.startswith('_'):
