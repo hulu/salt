@@ -14,9 +14,9 @@ import logging
 
 
 try:
-    import jnpr.junos
-    import jnpr.junos.utils
-    import jnpr.junos.cfg
+    import jnpr.junos  # pylint: disable=W0611
+    import jnpr.junos.utils  # pylint: disable=W0611
+    import jnpr.junos.cfg  # pylint: disable=W0611
     HAS_JUNOS = True
 except ImportError:
     HAS_JUNOS = False
