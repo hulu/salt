@@ -384,7 +384,7 @@ def list_(protocol=None, service_address=None):
     return ret
 
 
-def zero(protocol=None, service_address=None):
+def zero(protocol=None, service_address=None):  # pylint: disable=W0613
     '''
 
     Zero the packet, byte and rate counters in a service or all services.
