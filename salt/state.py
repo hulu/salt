@@ -21,6 +21,7 @@ import fnmatch
 import logging
 import collections
 import traceback
+import datetime
 
 # Import salt libs
 import salt.utils
@@ -284,7 +285,7 @@ class Compiler(object):
                                name, body['__sls__'], type(name))
                 errors.append(err)
             if not isinstance(body, dict):
-                err = ('The type {0} in {1} is not formated as a dictionary'
+                err = ('The type {0} in {1} is not formatted as a dictionary'
                        .format(name, body))
                 errors.append(err)
                 continue
@@ -755,7 +756,7 @@ class State(object):
                                name, body['__sls__'], type(name))
                 errors.append(err)
             if not isinstance(body, dict):
-                err = ('The type {0} in {1} is not formated as a dictionary'
+                err = ('The type {0} in {1} is not formatted as a dictionary'
                        .format(name, body))
                 errors.append(err)
                 continue
@@ -1122,7 +1123,7 @@ class State(object):
                         rkey = key.split('_')[0]
                         items = arg[key]
                         if isinstance(items, dict):
-                            # Formated as a single req_in
+                            # Formatted as a single req_in
                             for _state, name in items.items():
 
                                 # Not a use requisite_in
@@ -1293,6 +1294,7 @@ class State(object):
         Call a state directly with the low data structure, verify data
         before processing.
         '''
+        log.info('Running state [{0}] at time {1}'.format(low['name'], datetime.datetime.now().time().isoformat()))
         errors = self.verify_data(low)
         if errors:
             ret = {
@@ -1369,16 +1371,30 @@ class State(object):
                 self.verify_ret(ret)
         except Exception:
             trb = traceback.format_exc()
+            # There are a number of possibilities to not have the cdata
+            # populated with what we might have expected, so just be enought
+            # smart to not raise another KeyError as the name is easily
+            # guessable and fallback in all cases to present the real
+            # exception to the user
+            if len(cdata['args']) > 0:
+                name = cdata['args'][0]
+            elif 'name' in cdata['kwargs']:
+                name = cdata['kwargs'].get(
+                    'name',
+                    low.get('name',
+                            low.get('__id__'))
+                )
             ret = {
                 'result': False,
-                'name': cdata['args'][0],
+                'name': name,
                 'changes': {},
                 'comment': 'An exception occurred in this state: {0}'.format(
                     trb)
-                }
+            }
         finally:
             if low.get('__prereq__'):
-                sys.modules[self.states[cdata['full']].__module__].__opts__['test'] = test
+                sys.modules[self.states[cdata['full']].__module__].__opts__[
+                    'test'] = test
 
         # If format_call got any warnings, let's show them to the user
         if 'warnings' in cdata:
@@ -1395,6 +1411,7 @@ class State(object):
         self.__run_num += 1
         format_log(ret)
         self.check_refresh(low, ret)
+        log.info('Completed state [{0}] at time {1}'.format(low['name'], datetime.datetime.now().time().isoformat()))
         return ret
 
     def call_chunks(self, chunks):
@@ -2027,18 +2044,24 @@ class BaseHighState(object):
                 if saltenv != self.opts['environment']:
                     continue
             for match, data in body.items():
-                if isinstance(data, string_types):
-                    data = [data]
-                if self.matcher.confirm_top(
-                        match,
-                        data,
-                        self.opts['nodegroups']
-                        ):
-                    if saltenv not in matches:
-                        matches[saltenv] = []
-                    for item in data:
-                        if isinstance(item, string_types):
-                            matches[saltenv].append(item)
+                def _filter_matches(_match, _data, _opts):
+                    if isinstance(_data, string_types):
+                        _data = [_data]
+                    if self.matcher.confirm_top(
+                            _match,
+                            _data,
+                            _opts
+                            ):
+                        if saltenv not in matches:
+                            matches[saltenv] = []
+                        for item in _data:
+                            if 'subfilter' in item:
+                                _tmpdata = item.pop('subfilter')
+                                for match, data in _tmpdata.items():
+                                    _filter_matches(match, data, _opts)
+                            if isinstance(item, string_types):
+                                matches[saltenv].append(item)
+                _filter_matches(match, data, self.opts['nodegroups'])
         ext_matches = self.client.ext_nodes()
         for saltenv in ext_matches:
             if saltenv in matches:

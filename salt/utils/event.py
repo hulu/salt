@@ -218,10 +218,24 @@ class SaltEvent(object):
         self.push.connect(self.pulluri)
         self.cpush = True
 
+    @classmethod
+    def unpack(cls, raw, serial=None):
+        if serial is None:
+            serial = salt.payload.Serial({'serial': 'msgpack'})
+
+        if ord(raw[20]) >= 0x80:  # old style
+            mtag = raw[0:20].rstrip('|')
+            mdata = raw[20:]
+        else:  # new style
+            mtag, sep, mdata = raw.partition(TAGEND)  # split tag from data
+
+        data = serial.loads(mdata)
+        return mtag, data
+
     def get_event(self, wait=5, tag='', full=False):
         '''
         Get a single publication.
-        IF no publication available THEN block for upto wait seconds
+        IF no publication available THEN block for up to wait seconds
         AND either return publication OR None IF no publication available.
 
         IF wait is 0 then block forever.
@@ -235,20 +249,15 @@ class SaltEvent(object):
             else:
                 return evt['data']
 
-        start = int(time.time())
-        while not wait or int(time.time()) <= start + wait:
+        start = time.time()
+        while not wait or time.time() <= start + wait:
             socks = dict(self.poller.poll(wait * 1000))  # convert to milliseconds
             if self.sub in socks and socks[self.sub] == zmq.POLLIN:
                 raw = self.sub.recv()
             else:
                 continue
-            if ord(raw[20]) >= 0x80:  # old style
-                mtag = raw[0:20].rstrip('|')
-                mdata = raw[20:]
-            else:  # new style
-                mtag, sep, mdata = raw.partition(TAGEND)  # split tag from data
+            mtag, data = self.unpack(raw, self.serial)
 
-            data = self.serial.loads(mdata)
             ret = {'data': data,
                     'tag': mtag}
 

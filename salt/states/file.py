@@ -501,7 +501,7 @@ def _check_symlink_ownership(path, user, group):
     Check if the symlink ownership matches the specified user and group
     '''
     cur_user, cur_group = _get_symlink_ownership(path)
-    return ((cur_user == user) and (cur_group == group))  # pylint: disable=C0325
+    return (cur_user == user) and (cur_group == group)  # pylint: disable=C0325
 
 
 def _set_symlink_ownership(path, uid, gid):
@@ -1034,6 +1034,7 @@ def managed(name,
 
             /etc/rc.conf ef6e82e4006dee563d98ada2a2a80a27
             sha254c8525aee419eb649f0233be91c151178b30f0dff8ebbdcc8de71b1d5c8bcc06a  /etc/resolv.conf
+            ead48423703509d37c4a90e6a0d53e143b6fc268
 
         Known issues:
             If the remote server URL has the hash file as an apparent
@@ -1128,7 +1129,7 @@ def managed(name,
         ``pillar['userdata']['deployer']['id_rsa']``. An example of this pillar
         setup would be like so:
 
-        .. code-block:: yaml:
+        .. code-block:: yaml
 
             userdata:
               deployer:
@@ -2910,7 +2911,7 @@ def accumulated(name, filename, text, **kwargs):
 
     Example:
 
-    Given the following:
+    Given the following::
 
         animals_doing_things:
           file.accumulated:
@@ -2925,11 +2926,12 @@ def accumulated(name, filename, text, **kwargs):
             - source: salt://animal_file.txt
             - template: jinja
 
-    One might write a template for animal_file.txt like the following:
+    One might write a template for animal_file.txt like the following::
 
         The quick brown fox{% for animal in accumulator['animals_doing_things'] %}{{ animal }}{% endfor %}
 
-    Collectively, the above states and template file will produce:
+    Collectively, the above states and template file will produce::
+
         The quick brown fox jumps over the lazy dog.
 
     Multiple accumulators can be "chained" together.
@@ -3086,7 +3088,12 @@ def serialize(name,
     elif formatter == 'python':
         # round-trip this through JSON to avoid OrderedDict types
         # there's probably a more performant way to do this...
-        contents = pprint.pformat(json.loads(json.dumps(dataset)))
+        contents = pprint.pformat(
+                json.loads(
+                    json.dumps(dataset),
+                    object_hook=salt.utils.decode_dict
+                    )
+                )
     else:
         return {'changes': {},
                 'comment': '{0} format is not supported'.format(

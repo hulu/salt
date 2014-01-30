@@ -4,6 +4,7 @@ Return/control aspects of the grains data
 '''
 
 # Import python libs
+from __future__ import print_function
 import collections
 import math
 import operator
@@ -306,7 +307,7 @@ def filter_by(lookup_dict, grain='os_family', merge=None, default='default'):
         {% set apache = salt['grains.filter_by']({
             'Debian': {'pkg': 'apache2', 'srv': 'apache2'},
             'RedHat': {'pkg': 'httpd', 'srv': 'httpd'},
-            'default': {'pkg': 'apache', 'srv': 'apache'},
+            'default': 'Debian',
         }) %}
 
         myapache:

@@ -272,9 +272,9 @@ class Master(SMaster):
                     # Fire new minions present event
                     data = {'new': list(new),
                             'lost': list(lost)}
-                    event.fire_event(data, tagify('change', 'presense'))
+                    event.fire_event(data, tagify('change', 'presence'))
                 data = {'present': list(present)}
-                event.fire_event(data, tagify('present', 'presense'))
+                event.fire_event(data, tagify('present', 'presence'))
                 old_present = present
             try:
                 time.sleep(loop_interval)
@@ -1849,6 +1849,9 @@ class ClearFuncs(object):
         pubfn_rejected = os.path.join(self.opts['pki_dir'],
                 'minions_rejected',
                 load['id'])
+        pubfn_denied = os.path.join(self.opts['pki_dir'],
+                'minions_denied',
+                load['id'])
         if self.opts['open_mode']:
             # open mode is turned on, nuts to checks and overwrite whatever
             # is there
@@ -1871,6 +1874,9 @@ class ClearFuncs(object):
                     'keys did not match. This may be an attempt to compromise '
                     'the Salt cluster.'.format(**load)
                 )
+                # put denied minion key into minions_denied
+                with salt.utils.fopen(pubfn_denied, 'w+') as fp_:
+                    fp_.write(load['pub'])
                 eload = {'result': False,
                          'id': load['id'],
                          'pub': load['pub']}
@@ -1955,6 +1961,9 @@ class ClearFuncs(object):
                         'attempt to compromise the Salt cluster.'
                         .format(**load)
                     )
+                    # put denied minion key into minions_denied
+                    with salt.utils.fopen(pubfn_denied, 'w+') as fp_:
+                        fp_.write(load['pub'])
                     eload = {'result': False,
                              'id': load['id'],
                              'pub': load['pub']}
@@ -1986,6 +1995,9 @@ class ClearFuncs(object):
                         'attempt to compromise the Salt cluster.'
                         .format(**load)
                     )
+                    # put denied minion key into minions_denied
+                    with salt.utils.fopen(pubfn_denied, 'w+') as fp_:
+                        fp_.write(load['pub'])
                     eload = {'result': False,
                              'id': load['id'],
                              'pub': load['pub']}
@@ -2133,7 +2145,7 @@ class ClearFuncs(object):
 
         try:
             name = self.loadauth.load_name(clear_load)
-            if not ((name in self.opts['external_auth'][clear_load['eauth']]) | ('*' in self.opts['external_auth'][clear_load['eauth']])):  # pylint: disable=C0325
+            if not (name in self.opts['external_auth'][clear_load['eauth']]) | ('*' in self.opts['external_auth'][clear_load['eauth']]):
                 msg = ('Authentication failure of type "eauth" occurred for '
                        'user {0}.').format(clear_load.get('username', 'UNKNOWN'))
                 log.warning(msg)
@@ -2236,7 +2248,7 @@ class ClearFuncs(object):
                 log.error(exc)
                 log.error('Exception occurred while '
                         'introspecting {0}: {1}'.format(fun, exc))
-                data['return'] = 'Exception occured in wheel {0}: {1}: {2}'.format(
+                data['return'] = 'Exception occurred in wheel {0}: {1}: {2}'.format(
                                             fun,
                                             exc.__class__.__name__,
                                             exc,
@@ -2305,7 +2317,7 @@ class ClearFuncs(object):
             except Exception as exc:
                 log.error('Exception occurred while '
                         'introspecting {0}: {1}'.format(fun, exc))
-                data['return'] = 'Exception occured in wheel {0}: {1}: {2}'.format(
+                data['return'] = 'Exception occurred in wheel {0}: {1}: {2}'.format(
                                             fun,
                                             exc.__class__.__name__,
                                             exc,

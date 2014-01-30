@@ -12,12 +12,9 @@ The postgres_users module is used to create and manage Postgres extensions.
 '''
 
 # Import Python libs
-import hashlib
+import logging
 
 # Import salt libs
-import logging
-import salt.utils
-
 from salt.modules import postgres
 
 log = logging.getLogger(__name__)
@@ -97,7 +94,7 @@ def present(name,
         name,
         schema=schema,
         ext_version=ext_version,
-        from_version=from_version, **db_args)
+        **db_args)
 
     # The user is not present, make it!
     toinstall = postgres._EXTENSION_NOT_INSTALLED in mtdata

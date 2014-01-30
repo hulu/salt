@@ -48,7 +48,7 @@ Is changed to this:
 Then the existing cron will be updated, but if the cron command is changed,
 then a new cron job will be added to the user's crontab.
 
-Salt also supports running a cron every ``x minutes`` very similarily to the Unix
+Salt also supports running a cron every ``x minutes`` very similarly to the Unix
 convention of using ``*/5`` to have a job run every five minutes. In Salt, this
 looks like:
 
@@ -363,7 +363,7 @@ def file(name,  # pylint: disable=W0622
         Overrides the default backup mode for the user's crontab.
     '''
     # Initial set up
-    mode = __salt__['config.manage_mode'](600)
+    mode = __salt__['config.manage_mode']('0600')
     owner, group, crontab_dir = _get_cron_info()  # pylint: disable=W0612
 
     cron_path = salt.utils.mkstemp()

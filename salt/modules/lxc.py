@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Work with linux containers
+Control Linux Containers via Salt
 
 :depends: lxc package for distribution
 '''
@@ -396,7 +396,7 @@ def exists(name):
         salt '*' lxc.exists name
     '''
     l = list_()
-    return name in (l['running'] + l['stopped'] + l['frozen'])  # pylint: disable=C0325
+    return name in l['running'] + l['stopped'] + l['frozen']  # pylint: disable=C0325
 
 
 def state(name):

@@ -896,7 +896,7 @@ def replace(path,
             show_changes=True,
         ):
     '''
-    Replace occurances of a pattern in a file
+    Replace occurrences of a pattern in a file
 
     .. versionadded:: 0.17.0
 
@@ -1124,7 +1124,7 @@ def blockreplace(path,
         orig_file.append(line)
         if result is not None:
             new_file.append(result)
-    # end for. If we are here without block managment we maybe have some problems,
+    # end for. If we are here without block management we maybe have some problems,
     # or we need to initialise the marked block
 
     if in_block:
@@ -1191,7 +1191,7 @@ def search(path,
         bufsize=1,
         ):
     '''
-    Search for occurances of a pattern in a file
+    Search for occurrences of a pattern in a file
 
     .. versionadded:: 0.17.0
 
@@ -1892,7 +1892,13 @@ def get_selinux_context(path):
         salt '*' file.get_selinux_context /etc/hosts
     '''
     out = __salt__['cmd.run']('ls -Z {0}'.format(path))
-    return out.split(' ')[4]
+
+    try:
+        ret = re.search(r'\w+:\w+:\w+:\w+', out).group(0)
+    except AttributeError:
+        ret = 'No selinux context information is available for {0}'.format(path)
+
+    return ret
 
 
 def set_selinux_context(path,
@@ -2193,7 +2199,7 @@ def check_perms(name, ret, user, group, mode):
         raise CommandExecutionError('{0} does not exist'.format(name))
     perms['luser'] = cur['user']
     perms['lgroup'] = cur['group']
-    perms['lmode'] = cur['mode']
+    perms['lmode'] = __salt__['config.manage_mode'](cur['mode'])
 
     # Mode changes if needed
     if mode is not None:

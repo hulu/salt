@@ -4,6 +4,7 @@ Execute salt convenience routines
 '''
 
 # Import python libs
+from __future__ import print_function
 import multiprocessing
 import datetime
 import time
@@ -58,7 +59,7 @@ class RunnerClient(object):
             data['return'] = self.low(fun, low)
             data['success'] = True
         except Exception as exc:
-            data['return'] = 'Exception occured in runner {0}: {1}: {2}'.format(
+            data['return'] = 'Exception occurred in runner {0}: {1}: {2}'.format(
                             fun,
                             exc.__class__.__name__,
                             exc,
@@ -163,12 +164,12 @@ class RunnerClient(object):
 
         .. code-block:: python
 
-            runner.master_call({
-                'fun': 'jobs.list_jobs',
-                'username': 'saltdev',
-                'password': 'saltdev',
-                'eauth': 'pam',
-            })
+            runner.master_call(
+                fun='jobs.list_jobs',
+                username='saltdev',
+                password='saltdev',
+                eauth='pam'
+            )
         '''
         load = kwargs
         load['cmd'] = 'runner'
@@ -191,10 +192,20 @@ class Runner(RunnerClient):
         '''
         Print out the documentation!
         '''
-        ret = super(Runner, self).get_docs()
+        fun = None
+        run = None
+        arg = self.opts.get('fun', None)
 
-        for fun in sorted(ret):
-            print('{0}:\n{1}\n'.format(fun, ret[fun]))
+        if arg:
+            if '.' in arg:
+                fun = arg
+            else:
+                run = arg
+
+        ret = super(Runner, self).get_docs()
+        for f in sorted(ret):
+            if not arg or f == fun or f.split('.')[0] == run:
+                print('{0}:\n{1}\n'.format(f, ret[f]))
 
     def run(self):
         '''
@@ -208,5 +219,5 @@ class Runner(RunnerClient):
                         self.opts['fun'], self.opts['arg'], self.opts)
             except salt.exceptions.SaltException as exc:
                 ret = str(exc)
-                print ret
+                print(ret)
                 return ret

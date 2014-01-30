@@ -4,6 +4,7 @@ Routines to set up a minion
 '''
 
 # Import python libs
+from __future__ import print_function
 import logging
 import getpass
 import multiprocessing
@@ -62,6 +63,8 @@ import salt.loader
 import salt.utils
 import salt.payload
 import salt.utils.schedule
+import salt.utils.event
+
 from salt._compat import string_types
 from salt.utils.debug import enable_sigusr1_handler
 from salt.utils.event import tagify
@@ -470,6 +473,11 @@ class MultiMinion(object):
                             module_refresh = True
                         elif package.startswith('pillar_refresh'):
                             pillar_refresh = True
+                        elif package.startswith('fire_master'):
+                            tag, data = salt.utils.event.MinionEvent.unpack(package)
+                            log.debug("Forwarding master event tag={tag}".format(tag=data['tag']))
+                            self._fire_master(data['data'], data['tag'], data['events'], data['pretag'])
+
                         self.epub_sock.send(package)
                 except Exception:
                     pass
@@ -1304,7 +1312,13 @@ class Minion(object):
                                 if self.grains_cache != self.opts['grains']:
                                     self.pillar_refresh()
                                     self.grains_cache = self.opts['grains']
+                            elif package.startswith('fire_master'):
+                                tag, data = salt.utils.event.MinionEvent.unpack(package)
+                                log.debug("Forwarding master event tag={tag}".format(tag=data['tag']))
+                                self._fire_master(data['data'], data['tag'], data['events'], data['pretag'])
+
                             self.epub_sock.send(package)
+
                     except Exception:
                         pass
             except zmq.ZMQError:
