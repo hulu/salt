@@ -35,7 +35,7 @@ from salt.cloud.exceptions import SaltCloudSystemExit
 # CloudStackNetwork will be needed during creation of a new node
 try:
     from libcloud.compute.drivers.cloudstack import CloudStackNetwork  # pylint: disable=W0611
-    from libcloud.common.cloudstack import CloudStackConnection
+    from libcloud.common.cloudstack import CloudStackConnection  # pylint: disable=W0611
     HASLIBS = True
 except ImportError:
     HASLIBS = False
