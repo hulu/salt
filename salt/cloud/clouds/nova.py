@@ -343,7 +343,7 @@ def create(vm_):
     )
     if security_groups is not None:
         vm_groups = security_groups.split(',')
-        avail_groups = conn.ex_list_security_groups()
+        avail_groups = conn.ex_list_security_groups()  # pylint: disable=E1101
         group_list = []
 
         for vmg in vm_groups:
@@ -372,7 +372,7 @@ def create(vm_):
                 ]
             elif 'floating' in net:
                 pool = OpenStack_1_1_FloatingIpPool(
-                    net['floating'], conn.connection
+                    net['floating'], conn.connection  # pylint: disable=E1101
                 )
                 for idx in pool.list_floating_ips():
                     if idx.node_id is None:
@@ -406,7 +406,7 @@ def create(vm_):
     )
 
     try:
-        data = conn.create_node(**kwargs)
+        data = conn.create_node(**kwargs)  # pylint: disable=E1101
     except Exception as exc:
         log.error(
             'Error creating {0} on OPENSTACK\n\n'
@@ -469,7 +469,7 @@ def create(vm_):
             try:
                 name = data.name
                 ip = floating[0].ip_address
-                conn.ex_attach_floating_ip_to_node(data, ip)
+                conn.ex_attach_floating_ip_to_node(data, ip)  # pylint: disable=E1101
                 log.info(
                     'Attaching floating IP "{0}" to node "{1}"'.format(ip, name)
                 )
