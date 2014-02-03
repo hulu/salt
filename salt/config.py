@@ -183,6 +183,7 @@ VALID_OPTS = {
     'keysize': int,
     'salt_transport': str,
     'enumerate_proxy_minions': bool,
+    'gather_job_timeout': int,
 }
 
 # default configurations
@@ -388,7 +389,8 @@ DEFAULT_MASTER_OPTS = {
     'sign_pub_messages': False,
     'keysize': 4096,
     'salt_transport': 'zeromq',
-    'enumerate_proxy_minions': False
+    'enumerate_proxy_minions': False,
+    'gather_job_timeout': 2,
 }
 
 # ----- Salt Cloud Configuration Defaults ----------------------------------->
@@ -1137,7 +1139,7 @@ def apply_vm_profiles_config(providers, overrides, defaults=None):
     vms = {}
 
     for key, val in config.items():
-        if key in ('conf_file', 'include', 'default_include'):
+        if key in ('conf_file', 'include', 'default_include', 'user'):
             continue
         if not isinstance(val, dict):
             raise salt.cloud.exceptions.SaltCloudConfigError(
@@ -1294,7 +1296,7 @@ def apply_cloud_providers_config(overrides, defaults=None):
 
     providers = {}
     for key, val in config.items():
-        if key in ('conf_file', 'include', 'default_include'):
+        if key in ('conf_file', 'include', 'default_include', 'user'):
             continue
 
         if not isinstance(val, (list, tuple)):
