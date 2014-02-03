@@ -302,7 +302,7 @@ class ProxyMinion(parsers.MinionOptionParser):
         )
         migrations.migrate_paths(self.config)
         # Late import so logging works correctly
-        import salt.minion
+        import salt.minion  # pylint: disable=W0621
         # If the minion key has not been accepted, then Salt enters a loop
         # waiting for it, if we daemonize later then the minion could halt
         # the boot process waiting for a key to be accepted on the master.
