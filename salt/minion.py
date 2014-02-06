@@ -161,6 +161,12 @@ def parse_args_and_kwargs(func, args, data=None):
     for arg in args:
         # support old yamlify syntax
         if isinstance(arg, string_types):
+            salt.utils.warn_until(
+                'Boron',
+                'This minion recieved a job where kwargs were passed as '
+                'string\'d args, which has been deprecated. This functionality will'
+                'be removed in Salt Boron.'
+            )
             arg_name, arg_value = salt.utils.parse_kwarg(arg)
             if arg_name:
                 if argspec.keywords or arg_name in argspec.args:
@@ -254,7 +260,6 @@ class SMinion(object):
         if self.opts.get('file_client', 'remote') == 'remote':
             if isinstance(self.opts['master'], list):
                 masters = self.opts['master']
-                self.opts['_auth_timeout'] = 3
                 self.opts['_safe_auth'] = False
                 for master in masters:
                     self.opts['master'] = master
