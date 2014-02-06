@@ -43,7 +43,7 @@ def _handle_sigusr1(sig,  # pylint: disable=W0613
             _makepretty(output, stack)
 
 
-def _handle_sigusr2(sig, stack):
+def _handle_sigusr2(sig, stack):  # pylint: disable=W0613
     '''
     Signal handler for SIGUSR2, only available on Unix-like systems
     '''
