@@ -35,6 +35,8 @@ __all__ = [
 # template filter.
 class OrderedDictDumper(yaml.Dumper):  # pylint: disable=W0232
     pass
+
+
 yaml.add_representer(OrderedDict,
                      yaml.representer.SafeRepresenter.represent_dict,
                      Dumper=OrderedDictDumper)
