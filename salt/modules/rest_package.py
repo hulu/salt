@@ -59,7 +59,7 @@ def version(*names, **kwargs):
 
 def installed(
         name,
-        version=None,
+        version=None,  # pylint: disable=W0621
         refresh=False,
         fromrepo=None,
         skip_verify=False,
