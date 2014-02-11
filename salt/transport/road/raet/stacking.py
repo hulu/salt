@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 '''
-packeting.py raet protocol stacking behaviors
+stacking.py raet protocol stacking classes
 '''
+# pylint: disable=W0611
 
 # Import python libs
 from collections import deque
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 # Import ioflo libs
 from ioflo.base.odicting import odict

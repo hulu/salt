@@ -581,7 +581,7 @@ def jid_load(jid, cachedir, sum_type, serial='msgpack'):
     if not os.path.isfile(load_fn):
         return {}
     serial = salt.payload.Serial(serial)
-    with fopen(load_fn) as fp_:
+    with fopen(load_fn, 'rb') as fp_:
         return serial.load(fp_)
 
 
@@ -1099,6 +1099,11 @@ def subdict_match(data, expr, delim=':', regex_match=False):
         if isinstance(match, list):
             # We are matching a single component to a single list member
             for member in match:
+                if isinstance(member, dict):
+                    if matchstr.startswith('*:'):
+                        matchstr = matchstr[2:]
+                    if subdict_match(member, matchstr, regex_match=regex_match):
+                        return True
                 if _match(member, matchstr, regex_match=regex_match):
                     return True
             continue

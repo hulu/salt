@@ -134,6 +134,7 @@ VALID_OPTS = {
     'gitfs_base': str,
     'hgfs_remotes': list,
     'hgfs_root': str,
+    'hgfs_base': str,
     'hgfs_branch_method': str,
     'svnfs_remotes': list,
     'svnfs_root': str,
@@ -185,6 +186,7 @@ VALID_OPTS = {
     'enumerate_proxy_minions': bool,
     'gather_job_timeout': int,
     'auth_timeout': int,
+    'random_master': bool,
 }
 
 # default configurations
@@ -282,6 +284,7 @@ DEFAULT_MINION_OPTS = {
     'keysize': 4096,
     'salt_transport': 'zeromq',
     'auth_timeout': 3,
+    'random_master': False,
 }
 
 DEFAULT_MASTER_OPTS = {
@@ -312,6 +315,7 @@ DEFAULT_MASTER_OPTS = {
     'gitfs_base': 'master',
     'hgfs_remotes': [],
     'hgfs_root': '',
+    'hgfs_base': 'default',
     'hgfs_branch_method': 'branches',
     'svnfs_remotes': [],
     'svnfs_root': '',

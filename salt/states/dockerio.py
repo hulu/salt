@@ -102,14 +102,6 @@ Available Functions
 # Import salt libs
 from salt._compat import string_types
 
-# Import 3rd-party libs
-try:
-    import docker  # pylint: disable=W0611
-    HAS_DOCKER = True
-except ImportError:
-    HAS_DOCKER = False
-
-
 # Define the module's virtual name
 __virtualname__ = 'docker'
 
@@ -118,7 +110,7 @@ def __virtual__():
     '''
     Only load if the docker libs are available.
     '''
-    if HAS_DOCKER:
+    if 'docker.version' in __salt__:
         return __virtualname__
     return False
 
@@ -246,7 +238,7 @@ def pulled(name, force=False, *args, **kwargs):
         return _valid(
             name=name,
             comment='Image already pulled: {0}'.format(name))
-    previous_id = iinfos['out']['id']
+    previous_id = iinfos['out']['id'] if iinfos['status'] else None
     func = __salt('docker.pull')
     returned = func(name)
     if previous_id != returned['id']:
@@ -282,7 +274,7 @@ def built(name,
             name=name,
             comment='Image already built: {0}, id: {1}'.format(
                 name, iinfos['out']['id']))
-    previous_id = iinfos['out']['id']
+    previous_id = iinfos['out']['id'] if iinfos['status'] else None
     func = __salt('docker.build')
     kw = dict(tag=name,
               path=path,
