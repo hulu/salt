@@ -21,7 +21,7 @@ class Key(object):
     '''
 
     AES_BLOCK_SIZE = 16
-    SIG_SIZE = hashlib.sha256().digest_size
+    SIG_SIZE = hashlib.sha256().digest_size  # pylint: disable=E1101
 
     def __init__(self, key=None, size=128, **kwargs):
         self.kwargs = kwargs
