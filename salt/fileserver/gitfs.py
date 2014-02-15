@@ -1081,7 +1081,7 @@ def _file_list_gitpython(repo, tgt, gitfs_root):
             tree = tree / gitfs_root
         except KeyError:
             return ret
-    for blob in tree.traverse():
+    for blob in tree.traverse():  # pylint: disable=E1103
         if not isinstance(blob, git.Blob):
             continue
         if gitfs_root:
@@ -1228,7 +1228,7 @@ def _file_list_emptydirs_gitpython(repo, tgt, gitfs_root):
             tree = tree / gitfs_root
         except KeyError:
             return ret
-    for blob in tree.traverse():
+    for blob in tree.traverse():  # pylint: disable=E1103
         if not isinstance(blob, git.Tree):
             continue
         if not blob.blobs:
@@ -1368,7 +1368,7 @@ def _dir_list_gitpython(repo, tgt, gitfs_root):
             tree = tree / gitfs_root
         except KeyError:
             return ret
-    for blob in tree.traverse():
+    for blob in tree.traverse():  # pylint: disable=E1103
         if not isinstance(blob, git.Tree):
             continue
         if gitfs_root:
