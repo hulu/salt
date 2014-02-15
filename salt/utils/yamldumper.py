@@ -14,7 +14,7 @@ except ImportError:
 from salt.utils.odict import OrderedDict
 
 
-class OrderedDumper(Dumper):
+class OrderedDumper(Dumper):  # pylint: disable=W0232
     '''
     A YAML dumper that represents python OrderedDict as simple YAML map.
     '''
@@ -24,4 +24,4 @@ class OrderedDumper(Dumper):
 def represent_ordereddict(dumper, data):
     return dumper.represent_dict(data.items())
 
-OrderedDumper.add_representer(OrderedDict, represent_ordereddict)
+OrderedDumper.add_representer(OrderedDict, represent_ordereddict)  # pylint: disable=E1101
