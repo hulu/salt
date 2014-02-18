@@ -106,7 +106,7 @@ class StateRequisite(object):
     def __enter__(self):
         self.registry.push_requisite(self)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback):  # pylint: disable=W0622
         self.registry.pop_requisite()
 
 
@@ -224,5 +224,5 @@ class State(object):
     def __enter__(self):
         self.registry.push_requisite(self.requisite)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback):  # pylint: disable=W0622
         self.registry.pop_requisite()
