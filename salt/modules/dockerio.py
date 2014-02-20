@@ -204,7 +204,7 @@ def _sizeof_fmt(num):
 
 
 def _set_status(m,
-                id=NOTSET,
+                id=NOTSET,  # pylint: disable=W0622
                 comment=INVALID_RESPONSE,
                 status=False,
                 out=None):
@@ -219,14 +219,14 @@ def _set_status(m,
     return m
 
 
-def invalid(m, id=NOTSET, comment=INVALID_RESPONSE, out=None):
+def invalid(m, id=NOTSET, comment=INVALID_RESPONSE, out=None):  # pylint: disable=W0622
     '''
     Return invalid status
     '''
     return _set_status(m, status=False, id=id, comment=comment, out=out)
 
 
-def valid(m, id=NOTSET, comment=VALID_RESPONSE, out=None):
+def valid(m, id=NOTSET, comment=VALID_RESPONSE, out=None):  # pylint: disable=W0622
     '''
     Return valid status
     '''
