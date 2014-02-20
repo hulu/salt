@@ -380,20 +380,18 @@ class MinionBase(object):
 
         # Create the pull socket
         self.epull_sock = self.context.socket(zmq.PULL)
-        # Bind the event sockets
-        self.epub_sock.bind(epub_uri)
-        self.epull_sock.bind(epull_uri)
 
-        # Restrict access to the sockets
+        # Securely bind the event sockets
         if self.opts.get('ipc_mode', '') != 'tcp':
-            os.chmod(
-                epub_sock_path,
-                448
-            )
-            os.chmod(
-                epull_sock_path,
-                448
-            )
+            old_umask = os.umask(0177)
+        try:
+            log.info('Starting pub socket on {0}'.format(epub_uri))
+            self.epub_sock.bind(epub_uri)
+            log.info('Starting pull socket on {0}'.format(epull_uri))
+            self.epull_sock.bind(epull_uri)
+        finally:
+            if self.opts.get('ipc_mode', '') != 'tcp':
+                os.umask(old_umask)
 
     @staticmethod
     def process_schedule(minion, loop_interval):
@@ -801,7 +799,8 @@ class Minion(MinionBase):
             )
         else:
             process = threading.Thread(
-                target=target, args=(instance, self.opts, data)
+                target=target, args=(instance, self.opts, data),
+                name=data['jid']
             )
         process.start()
 
@@ -815,13 +814,13 @@ class Minion(MinionBase):
         # multiprocessing communication.
         if not minion_instance:
             minion_instance = cls(opts)
+        fn_ = os.path.join(minion_instance.proc_dir, data['jid'])
         if opts['multiprocessing']:
-            fn_ = os.path.join(minion_instance.proc_dir, data['jid'])
             salt.utils.daemonize_if(opts)
-            sdata = {'pid': os.getpid()}
-            sdata.update(data)
-            with salt.utils.fopen(fn_, 'w+b') as fp_:
-                fp_.write(minion_instance.serial.dumps(sdata))
+        sdata = {'pid': os.getpid()}
+        sdata.update(data)
+        with salt.utils.fopen(fn_, 'w+b') as fp_:
+            fp_.write(minion_instance.serial.dumps(sdata))
         ret = {'success': False}
         function_name = data['fun']
         if function_name in minion_instance.functions:
