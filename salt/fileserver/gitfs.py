@@ -629,7 +629,7 @@ def _init_pygit2(rp_, repo_uri, ssl_verify):
     if not repo.remotes:
         try:
             repo.create_remote('origin', repo_uri)
-            repo.config.set_multivar('http.sslVerify', '', ssl_verify)
+            repo.config.set_multivar('http.sslVerify', '', ssl_verify)  # pylint: disable=E1103
         except os.error:
             # This exception occurs when two processes are trying to write to
             # the git config at once, go ahead and pass over it since this is
