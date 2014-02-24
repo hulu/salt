@@ -22,7 +22,7 @@ class OrderedDumper(Dumper):  # pylint: disable=W0232
     '''
 
 
-class SafeOrderedDumper(SafeDumper):
+class SafeOrderedDumper(SafeDumper):  # pylint: disable=W0232
     '''
     A YAML safe dumper that represents python OrderedDict as simple YAML map.
     '''
@@ -33,4 +33,4 @@ def represent_ordereddict(dumper, data):
 
 
 OrderedDumper.add_representer(OrderedDict, represent_ordereddict)  # pylint: disable=E1101
-SafeOrderedDumper.add_representer(OrderedDict, represent_ordereddict)
+SafeOrderedDumper.add_representer(OrderedDict, represent_ordereddict)  # pylint: disable=E1101
