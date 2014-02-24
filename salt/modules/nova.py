@@ -684,7 +684,7 @@ def image_list(name=None, profile=None):
     return ret
 
 
-def image_meta_set(id=None,
+def image_meta_set(id=None,  # pylint: disable=W0622
                    name=None,
                    profile=None,
                    **kwargs):  # pylint: disable=C0103
