@@ -11,20 +11,23 @@ Installation
 Quick Install
 -------------
 
-Many popular distributions will be able to install the salt minion by executing
-the bootstrap script:
+On most distributions, you can set up a **Salt Minion** with the bootstrap script:
 
 .. code-block:: bash
 
-    wget -O - http://bootstrap.saltstack.org | sudo sh
+    curl -L http://bootstrap.saltstack.org | sudo sh
 
-Run the following script to install just the Salt Master:
+or, to connect immediately to a running Salt Master: 
+
+.. code-block:: bash
+
+    curl -L http://bootstrap.saltstack.org | sudo sh -s -- -A saltmaster.example.com
+
+To set up a **Salt Master**:
 
 .. code-block:: bash
 
     curl -L http://bootstrap.saltstack.org | sudo sh -s -- -M -N
-
-The script should also make it simple to install a salt master, if desired.
 
 Currently the install script has been tested to work on:
 
@@ -75,7 +78,7 @@ Salt should run on any Unix-like platform so long as the dependencies are met.
 * `YAML`_ - Python YAML bindings
 * `Jinja2`_ - parsing Salt States (configurable in the master settings)
 * `MarkupSafe`_ - Implements a XML/HTML/XHTML Markup safe string for Python
-* `apache-libcloud` - Python lib for interacting with many of the popular cloud service providers using a unified API
+* `apache-libcloud`_ - Python lib for interacting with many of the popular cloud service providers using a unified API
 
 Optional Dependencies
 ---------------------
@@ -85,11 +88,11 @@ Optional Dependencies
 * gcc - dynamic `Cython`_ module compiling
 
 .. _`Python 2.6`: http://python.org/download/
-.. _`ZeroMQ`: http://www.zeromq.org/
+.. _`ZeroMQ`: http://zeromq.org/
 .. _`pyzmq`: https://github.com/zeromq/pyzmq
-.. _`PyCrypto`: http://www.dlitz.net/software/pycrypto/
+.. _`msgpack-python`:  https://pypi.python.org/pypi/msgpack-python/0.1.12
+.. _`PyCrypto`: https://www.dlitz.net/software/pycrypto/
 .. _`M2Crypto`: http://chandlerproject.org/Projects/MeTooCrypto
-.. _`msgpack-python`:  http://pypi.python.org/pypi/msgpack-python
 .. _`YAML`: http://pyyaml.org/
 .. _`Jinja2`: http://jinja.pocoo.org/
 .. _`MarkupSafe`: https://pypi.python.org/pypi/MarkupSafe
