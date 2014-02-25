@@ -430,7 +430,7 @@ def logs(container, *args, **kwargs):
 
 def commit(container,
            repository=None,
-           tag=None,
+           tag=None,  # pylint: disable=W0621
            message=None,
            author=None,
            conf=None,
@@ -1227,7 +1227,7 @@ def _create_image_assemble_error_status(status, ret, logs, *args, **kwargs):
     return status
 
 
-def import_image(src, repo, tag=None, *args, **kwargs):
+def import_image(src, repo, tag=None, *args, **kwargs):  # pylint: disable=W0621
     '''
     Import content from a local tarball or a URL to a docker image
 
@@ -1266,7 +1266,7 @@ def import_image(src, repo, tag=None, *args, **kwargs):
     return status
 
 
-def tag(image, repository, tag=None, force=False, *args, **kwargs):
+def tag(image, repository, tag=None, force=False, *args, **kwargs):  # pylint: disable=W0621
     '''
     Tag an image into a repository
 
@@ -1367,7 +1367,7 @@ def get_images(name=None,
 
 
 def build(path=None,
-          tag=None,
+          tag=None,  # pylint: disable=W0621
           quiet=False,
           fileobj=None,
           nocache=False,
@@ -1567,7 +1567,7 @@ def _pull_assemble_error_status(status, ret, logs):
     return status
 
 
-def pull(repo, tag=None, *args, **kwargs):
+def pull(repo, tag=None, *args, **kwargs):  # pylint: disable=W0621
     '''
     Pulls an image from any registry. See above documentation for
     how to configure authenticated access.
