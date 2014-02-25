@@ -12,7 +12,7 @@ in a large infrastructure managed by salt.
 import salt.client
 
 
-def hash(*args, **kwargs):
+def hash(*args, **kwargs):  # pylint: disable=W0622
     '''
     Return the aggregated and sorted results from a salt command submitted by a
     salt runner...
