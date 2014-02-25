@@ -233,7 +233,7 @@ def valid(m, id=NOTSET, comment=VALID_RESPONSE, out=None):  # pylint: disable=W0
     return _set_status(m, status=True, id=id, comment=comment, out=out)
 
 
-def _get_client(version=None, timeout=None):
+def _get_client(version=None, timeout=None):  # pylint: disable=W0621
     '''
     Get a connection to a docker API (socket or URL)
     based on config.get mechanism (pillar -> grains)
