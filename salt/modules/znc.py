@@ -45,7 +45,7 @@ def _makepass(password, hasher='sha256'):
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
         "0123456789!?.,:;/*-+_()"
     r = {
-        'Method': h.name,
+        'Method': h.name,  # pylint: disable=E1103
         'Salt': ''.join(random.choice(c) for x in xrange(20)),
     }
 
