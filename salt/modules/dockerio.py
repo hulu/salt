@@ -1184,7 +1184,7 @@ def search(term, *args, **kwargs):
     return status
 
 
-def _create_image_assemble_error_status(status, ret, logs, *args, **kwargs):
+def _create_image_assemble_error_status(status, ret, logs, *args, **kwargs):  # pylint: disable=W0621
     '''
     Given input in this form::
 
@@ -1529,7 +1529,7 @@ def _parse_image_multilogs_string(ret, repo):
     return logs, infos
 
 
-def _pull_assemble_error_status(status, ret, logs):
+def _pull_assemble_error_status(status, ret, logs):  # pylint: disable=W0621
     '''
     Given input in this form::
 
@@ -1650,7 +1650,7 @@ def pull(repo, tag=None, *args, **kwargs):  # pylint: disable=W0621
     return status
 
 
-def _push_assemble_error_status(status, ret, logs):
+def _push_assemble_error_status(status, ret, logs):  # pylint: disable=W0621
     '''
     Given input in this form::
 
