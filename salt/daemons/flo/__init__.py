@@ -1,6 +1,20 @@
 # -*- coding: utf-8 -*-
 '''
-ioflo behaviors for master and minion
+Package for ioflo and raet based daemons and associated ioflo behaviors
+
+To use set
+opts['transport'] ='raet'
+master minion config
+transport: raet
+
+See salt.config.py for relevant defaults
+
+opts['raet_port']
+opts['master_floscript']
+opts['minion_floscript']
+opts['ioflo_period']
+opts['ioflo_realtime']
+opts['ioflo_verbose']
 '''
 
 # Import modules
@@ -11,6 +25,18 @@ __all__ = ['master', 'minion']
 
 # Import ioflo libs
 import ioflo.app.run
+
+
+def explode_opts(opts):
+    '''
+    Explode the opts into a metadata object
+    '''
+    metadata = []
+    metadata = [('opts', '.salt.opts', dict(value=opts))]
+    for key, val in opts.items():
+        ukey = key.replace('.', '_')
+        metadata.append((ukey, '.salt.etc.{0}'.format(ukey), dict(value=val)))
+    return metadata
 
 
 class IofloMaster(object):
@@ -26,17 +52,25 @@ class IofloMaster(object):
     def start(self):
         '''
         Start up ioflo
-        '''
-        behaviors = []
-        behaviors.append('salt.transport.road.raet', 'salt.daemons.flo', )
 
-        ioflo.app.run.run(
+        port = self.opts['raet_port']
+        '''
+        behaviors = ['salt.transport.road.raet', 'salt.daemons.flo']
+        metadata = explode_opts(self.opts)
+        ioflo.app.run.start(
                 name='master',
-                filename=self.opts['master_floscript'],
                 period=float(self.opts['ioflo_period']),
+                stamp=0.0,
+                real=self.opts['ioflo_realtime'],
+                filepath=self.opts['master_floscript'],
+                behaviors=behaviors,
+                username="",
+                password="",
+                mode=None,
+                houses=None,
+                metadata=metadata,
                 verbose=int(self.opts['ioflo_verbose']),
-                realtime=self.opts['ioflo_realtime'],
-                behaviors=behaviors,)
+                )
 
 
 class IofloMinion(object):
@@ -49,17 +83,26 @@ class IofloMinion(object):
         '''
         self.opts = opts
 
-    def start(self):
+    def tune_in(self):
         '''
         Start up ioflo
-        '''
-        behaviors = []
-        behaviors.append('salt.transport.road.raet', 'salt.daemons.flo', )
 
-        ioflo.app.run.run(
-                name='minion',
-                filename=self.opts['minion_floscript'],
+        port = self.opts['raet_port']
+        '''
+        behaviors = ['salt.transport.road.raet', 'salt.daemons.flo']
+        metadata = explode_opts(self.opts)
+
+        ioflo.app.run.start(
+                name=self.opts['id'],
                 period=float(self.opts['ioflo_period']),
+                stamp=0.0,
+                real=self.opts['ioflo_realtime'],
+                filepath=self.opts['minion_floscript'],
+                behaviors=behaviors,
+                username="",
+                password="",
+                mode=None,
+                houses=None,
+                metadata=metadata,
                 verbose=int(self.opts['ioflo_verbose']),
-                realtime=self.opts['ioflo_realtime'],
-                behaviors=behaviors,)
+                )

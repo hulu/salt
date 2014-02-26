@@ -71,6 +71,9 @@ class Master(parsers.MasterOptionParser):
                         os.path.join(self.config['pki_dir'], 'minions'),
                         os.path.join(self.config['pki_dir'], 'minions_pre'),
                         os.path.join(self.config['pki_dir'], 'minions_denied'),
+                        os.path.join(self.config['pki_dir'], 'accepted'),
+                        os.path.join(self.config['pki_dir'], 'pending'),
+                        os.path.join(self.config['pki_dir'], 'rejected'),
                         os.path.join(self.config['pki_dir'],
                                      'minions_rejected'),
                         self.config['cachedir'],
@@ -109,7 +112,7 @@ class Master(parsers.MasterOptionParser):
         else:
             # Add a udp port check here
             import salt.daemons.flo
-            self.master = salt.daemons.flo.IoFloMaster(self.config)
+            self.master = salt.daemons.flo.IofloMaster(self.config)
         self.daemonize_if_required()
         self.set_pidfile()
 
@@ -216,7 +219,7 @@ class Minion(parsers.MinionOptionParser):
                 self.minion = salt.minion.Minion(self.config)
         else:
             import salt.daemons.flo
-            self.minion = salt.daemons.flo.IoFloMinion(self.config)
+            self.minion = salt.daemons.flo.IofloMinion(self.config)
 
     def start(self):
         '''

@@ -42,9 +42,9 @@ _DFLT_LOG_FMT_LOGFILE = (
     '%(asctime)s,%(msecs)03.0f [%(name)-17s][%(levelname)-8s] %(message)s'
 )
 
-FLOW_DIR = os.path.join(
+FLO_DIR = os.path.join(
         os.path.dirname(__file__),
-        'daemons', 'ioflo')
+        'daemons', 'flo')
 
 VALID_OPTS = {
     'master': str,
@@ -137,6 +137,8 @@ VALID_OPTS = {
     'gitfs_mountpoint': str,
     'gitfs_root': str,
     'gitfs_base': str,
+    'gitfs_env_whitelist': list,
+    'gitfs_env_blacklist': list,
     'hgfs_remotes': list,
     'hgfs_mountpoint': str,
     'hgfs_root': str,
@@ -253,6 +255,7 @@ DEFAULT_MINION_OPTS = {
     'providers': {},
     'clean_dynamic_modules': True,
     'open_mode': False,
+    'auto_accept': True,
     'multiprocessing': True,
     'mine_interval': 60,
     'ipc_mode': 'ipc',
@@ -303,7 +306,7 @@ DEFAULT_MINION_OPTS = {
     'transport': 'zeromq',
     'auth_timeout': 3,
     'random_master': False,
-    'minion_floscript': os.path.join(FLOW_DIR, 'minion.flo'),
+    'minion_floscript': os.path.join(FLO_DIR, 'minion.flo'),
     'ioflo_verbose': 3,
     'ioflo_period': 0.01,
     'ioflo_realtime': True,
@@ -337,6 +340,8 @@ DEFAULT_MASTER_OPTS = {
     'gitfs_mountpoint': '',
     'gitfs_root': '',
     'gitfs_base': 'master',
+    'gitfs_env_whitelist': [],
+    'gitfs_env_blacklist': [],
     'hgfs_remotes': [],
     'hgfs_mountpoint': '',
     'hgfs_root': '',
@@ -433,11 +438,11 @@ DEFAULT_MASTER_OPTS = {
     'ssh_sudo': False,
     'ssh_timeout': 60,
     'ssh_user': 'root',
-    'master_floscript': os.path.join(FLOW_DIR, 'master.flo'),
+    'master_floscript': os.path.join(FLO_DIR, 'master.flo'),
     'ioflo_verbose': 3,
     'ioflo_period': 0.01,
     'ioflo_realtime': True,
-    'raet_port': 4505,
+    'raet_port': 4506,
 }
 
 # ----- Salt Cloud Configuration Defaults ----------------------------------->
