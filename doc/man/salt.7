@@ -1,6 +1,6 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "SALT" "7" "February 19, 2014" "2014.1.0" "Salt"
+.TH "SALT" "7" "February 27, 2014" "2014.1.0-16-g65a1f51" "Salt"
 .SH NAME
 salt \- Salt Documentation
 .
@@ -25191,13 +25191,13 @@ _
 T{
 \fBlogstash_mod\fP
 T}	T{
-Logstash Logging Handler
+Logstash Logging Handler ========================  ..
 T}
 _
 T{
 \fBsentry_mod\fP
 T}	T{
-Sentry Logging Handler
+Sentry Logging Handler ======================  ..
 T}
 _
 .TE
@@ -26093,7 +26093,7 @@ _
 T{
 \fBalternatives\fP
 T}	T{
-Support for Alternatives system
+Support for Alternatives system  :codeauthor: Radek Rada <\fI\%radek.rada@gmail.com\fP> :copyright: © 2012 by the SaltStack Team, see AUTHORS for more details.
 T}
 _
 T{
@@ -26117,13 +26117,13 @@ _
 T{
 \fBat\fP
 T}	T{
-Wrapper module for at(1)
+Wrapper module for at(1)  Also, a \(aqtag\(aq feature has been added to more easily tag jobs.
 T}
 _
 T{
 \fBaugeas_cfg\fP
 T}	T{
-Manages configuration files via augeas
+Manages configuration files via augeas  This module requires the \fBaugeas\fP Python module.
 T}
 _
 T{
@@ -26165,7 +26165,7 @@ _
 T{
 \fBchocolatey\fP
 T}	T{
-A dead simple module wrapping calls to the Chocolatey package manager
+A dead simple module wrapping calls to the Chocolatey package manager (\fI\%http://chocolatey.org\fP)  ..
 T}
 _
 T{
@@ -26291,7 +26291,7 @@ _
 T{
 \fBebuild\fP
 T}	T{
-Support for Portage
+Support for Portage  :optdepends:    \- portage Python adapter  For now all package names \fIMUST\fP include the package category, i.e.
 T}
 _
 T{
@@ -26309,7 +26309,7 @@ _
 T{
 \fBevent\fP
 T}	T{
-Use the \fBSalt Event System\fP to fire events from the
+Use the \fBSalt Event System\fP to fire events from the master to the minion and vice\-versa.
 T}
 _
 T{
@@ -26351,7 +26351,7 @@ _
 T{
 \fBfreebsdports\fP
 T}	T{
-Install software from the FreeBSD \fBports(7)\fP system
+Install software from the FreeBSD \fBports(7)\fP system  ..
 T}
 _
 T{
@@ -26435,7 +26435,7 @@ _
 T{
 \fBhtpasswd\fP
 T}	T{
-Support for htpasswd command
+Support for htpasswd command  The functions here will load inside the webutil module.
 T}
 _
 T{
@@ -26489,7 +26489,7 @@ _
 T{
 \fBldapmod\fP
 T}	T{
-Salt interface to LDAP commands
+Salt interface to LDAP commands  :depends:   \- ldap Python module :configuration: In order to connect to LDAP, certain configuration is required     in the minion config on the LDAP server.
 T}
 _
 T{
@@ -26573,7 +26573,7 @@ _
 T{
 \fBmemcached\fP
 T}	T{
-Module for Management of Memcached Keys
+Module for Management of Memcached Keys =======================================  ..
 T}
 _
 T{
@@ -26585,13 +26585,13 @@ _
 T{
 \fBmodjk\fP
 T}	T{
-Control Modjk via the Apache Tomcat "Status" worker
+Control Modjk via the Apache Tomcat "Status" worker (\fI\%http://tomcat.apache.org/connectors\-doc/reference/status.html\fP)  Below is an example of the configuration needed for this module.
 T}
 _
 T{
 \fBmongodb\fP
 T}	T{
-Module to provide MongoDB functionality to Salt
+Module to provide MongoDB functionality to Salt  :configuration: This module uses PyMongo, and accepts configuration details as     parameters as well as configuration settings::          mongodb.host: \(aqlocalhost\(aq         mongodb.port: 27017         mongodb.user: \(aq\(aq         mongodb.password: \(aq\(aq      This data can also be passed into pillar.
 T}
 _
 T{
@@ -26705,7 +26705,7 @@ _
 T{
 \fBpagerduty\fP
 T}	T{
-Module for Firing Events via PagerDuty
+Module for Firing Events via PagerDuty  ..
 T}
 _
 T{
@@ -26753,7 +26753,7 @@ _
 T{
 \fBpkgng\fP
 T}	T{
-Support for \fBpkgng\fP, the new package manager for FreeBSD
+Support for \fBpkgng\fP, the new package manager for FreeBSD  ..
 T}
 _
 T{
@@ -26825,7 +26825,7 @@ _
 T{
 \fBqemu_nbd\fP
 T}	T{
-Qemu Command Wrapper
+Qemu Command Wrapper ====================  The qemu system comes with powerful tools, such as qemu\-img and qemu\-nbd which are used here to build up kvm images.
 T}
 _
 T{
@@ -26897,7 +26897,7 @@ _
 T{
 \fBs3\fP
 T}	T{
-Connection module for Amazon S3
+Connection module for Amazon S3  :configuration: This module is not usable until the following are specified     either in a pillar or in the minion\(aqs config file::          s3.keyid: GKTADJGHEIQSXMKKRBJ08H         s3.key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs      A service_url may also be specified in the configuration::          s3.service_url: s3.amazonaws.com      If a service_url is not specified, the default is s3.amazonaws.com.
 T}
 _
 T{
@@ -26909,7 +26909,7 @@ _
 T{
 \fBsaltutil\fP
 T}	T{
-The Saltutil module is used to manage the state of the salt minion itself. It is used to manage minion modules as well as automate updates to the salt minion.
+The Saltutil module is used to manage the state of the salt minion itself.
 T}
 _
 T{
@@ -26951,7 +26951,7 @@ _
 T{
 \fBsmf\fP
 T}	T{
-Service support for Solaris 10 and 11, should work with other systems
+Service support for Solaris 10 and 11, should work with other systems that use SMF also.
 T}
 _
 T{
@@ -26981,7 +26981,7 @@ _
 T{
 \fBsolr\fP
 T}	T{
-Apache Solr Salt Module
+Apache Solr Salt Module =======================  Author: Jed Glazner Version: 0.2.1 Modified: 12/09/2011  This module uses HTTP requests to talk to the apache solr request handlers to gather information and report errors.
 T}
 _
 T{
@@ -27023,7 +27023,7 @@ _
 T{
 \fBsysbench\fP
 T}	T{
-The \(aqsysbench\(aq module is used to analyse the
+The \(aqsysbench\(aq module is used to analyse the performance of the minions, right from the master! It measures various system parameters such as CPU, Memory, FileI/O, Threads and Mutex.
 T}
 _
 T{
@@ -27065,7 +27065,7 @@ _
 T{
 \fBtomcat\fP
 T}	T{
-Support for Tomcat
+Support for Tomcat  This module uses the manager webapp to manage Apache tomcat webapps If the manager webapp is not configured some of the functions won\(aqt work  The following grains/pillar should be set::      tomcat\-manager.user: admin user name     tomcat\-manager.passwd: password  and also configure a user in the conf/tomcat\-users.xml file::      <?xml version=\(aq1.0\(aq encoding=\(aqutf\-8\(aq?>     <tomcat\-users>         <role rolename="manager\-script"/>         <user username="tomcat" password="tomcat" roles="manager\-script"/>     </tomcat\-users>  Notes:  \- More information about tomcat manager:   \fI\%http://tomcat.apache.org/tomcat\-7.0\-doc/manager\-howto.html\fP \- if you use only this module for deployments you\(aqve might want to strict   access to the manager only from localhost for more info:   \fI\%http://tomcat.apache.org/tomcat\-7.0\-doc/manager\-howto.html#Configuring_Manager_Application_Access\fP \- Tested on:    JVM Vendor:       Sun Microsystems Inc.
 T}
 _
 T{
@@ -27143,7 +27143,7 @@ _
 T{
 \fBwin_ntp\fP
 T}	T{
-Management of NTP servers on Windows
+Management of NTP servers on Windows  ..
 T}
 _
 T{
@@ -27161,7 +27161,7 @@ _
 T{
 \fBwin_repo\fP
 T}	T{
-Module to manage Windows software repo on a Standalone Minion
+Module to manage Windows software repo on a Standalone Minion  The following options must be set in the Minion config:   file_client: local   win_repo_cachefile: c:saltfile_rootswinrepowinrepo.p   win_repo: c:saltfile_rootswinrepo  Place all Windows package files in the \(aqwin_repo\(aq directory.
 T}
 _
 T{
@@ -27215,7 +27215,7 @@ _
 T{
 \fBxmpp\fP
 T}	T{
-Module for Sending Messages via XMPP (a.k.a. Jabber)
+Module for Sending Messages via XMPP (a.k.a.
 T}
 _
 T{
@@ -27227,7 +27227,11 @@ _
 T{
 \fBzcbuildout\fP
 T}	T{
-Management of zc.buildout
+Management of zc.buildout =========================  This module is inspired from 
+.nf
+\(gaminitage\(aqs buildout maker\(ga__
+.fi
+  ..
 T}
 _
 T{
@@ -27452,7 +27456,7 @@ salt \(aq*\(aq alternatives.remove name path
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.alternatives.set(name, path)
+.B salt.modules.alternatives.set_(name, path)
 Manually set the alternative <path> for <name>.
 .sp
 CLI Example:
@@ -28649,7 +28653,7 @@ salt \(aq*\(aq archive.unzip template=jinja /tmp/zipfile.zip /tmp/{{grains.id}}/
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.archive.zip(zipfile, sources, template=None)
+.B salt.modules.archive.zip_(zipfile, sources, template=None)
 Uses the zip command to create zip files
 .sp
 CLI Example:
@@ -29064,7 +29068,7 @@ pybluez >= 0.18
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.bluez.address()
+.B salt.modules.bluez.address_()
 Get the many addresses of the Bluetooth adapter
 .sp
 CLI Example:
@@ -29649,7 +29653,7 @@ salt \(aq*\(aq bridge.interfaces br0
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.bridge.list()
+.B salt.modules.bridge.list_()
 Returns the machine\(aqs bridges list
 .sp
 CLI Example:
@@ -30196,7 +30200,7 @@ salt \(aq*\(aq chocolatey.install_windowsfeatures <package name>
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.chocolatey.list(filter, all_versions=False, pre_versions=False, source=None)
+.B salt.modules.chocolatey.list_(filter, all_versions=False, pre_versions=False, source=None)
 Instructs Chocolatey to pull a vague package list from the repository.
 .INDENT 7.0
 .TP
@@ -30481,7 +30485,7 @@ salt \(aq*\(aq cloud.list_sizes my\-gce\-config
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.cloud.profile(profile, names, **kwargs)
+.B salt.modules.cloud.profile_(profile, names, **kwargs)
 Spin up an instance using Salt Cloud
 .sp
 CLI Example:
@@ -30576,7 +30580,7 @@ salt \(aq*\(aq cmd.has_exec cat
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.cmdmod.retcode(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, python_shell=True, env=(), clean_env=False, template=None, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
+.B salt.modules.cmdmod.retcode(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, python_shell=True, env=(), clean_env=False, template=None, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
 Execute a shell command and return the command\(aqs return code.
 .sp
 Note that \fBenv\fP represents the environment variables for the command, and
@@ -30624,7 +30628,7 @@ salt \(aq*\(aq cmd.retcode "grep f" stdin=\(aqone\entwo\enthree\enfour\enfive\en
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.cmdmod.run(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, python_shell=True, env=(), clean_env=False, template=None, rstrip=True, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
+.B salt.modules.cmdmod.run(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, python_shell=True, env=(), clean_env=False, template=None, rstrip=True, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
 Execute the passed command and return the output as a string
 .sp
 Note that \fBenv\fP represents the environment variables for the command, and
@@ -30684,7 +30688,7 @@ salt \(aq*\(aq cmd.run "grep f" stdin=\(aqone\entwo\enthree\enfour\enfive\en\(aq
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.cmdmod.run_all(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, python_shell=True, env=(), clean_env=False, template=None, rstrip=True, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
+.B salt.modules.cmdmod.run_all(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, python_shell=True, env=(), clean_env=False, template=None, rstrip=True, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
 Execute the passed command and return a dict of return data
 .sp
 Note that \fBenv\fP represents the environment variables for the command, and
@@ -30732,7 +30736,7 @@ salt \(aq*\(aq cmd.run_all "grep f" stdin=\(aqone\entwo\enthree\enfour\enfive\en
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.cmdmod.run_stderr(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, python_shell=True, env=(), clean_env=False, template=None, rstrip=True, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
+.B salt.modules.cmdmod.run_stderr(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, python_shell=True, env=(), clean_env=False, template=None, rstrip=True, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
 Execute a command and only return the standard error
 .sp
 Note that \fBenv\fP represents the environment variables for the command, and
@@ -30780,7 +30784,7 @@ salt \(aq*\(aq cmd.run_stderr "grep f" stdin=\(aqone\entwo\enthree\enfour\enfive
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.cmdmod.run_stdout(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, python_shell=True, env=(), clean_env=False, template=None, rstrip=True, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
+.B salt.modules.cmdmod.run_stdout(cmd, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, python_shell=True, env=(), clean_env=False, template=None, rstrip=True, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, saltenv=\(aqbase\(aq, **kwargs)
 Execute a command, and only return the standard out
 .sp
 Note that \fBenv\fP represents the environment variables for the command, and
@@ -30828,7 +30832,7 @@ salt \(aq*\(aq cmd.run_stdout "grep f" stdin=\(aqone\entwo\enthree\enfour\enfive
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.cmdmod.script(source, args=None, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, python_shell=True, env=(), template=\(aqjinja\(aq, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, __env__=None, saltenv=\(aqbase\(aq, **kwargs)
+.B salt.modules.cmdmod.script(source, args=None, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, python_shell=True, env=(), template=\(aqjinja\(aq, umask=None, output_loglevel=\(aqinfo\(aq, quiet=False, timeout=None, reset_system_locale=True, __env__=None, saltenv=\(aqbase\(aq, **kwargs)
 Download a script from a remote location and execute the script locally.
 The script can be located on the salt master file server or on an HTTP/FTP
 server.
@@ -30869,7 +30873,7 @@ salt \(aq*\(aq cmd.script salt://scripts/runme.sh stdin=\(aqone\entwo\enthree\en
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.cmdmod.script_retcode(source, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, python_shell=True, env=(), template=\(aqjinja\(aq, umask=None, timeout=None, reset_system_locale=True, __env__=None, saltenv=\(aqbase\(aq, **kwargs)
+.B salt.modules.cmdmod.script_retcode(source, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, python_shell=True, env=(), template=\(aqjinja\(aq, umask=None, timeout=None, reset_system_locale=True, __env__=None, saltenv=\(aqbase\(aq, **kwargs)
 Download a script from a remote location and execute the script locally.
 The script can be located on the salt master file server or on an HTTP/FTP
 server.
@@ -31837,7 +31841,7 @@ salt \(aq*\(aq daemontools.missing foo
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.daemontools.reload(name)
+.B salt.modules.daemontools.reload_(name)
 Wrapper for term()
 .sp
 CLI Example:
@@ -32279,7 +32283,7 @@ salt \(aq*\(aq debconf.get_selections
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.debconfmod.set(package, question, type, value, *extra)
+.B salt.modules.debconfmod.set_(package, question, type, value, *extra)
 Set answers to debconf questions for a package.
 .sp
 CLI Example:
@@ -32709,7 +32713,7 @@ salt \(aq*\(aq service.missing sshd
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.debian_service.reload(name)
+.B salt.modules.debian_service.reload_(name)
 Reload the named service
 .sp
 CLI Example:
@@ -33965,7 +33969,7 @@ salt \(aq*\(aq docker.inspect_image <image>
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.dockerio.invalid(m, id=<object object at 0x1f76bf0>, comment=\(aqWe did not get any expectable answer from docker\(aq, out=None)
+.B salt.modules.dockerio.invalid(m, id=<object object at 0x2564b70>, comment=\(aqWe did not get any expectable answer from docker\(aq, out=None)
 Return invalid status
 .UNINDENT
 .INDENT 0.0
@@ -34515,7 +34519,7 @@ salt \(aq*\(aq docker.run_stdout <container id> \(aqls \-l /etc\(aq
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.dockerio.script(container, source, args=None, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, env=None, template=\(aqjinja\(aq, umask=None, timeout=None, reset_system_locale=True, no_clean=False, saltenv=\(aqbase\(aq, *nargs, **kwargs)
+.B salt.modules.dockerio.script(container, source, args=None, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, env=None, template=\(aqjinja\(aq, umask=None, timeout=None, reset_system_locale=True, no_clean=False, saltenv=\(aqbase\(aq, *nargs, **kwargs)
 Same usage as cmd.script but running inside a container context
 .INDENT 7.0
 .TP
@@ -34545,7 +34549,7 @@ salt \(aq*\(aq docker.script <container id> salt://docker_script.py
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.dockerio.script_retcode(container, source, cwd=None, stdin=None, runas=None, shell=\(aq/bin/zsh\(aq, env=None, template=\(aqjinja\(aq, umask=None, timeout=None, reset_system_locale=True, no_clean=False, saltenv=\(aqbase\(aq, *args, **kwargs)
+.B salt.modules.dockerio.script_retcode(container, source, cwd=None, stdin=None, runas=None, shell=\(aq/bin/sh\(aq, env=None, template=\(aqjinja\(aq, umask=None, timeout=None, reset_system_locale=True, no_clean=False, saltenv=\(aqbase\(aq, *args, **kwargs)
 Same usage as cmd.script_retcode but running inside a container context
 .INDENT 7.0
 .TP
@@ -34745,7 +34749,7 @@ salt \(aq*\(aq docker.top <container id>
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.dockerio.valid(m, id=<object object at 0x1f76bf0>, comment=\(aq\(aq, out=None)
+.B salt.modules.dockerio.valid(m, id=<object object at 0x2564b70>, comment=\(aq\(aq, out=None)
 Return valid status
 .UNINDENT
 .INDENT 0.0
@@ -38863,7 +38867,7 @@ salt \(aq*\(aq service.missing sshd
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.freebsdservice.reload(name)
+.B salt.modules.freebsdservice.reload_(name)
 Restart the named service
 .sp
 CLI Example:
@@ -38999,7 +39003,7 @@ salt \(aq*\(aq gem.install vagrant
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.gem.list(prefix=\(aq\(aq, ruby=None, runas=None)
+.B salt.modules.gem.list_(prefix=\(aq\(aq, ruby=None, runas=None)
 List locally installed gems.
 .INDENT 7.0
 .TP
@@ -40773,7 +40777,7 @@ salt \(aq*\(aq gnome.setIdleDelay <seconds> user=<username>
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.gnomedesktop.set(schema=None, key=None, user=None, value=None, **kwargs)
+.B salt.modules.gnomedesktop.set_(schema=None, key=None, user=None, value=None, **kwargs)
 Set key in a particular GNOME schema
 .sp
 CLI Example:
@@ -43928,7 +43932,7 @@ salt \(aq*\(aq locate.version
 Module for managing logrotate.
 .INDENT 0.0
 .TP
-.B salt.modules.logrotate.set(key, value, setting=None, conf_file=\(aq/etc/logrotate.conf\(aq)
+.B salt.modules.logrotate.set_(key, value, setting=None, conf_file=\(aq/etc/logrotate.conf\(aq)
 Set a new value for a specific configuration line
 .sp
 CLI Example:
@@ -44242,7 +44246,7 @@ salt \(aq*\(aq lvs.get_rules
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.lvs.list(protocol=None, service_address=None)
+.B salt.modules.lvs.list_(protocol=None, service_address=None)
 List the virtual server table if service_address is not specified. If a service_address is selected, list this service only.
 .sp
 CLI Example:
@@ -44465,7 +44469,7 @@ container.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.lxc.list()
+.B salt.modules.lxc.list_()
 List defined containers (running, stopped, and frozen).
 .INDENT 7.0
 .INDENT 3.5
@@ -46021,7 +46025,7 @@ salt \(aq*\(aq match.ipcidr \(aq192.168.44.0/24\(aq
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.match.list(tgt)
+.B salt.modules.match.list_(tgt)
 Return True if the minion matches the given list target
 .sp
 CLI Example:
@@ -46193,7 +46197,7 @@ salt \(aq*\(aq raid.detail \(aq/dev/md0\(aq
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.mdadm.list()
+.B salt.modules.mdadm.list_()
 List the RAID devices.
 .sp
 CLI Example:
@@ -46321,7 +46325,7 @@ salt \(aq*\(aq memcached.replace <key> <value>
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.memcached.set(key, value, host=\(aq127.0.0.1\(aq, port=11211, time=0, min_compress_len=0)
+.B salt.modules.memcached.set_(key, value, host=\(aq127.0.0.1\(aq, port=11211, time=0, min_compress_len=0)
 Set a key on the memcached server, overwriting the value if it exists.
 .sp
 CLI Example:
@@ -48522,7 +48526,7 @@ salt \(aq*\(aq service.missing sshd
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.netbsdservice.reload(name)
+.B salt.modules.netbsdservice.reload_(name)
 Reload the named service
 .sp
 CLI Example:
@@ -49319,7 +49323,7 @@ salt \(aq*\(aq nova.keypair_list
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.nova.list(profile=None)
+.B salt.modules.nova.list_(profile=None)
 To maintain the feel of the nova command line, this function simply calls
 the server_list function.
 .UNINDENT
@@ -49547,7 +49551,7 @@ salt \(aq*\(aq npm.install coffee\-script
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.npm.list(pkg=None, dir=None)
+.B salt.modules.npm.list_(pkg=None, dir=None)
 List installed NPM packages.
 .sp
 If no directory is specified, this will return the list of globally\-
@@ -50010,7 +50014,7 @@ salt\-call openstack_config.get /etc/keystone/keystone.conf sql connection
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.openstack_config.set(filename, section, parameter, value)
+.B salt.modules.openstack_config.set_(filename, section, parameter, value)
 Set a value in an OpenStack configuration file.
 .INDENT 7.0
 .TP
@@ -50709,7 +50713,7 @@ salt \(aq*\(aq partition.get_id /dev/sda 1
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.parted.list(device, unit=None)
+.B salt.modules.parted.list_(device, unit=None)
 partition.list device unit
 .sp
 Prints partition information of given <device>
@@ -50949,7 +50953,7 @@ salt \(aq*\(aq partition.rm /dev/sda 5
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.parted.set(device, minor, flag, state)
+.B salt.modules.parted.set_(device, minor, flag, state)
 partition.set device  minor flag state
 .INDENT 7.0
 .TP
@@ -51080,7 +51084,7 @@ salt \(aq*\(aq pecl.install fuse
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.pecl.list()
+.B salt.modules.pecl.list_()
 List installed pecl extensions.
 .sp
 CLI Example:
@@ -51493,7 +51497,7 @@ salt \(aq*\(aq pip.install markdown,django editable=git+https://github.com/world
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.pip.list(prefix=None, bin_env=None, user=None, runas=None, cwd=None)
+.B salt.modules.pip.list_(prefix=None, bin_env=None, user=None, runas=None, cwd=None)
 Filter list of installed apps from \fBfreeze\fP and check to see if
 \fBprefix\fP exists in the list of packages installed.
 .sp
@@ -56074,7 +56078,7 @@ salt \(aq*\(aq quota.report /media/data
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.quota.set(device, **kwargs)
+.B salt.modules.quota.set_(device, **kwargs)
 Calls out to setquota, for a specific user or group
 .sp
 CLI Example:
@@ -56777,7 +56781,7 @@ salt \(aq*\(aq rbenv.is_installed
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.rbenv.list(runas=None)
+.B salt.modules.rbenv.list_(runas=None)
 List the installable versions of ruby.
 .sp
 CLI Example:
@@ -57443,7 +57447,7 @@ salt \(aq*\(aq service.missing sshd limit=sysvinit
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.rh_service.reload(name)
+.B salt.modules.rh_service.reload_(name)
 Reload the named service
 .sp
 CLI Example:
@@ -58010,7 +58014,7 @@ salt \(aq*\(aq rvm.is_installed
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.rvm.list(runas=None)
+.B salt.modules.rvm.list_(runas=None)
 List all rvm installed rubies.
 .INDENT 7.0
 .TP
@@ -58772,7 +58776,7 @@ salt \(aq*\(aq saltutil.update 0.10.3
 Virtual machine image management tools
 .INDENT 0.0
 .TP
-.B salt.modules.seed.apply(path, id_=None, config=None, approve_key=True, install=True)
+.B salt.modules.seed.apply_(path, id_=None, config=None, approve_key=True, install=True)
 Seed a location (disk image, directory, or block device) with the
 minion config, approve the minion\(aqs key, and/or install salt\-minion.
 .sp
@@ -59006,7 +59010,7 @@ salt \(aq*\(aq service.missing sshd
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.service.reload(name)
+.B salt.modules.service.reload_(name)
 Restart the specified service
 .sp
 CLI Example:
@@ -59736,6 +59740,40 @@ salt \(aq*\(aq service.get_enabled
 .UNINDENT
 .INDENT 0.0
 .TP
+.B salt.modules.smf.get_running()
+Return the running services
+.sp
+CLI Example:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+salt \(aq*\(aq service.get_running
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B salt.modules.smf.get_stopped()
+Return the stopped services
+.sp
+CLI Example:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+salt \(aq*\(aq service.get_stopped
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
 .B salt.modules.smf.missing(name)
 The inverse of service.available.
 Returns \fBTrue\fP if the specified service is not available, otherwise returns
@@ -59755,7 +59793,7 @@ salt \(aq*\(aq service.missing net\-snmp
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.smf.reload(name)
+.B salt.modules.smf.reload_(name)
 Reload the named service
 .sp
 CLI Example:
@@ -63800,7 +63838,7 @@ salt \(aq*\(aq service.missing sshd
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.systemd.reload(name)
+.B salt.modules.systemd.reload_(name)
 Reload the specified service with systemd
 .sp
 CLI Example:
@@ -65060,7 +65098,7 @@ salt \(aq*\(aq tomcat.passwd secret tomcat sha1 \(aqProtected Realm\(aq
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.tomcat.reload(app, url=\(aqhttp://localhost:8080/manager\(aq, timeout=180)
+.B salt.modules.tomcat.reload_(app, url=\(aqhttp://localhost:8080/manager\(aq, timeout=180)
 Reload the webapp
 .INDENT 7.0
 .TP
@@ -65576,7 +65614,7 @@ salt \(aq*\(aq service.missing sshd
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.modules.upstart.reload(name)
+.B salt.modules.upstart.reload_(name)
 Reload the named service
 .sp
 CLI Example:
@@ -66985,7 +67023,7 @@ Module for listing programs that automatically run on startup
 (very alpha...not tested on anything but my Win 7x64)
 .INDENT 0.0
 .TP
-.B salt.modules.win_autoruns.list()
+.B salt.modules.win_autoruns.list_()
 Get a list of automatically running programs
 .sp
 CLI Example:
@@ -71896,7 +71934,7 @@ _
 T{
 \fBcouchdb_return\fP
 T}	T{
-Simple returner for CouchDB. Optional configuration
+Simple returner for CouchDB.
 T}
 _
 T{
@@ -71908,19 +71946,19 @@ _
 T{
 \fBmemcache_return\fP
 T}	T{
-Return data to a memcache server
+Return data to a memcache server  To enable this returner the minion will need the python client for memcache installed and the following values configured in the minion or master config, these are the defaults:      memcache.host: \(aqlocalhost\(aq     memcache.port: \(aq11211\(aq  python2\-memcache uses \(aqlocalhost\(aq and \(aq11211\(aq as syntax on connection.
 T}
 _
 T{
 \fBmongo_future_return\fP
 T}	T{
-Return data to a mongodb server
+Return data to a mongodb server  Required python modules: pymongo   This returner will send data from the minions to a MongoDB server.
 T}
 _
 T{
 \fBmongo_return\fP
 T}	T{
-Return data to a mongodb server
+Return data to a mongodb server  Required python modules: pymongo   This returner will send data from the minions to a MongoDB server.
 T}
 _
 T{
@@ -71950,13 +71988,13 @@ _
 T{
 \fBsmtp_return\fP
 T}	T{
-Return salt data via email
+Return salt data via email  The following fields can be set in the minion conf file:      smtp.from (required)     smtp.to (required)     smtp.host (required)     smtp.port (optional, defaults to 25)     smtp.username (optional)     smtp.password (optional)     smtp.tls (optional, defaults to False)     smtp.subject (optional, but helpful)     smtp.fields (optional)  There are a few things to keep in mind:  * If a username is used, a password is also required.
 T}
 _
 T{
 \fBsqlite3_return\fP
 T}	T{
-Insert minion return data into a sqlite3 database
+Insert minion return data into a sqlite3 database  :maintainer:    Mickey Malone <\fI\%mickey.malone@gmail.com\fP> :maturity:      New :depends:       None :platform:      All  Sqlite3 is a serverless database that lives in a single file.
 T}
 _
 T{
@@ -76196,13 +76234,13 @@ _
 T{
 \fBalias\fP
 T}	T{
-Configuration of email aliases
+Configuration of email aliases ==============================  The mail aliases file can be managed to contain definitions for specific email aliases:  ..
 T}
 _
 T{
 \fBalternatives\fP
 T}	T{
-Configuration of the alternatives system
+Configuration of the alternatives system ========================================  Control the alternatives system  ..
 T}
 _
 T{
@@ -76220,13 +76258,13 @@ _
 T{
 \fBaugeas\fP
 T}	T{
-Configuration management using Augeas
+Configuration management using Augeas =====================================  ..
 T}
 _
 T{
 \fBaws_sqs\fP
 T}	T{
-Manage SQS Queues
+Manage SQS Queues =================  Create and destroy SQS queues.
 T}
 _
 T{
@@ -76238,31 +76276,31 @@ _
 T{
 \fBcmd\fP
 T}	T{
-Execution of arbitrary commands
+Execution of arbitrary commands ===============================  The cmd state module manages the enforcement of executed commands, this state can tell a command to run under certain circumstances.
 T}
 _
 T{
 \fBcomposer\fP
 T}	T{
-Installation of Composer Packages
+Installation of Composer Packages =================================  These states manage the installed packages for composer for PHP.
 T}
 _
 T{
 \fBcron\fP
 T}	T{
-Management of cron, the Unix command scheduler
+Management of cron, the Unix command scheduler ==============================================  Cron declarations require a number of parameters.
 T}
 _
 T{
 \fBddns\fP
 T}	T{
-Dynamic DNS updates
+Dynamic DNS updates ===================  Ensure a DNS record is present or absent utilizing RFC 2136 type dynamic updates.
 T}
 _
 T{
 \fBdebconfmod\fP
 T}	T{
-Management of debconf selections
+Management of debconf selections ================================  The debconfmod state module manages the enforcement of debconf selections, this state can set those selections prior to package installation.
 T}
 _
 T{
@@ -76274,109 +76312,109 @@ _
 T{
 \fBdockerio\fP
 T}	T{
-Manage Docker containers
+Manage Docker containers ========================  \fI\%Docker\fP is a lightweight, portable, self\-sufficient software container wrapper.
 T}
 _
 T{
 \fBeselect\fP
 T}	T{
-Management of Gentoo configuration using eselect
+Management of Gentoo configuration using eselect ================================================  A state module to manage Gentoo configuration via eselect  ..
 T}
 _
 T{
 \fBfile\fP
 T}	T{
-Operations on regular files, special files, directories, and symlinks
+Operations on regular files, special files, directories, and symlinks =====================================================================  Salt States can aggressively manipulate files on a system.
 T}
 _
 T{
 \fBgem\fP
 T}	T{
-Installation of Ruby modules packaged as gems
+Installation of Ruby modules packaged as gems =============================================  A state module to manage rubygems.
 T}
 _
 T{
 \fBgit\fP
 T}	T{
-Interaction with Git repositories
+Interaction with Git repositories =================================  Important: Before using git over ssh, make sure your remote host fingerprint exists in "~/.ssh/known_hosts" file.
 T}
 _
 T{
 \fBgnomedesktop\fP
 T}	T{
-Configuration of the GNOME desktop
+Configuration of the GNOME desktop ========================================  Control the GNOME settings  ..
 T}
 _
 T{
 \fBgrains\fP
 T}	T{
-Manage grains on the minion
+Manage grains on the minion ===========================  This state allows for grains to be set.
 T}
 _
 T{
 \fBgroup\fP
 T}	T{
-Management of user groups
+Management of user groups =========================  The group module is used to create and manage unix group settings, groups can be either present or absent:  ..
 T}
 _
 T{
 \fBhg\fP
 T}	T{
-Interaction with Mercurial repositories
+Interaction with Mercurial repositories =======================================  Before using hg over ssh, make sure the remote host fingerprint already exists in ~/.ssh/known_hosts, and the remote host has this host\(aqs public key.
 T}
 _
 T{
 \fBhost\fP
 T}	T{
-Management of addresses and names in hosts file
+Management of addresses and names in hosts file ===============================================  The /etc/hosts file can be managed to contain definitions for specific hosts:  ..
 T}
 _
 T{
 \fBiptables\fP
 T}	T{
-Management of iptables
+Management of iptables ======================  This is an iptables\-specific module designed to manage Linux firewalls.
 T}
 _
 T{
 \fBkeyboard\fP
 T}	T{
-Management of keyboard layouts
+Management of keyboard layouts ==============================  The keyboard layout can be managed for the system:  ..
 T}
 _
 T{
 \fBkeystone\fP
 T}	T{
-Management of Keystone users
+Management of Keystone users ============================  :depends:   \- keystoneclient Python module :configuration: See \fBsalt.modules.keystone\fP for setup instructions.
 T}
 _
 T{
 \fBkmod\fP
 T}	T{
-Loading and unloading of kernel modules
+Loading and unloading of kernel modules =======================================  The Kernel modules on a system can be managed cleanly with the kmod state module:  ..
 T}
 _
 T{
 \fBlayman\fP
 T}	T{
-Management of Gentoo Overlays using layman
+Management of Gentoo Overlays using layman ==========================================  A state module to manage Gentoo package overlays via layman  ..
 T}
 _
 T{
 \fBlibvirt\fP
 T}	T{
-Manage libvirt certificates
+Manage libvirt certificates ===========================  This state uses the external pillar in the master to call for the generation and signing of certificates for systems running libvirt:  ..
 T}
 _
 T{
 \fBlocale\fP
 T}	T{
-Management of languages/locales
+Management of languages/locales ==============================+  The locale can be managed for the system:  ..
 T}
 _
 T{
 \fBlvm\fP
 T}	T{
-Management of Linux logical volumes
+Management of Linux logical volumes ===================================  A state module to manage LVMs  ..
 T}
 _
 T{
@@ -76394,31 +76432,31 @@ _
 T{
 \fBmakeconf\fP
 T}	T{
-Management of Gentoo make.conf
+Management of Gentoo make.conf ==============================  A state module to manage Gentoo\(aqs make.conf file  ..
 T}
 _
 T{
 \fBmdadm\fP
 T}	T{
-Managing software RAID with mdadm
+Managing software RAID with mdadm ==================================  A state module for creating or destroying software RAID devices.
 T}
 _
 T{
 \fBmemcached\fP
 T}	T{
-States for Management of Memcached Keys
+States for Management of Memcached Keys =======================================  ..
 T}
 _
 T{
 \fBmodjk_worker\fP
 T}	T{
-Manage modjk workers
+Manage modjk workers ====================  Send commands to a \fBmodjk\fP load balancer via the peer system.
 T}
 _
 T{
 \fBmodule\fP
 T}	T{
-Execution of Salt modules from within states
+Execution of Salt modules from within states ============================================  These states allow individual execution module calls to be made via states.
 T}
 _
 T{
@@ -76436,43 +76474,43 @@ _
 T{
 \fBmount\fP
 T}	T{
-Mounting of filesystems
+Mounting of filesystems =======================  Mount any type of mountable filesystem with the mounted function:  ..
 T}
 _
 T{
 \fBmysql_database\fP
 T}	T{
-Management of MySQL databases (schemas)
+Management of MySQL databases (schemas) =======================================  :depends:   \- MySQLdb Python module :configuration: See \fBsalt.modules.mysql\fP for setup instructions.
 T}
 _
 T{
 \fBmysql_grants\fP
 T}	T{
-Management of MySQL grants (user permissions)
+Management of MySQL grants (user permissions) =============================================  :depends:   \- MySQLdb Python module :configuration: See \fBsalt.modules.mysql\fP for setup instructions.
 T}
 _
 T{
 \fBmysql_user\fP
 T}	T{
-Management of MySQL users
+Management of MySQL users =========================  :depends:   \- MySQLdb Python module :configuration: See \fBsalt.modules.mysql\fP for setup instructions.
 T}
 _
 T{
 \fBnetwork\fP
 T}	T{
-Configuration of network interfaces
+Configuration of network interfaces ===================================  The network module is used to create and manage network settings, interfaces can be set as either managed or ignored.
 T}
 _
 T{
 \fBnpm\fP
 T}	T{
-Installation of NPM Packages
+Installation of NPM Packages ============================  These states manage the installed packages for node.js using the Node Package Manager (npm).
 T}
 _
 T{
 \fBntp\fP
 T}	T{
-Management of NTP servers
+Management of NTP servers =========================  ..
 T}
 _
 T{
@@ -76484,121 +76522,121 @@ _
 T{
 \fBpagerduty\fP
 T}	T{
-Create an Event in PagerDuty
+Create an Event in PagerDuty ============================  ..
 T}
 _
 T{
 \fBpecl\fP
 T}	T{
-Installation of PHP Extensions Using pecl
+Installation of PHP Extensions Using pecl =========================================  These states manage the installed pecl extensions.
 T}
 _
 T{
 \fBpip_state\fP
 T}	T{
-Installation of Python Packages Using pip
+Installation of Python Packages Using pip =========================================  These states manage system installed python packages.
 T}
 _
 T{
 \fBpkg\fP
 T}	T{
-Installation of packages using OS package managers such as yum or apt\-get
+Installation of packages using OS package managers such as yum or apt\-get =========================================================================  Salt can manage software packages via the pkg state module, packages can be set up to be installed, latest, removed and purged.
 T}
 _
 T{
 \fBpkgng\fP
 T}	T{
-Manage package remote repo using FreeBSD pkgng
+Manage package remote repo using FreeBSD pkgng ==============================================  Salt can manage the URL pkgng pulls packages from.
 T}
 _
 T{
 \fBpkgrepo\fP
 T}	T{
-Management of package repos
+Management of package repos ===========================  Package repositories can be managed with the pkgrepo state:  ..
 T}
 _
 T{
 \fBportage_config\fP
 T}	T{
-Management of Portage package configuration on Gentoo
+Management of Portage package configuration on Gentoo =====================================================  A state module to manage Portage configuration on Gentoo  ..
 T}
 _
 T{
 \fBports\fP
 T}	T{
-Manage software from FreeBSD ports
+Manage software from FreeBSD ports  ..
 T}
 _
 T{
 \fBpostgres_database\fP
 T}	T{
-Management of PostgreSQL databases
+Management of PostgreSQL databases ==================================  The postgres_database module is used to create and manage Postgres databases.
 T}
 _
 T{
 \fBpostgres_group\fP
 T}	T{
-Management of PostgreSQL groups (roles)
+Management of PostgreSQL groups (roles) =======================================  The postgres_group module is used to create and manage Postgres groups.
 T}
 _
 T{
 \fBpostgres_user\fP
 T}	T{
-Management of PostgreSQL users (roles)
+Management of PostgreSQL users (roles) ======================================  The postgres_users module is used to create and manage Postgres users.
 T}
 _
 T{
 \fBpowerpath\fP
 T}	T{
-Powerpath configuration support
+Powerpath configuration support ===============================  Allows configuration of EMC Powerpath.
 T}
 _
 T{
 \fBprocess\fP
 T}	T{
-Process Management
+Process Management ==================  Ensure a process matching a given pattern is absent.
 T}
 _
 T{
 \fBquota\fP
 T}	T{
-Management of POSIX Quotas
+Management of POSIX Quotas ==========================  The quota can be managed for the system:  ..
 T}
 _
 T{
 \fBrabbitmq_cluster\fP
 T}	T{
-Manage RabbitMQ Clusters
+Manage RabbitMQ Clusters ========================  Example:  ..
 T}
 _
 T{
 \fBrabbitmq_plugin\fP
 T}	T{
-Manage RabbitMQ Plugins
+Manage RabbitMQ Plugins =======================  ..
 T}
 _
 T{
 \fBrabbitmq_policy\fP
 T}	T{
-Manage RabbitMQ Policies
+Manage RabbitMQ Policies ========================  :maintainer:    Benn Eichhorn <\fI\%benn@getlocalmeasure.com\fP> :maturity:      new :platform:      all  Example:  ..
 T}
 _
 T{
 \fBrabbitmq_user\fP
 T}	T{
-Manage RabbitMQ Users
+Manage RabbitMQ Users =====================  Example:  ..
 T}
 _
 T{
 \fBrabbitmq_vhost\fP
 T}	T{
-Manage RabbitMQ Virtual Hosts
+Manage RabbitMQ Virtual Hosts =============================  Example:  ..
 T}
 _
 T{
 \fBrbenv\fP
 T}	T{
-Managing Ruby installations with rbenv
+Managing Ruby installations with rbenv ======================================  This module is used to install and manage ruby installations with rbenv.
 T}
 _
 T{
@@ -76616,85 +76654,85 @@ _
 T{
 \fBrvm\fP
 T}	T{
-Managing Ruby installations and gemsets with Ruby Version Manager (RVM)
+Managing Ruby installations and gemsets with Ruby Version Manager (RVM) =======================================================================  This module is used to install and manage ruby installations and gemsets with RVM, the Ruby Version Manager.
 T}
 _
 T{
 \fBsaltmod\fP
 T}	T{
-Control the Salt command interface
+Control the Salt command interface ==================================  The Salt state is used to control the salt command interface.
 T}
 _
 T{
 \fBselinux\fP
 T}	T{
-Management of SELinux rules
+Management of SELinux rules ===========================  If SELinux is available for the running system, the mode can be managed and booleans can be set.
 T}
 _
 T{
 \fBservice\fP
 T}	T{
-Starting or restarting of services and daemons
+Starting or restarting of services and daemons ==============================================  Services are defined as system daemons typically started with system init or rc scripts, services can be defined as running or dead.
 T}
 _
 T{
 \fBssh_auth\fP
 T}	T{
-Control of entries in SSH authorized_key files
+Control of entries in SSH authorized_key files ==============================================  The information stored in a user\(aqs SSH authorized key file can be easily controlled via the ssh_auth state.
 T}
 _
 T{
 \fBssh_known_hosts\fP
 T}	T{
-Control of SSH known_hosts entries
+Control of SSH known_hosts entries ==================================  Manage the information stored in the known_hosts files.
 T}
 _
 T{
 \fBstateconf\fP
 T}	T{
-Stateconf System
+Stateconf System ================  The stateconf system is intended for use only with the stateconf renderer.
 T}
 _
 T{
 \fBstatus\fP
 T}	T{
-Minion status monitoring
+Minion status monitoring  Maps to the \fIstatus\fP execution module.
 T}
 _
 T{
 \fBsupervisord\fP
 T}	T{
-Interaction with the Supervisor daemon
+Interaction with the Supervisor daemon ======================================  ..
 T}
 _
 T{
 \fBsvn\fP
 T}	T{
-Manage SVN repositories
+Manage SVN repositories =======================  Manage repositiry checkouts via the svn vcs system:  ..
 T}
 _
 T{
 \fBsysctl\fP
 T}	T{
-Configuration of the Linux kernel using sysctrl
+Configuration of the Linux kernel using sysctrl ===============================================  Control the kernel sysctl system.
 T}
 _
 T{
 \fBtimezone\fP
 T}	T{
-Management of timezones
+Management of timezones =======================  The timezone can be managed for the system:  ..
 T}
 _
 T{
 \fBtomcat\fP
 T}	T{
-This state uses the manager webapp to manage Apache tomcat webapps
+This state uses the manager webapp to manage Apache tomcat webapps This state requires the manager webapp to be enabled  The following grains/pillar should be set::      tomcat\-manager.user: admin user name     tomcat\-manager.passwd: password  and also configure a user in the conf/tomcat\-users.xml file::      <?xml version=\(aq1.0\(aq encoding=\(aqutf\-8\(aq?>     <tomcat\-users>         <role rolename="manager\-script"/>         <user username="tomcat" password="tomcat" roles="manager\-script"/>     </tomcat\-users>  Notes:  \- Not supported multiple version on the same context path \- More information about tomcat manager:     \fI\%http://tomcat.apache.org/tomcat\-7.0\-doc/manager\-howto.html\fP \- if you use only this module for deployments you might want to restrict     access to the manager so its only accessible via localhost     for more info: \fI\%http://tomcat.apache.org/tomcat\-7.0\-doc/manager\-howto.html#Configuring_Manager_Application_Access\fP \- Tested on:    JVM Vendor:       Sun Microsystems Inc.
 T}
 _
 T{
 \fBuser\fP
 T}	T{
-Management of user accounts
+Management of user accounts ===========================  The user module is used to create and manage user settings, users can be set as either absent or present  ..
 T}
 _
 T{
@@ -76718,7 +76756,7 @@ _
 T{
 \fBwin_network\fP
 T}	T{
-Configuration of network interfaces on Windows hosts
+Configuration of network interfaces on Windows hosts ====================================================  ..
 T}
 _
 T{
@@ -76736,19 +76774,19 @@ _
 T{
 \fBwin_system\fP
 T}	T{
-Management of Windows system information
+Management of Windows system information ========================================  ..
 T}
 _
 T{
 \fBxmpp\fP
 T}	T{
-Sending Messages over XMPP
+Sending Messages over XMPP ==========================  ..
 T}
 _
 T{
 \fBzcbuildout\fP
 T}	T{
-Management of zc.buildout
+Management of zc.buildout ===========================  This module is inspired from minitage\(aqs buildout maker (\fI\%https://github.com/minitage/minitage/blob/master/src/minitage/core/makers/buildout.py\fP)  ..
 T}
 _
 .TE
@@ -76880,7 +76918,7 @@ is the location of one of the alternative target files.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.states.alternatives.set(name, path)
+.B salt.states.alternatives.set_(name, path)
 New in version 0.17.0.
 
 .sp
@@ -78592,7 +78630,7 @@ profile:
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.states.eselect.set(name, target)
+.B salt.states.eselect.set_(name, target)
 Verify that the given module is set to the given target
 .INDENT 7.0
 .TP
@@ -86257,7 +86295,7 @@ installed2
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.states.zcbuildout.installed(name, config=\(aqbuildout.cfg\(aq, quiet=False, parts=None, runas=None, env=(), buildout_ver=None, test_release=False, distribute=None, new_st=None, offline=False, newest=False, python=\(aq/usr/bin/python2\(aq, debug=False, verbose=False, unless=None, onlyif=None)
+.B salt.states.zcbuildout.installed(name, config=\(aqbuildout.cfg\(aq, quiet=False, parts=None, runas=None, env=(), buildout_ver=None, test_release=False, distribute=None, new_st=None, offline=False, newest=False, python=\(aq/usr/bin/python\(aq, debug=False, verbose=False, unless=None, onlyif=None)
 Install buildout in a specific directory
 .sp
 It is a thin wrapper to modules.buildout.buildout
@@ -86491,13 +86529,13 @@ _
 T{
 \fBpy\fP
 T}	T{
-Pure python state renderer
+Pure python state renderer  The sls file should contain a function called \fBrun\fP which returns high state data  In this module, a few objects are defined for you, including the usual (with\(ga\(ga__\(ga\(ga added) \fB__salt__\fP dictionary, \fB__grains__\fP, \fB__pillar__\fP, \fB__opts__\fP, \fB__env__\fP, and \fB__sls__\fP\&.
 T}
 _
 T{
 \fBpydsl\fP
 T}	T{
-A Python\-based DSL
+A Python\-based DSL  :maintainer: Jack Kuan <\fI\%kjkuan@gmail.com\fP> :maturity: new :platform: all  The \fIpydsl\fP renderer allows one to author salt formulas(.sls files) in pure Python using a DSL that\(aqs easy to write and easy to read.
 T}
 _
 T{
@@ -87848,31 +87886,31 @@ _
 T{
 \fBcmd_json\fP
 T}	T{
-Execute a command and read the output as JSON. The JSON data is then directly overlaid onto the minion\(aqs Pillar data.
+Execute a command and read the output as JSON.
 T}
 _
 T{
 \fBcmd_yaml\fP
 T}	T{
-Execute a command and read the output as YAML. The YAML data is then directly overlaid onto the minion\(aqs Pillar data
+Execute a command and read the output as YAML.
 T}
 _
 T{
 \fBcobbler\fP
 T}	T{
-A module to pull data from Cobbler via its API into the Pillar dictionary
+A module to pull data from Cobbler via its API into the Pillar dictionary   Configuring the Cobbler ext_pillar ==================================  The same cobbler.* parameters are used for both the Cobbler tops and Cobbler pillar modules.
 T}
 _
 T{
 \fBdjango_orm\fP
 T}	T{
-Generate Pillar data from Django models through the Django ORM
+Generate Pillar data from Django models through the Django ORM  :maintainer: Micah Hausler <\fI\%micah.hausler@gmail.com\fP> :maturity: new   Configuring the django_orm ext_pillar =====================================  To use this module, your Django project must be on the salt master server with database access.
 T}
 _
 T{
 \fBgit_pillar\fP
 T}	T{
-Clone a remote git repository and use the filesystem as a Pillar source
+Clone a remote git repository and use the filesystem as a Pillar source  This external Pillar source can be configured in the master config file like so:  ..
 T}
 _
 T{
@@ -87890,25 +87928,25 @@ _
 T{
 \fBmongo\fP
 T}	T{
-Read Pillar data from a mongodb collection
+Read Pillar data from a mongodb collection  This module will load a node\-specific pillar dictionary from a mongo collection.
 T}
 _
 T{
 \fBpillar_ldap\fP
 T}	T{
-Use LDAP data as a Pillar source
+Use LDAP data as a Pillar source  This pillar module parses a config file (specified in the salt master config), and executes a series of LDAP searches based on that config.
 T}
 _
 T{
 \fBpuppet\fP
 T}	T{
-Execute an unmodified puppet_node_classifier and read the output as YAML. The YAML data is then directly overlaid onto the minion\(aqs Pillar data.
+Execute an unmodified puppet_node_classifier and read the output as YAML.
 T}
 _
 T{
 \fBreclass_adapter\fP
 T}	T{
-Use the "reclass" database as a Pillar source
+Use the "reclass" database as a Pillar source  ..
 T}
 _
 T{
@@ -88421,19 +88459,19 @@ _
 T{
 \fBcobbler\fP
 T}	T{
-Cobbler Tops
+Cobbler Tops ============  Cobbler Tops is a master tops subsystem used to look up mapping information from Cobbler via its API.
 T}
 _
 T{
 \fBext_nodes\fP
 T}	T{
-External Nodes Classifier
+External Nodes Classifier =========================  The External Nodes Classifier is a master tops subsystem used to hook into systems used to provide mapping information used by major configuration management systems.
 T}
 _
 T{
 \fBmongo\fP
 T}	T{
-Read tops data from a mongodb collection
+Read tops data from a mongodb collection  This module will load tops data from a mongo collection.
 T}
 _
 T{
@@ -89210,7 +89248,7 @@ container.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.runners.lxc.list(host=None, quiet=False)
+.B salt.runners.lxc.list_(host=None, quiet=False)
 List defined containers (running, stopped, and frozen) for the named
 (or all) host(s).
 .INDENT 7.0
@@ -89778,7 +89816,7 @@ _
 T{
 \fBpillar_roots\fP
 T}	T{
-The \fIpillar_roots\fP wheel module is used to manage files under the pillar roots
+The \fIpillar_roots\fP wheel module is used to manage files under the pillar roots directories on the master server.
 T}
 _
 .TE
@@ -89868,7 +89906,7 @@ Return the key strings
 .UNINDENT
 .INDENT 0.0
 .TP
-.B salt.wheel.key.list(match)
+.B salt.wheel.key.list_(match)
 List all the keys under a named status
 .UNINDENT
 .INDENT 0.0
@@ -89937,13 +89975,13 @@ _
 T{
 \fBpam\fP
 T}	T{
-Authenticate against PAM
+Authenticate against PAM  Provides an authenticate function that will allow the caller to authenticate a user against the Pluggable Authentication Modules (PAM) on the system.
 T}
 _
 T{
 \fBstormpath_mod\fP
 T}	T{
-Salt Stormpath Authentication
+Salt Stormpath Authentication  Module to provide authentication using Stormpath as the backend.
 T}
 _
 .TE
@@ -90138,7 +90176,7 @@ _
 T{
 \fBhighstate\fP
 T}	T{
-The return data from the Highstate command is a standard data structure
+The return data from the Highstate command is a standard data structure which is parsed by the highstate outputter to deliver a clean and readable set of information about the HighState run on minions.
 T}
 _
 T{
@@ -90150,7 +90188,7 @@ _
 T{
 \fBkey\fP
 T}	T{
-Salt Key makes use of the outputter system to format information sent to the
+Salt Key makes use of the outputter system to format information sent to the \fBsalt\-key\fP command.
 T}
 _
 T{
@@ -90192,7 +90230,7 @@ _
 T{
 \fBtxt\fP
 T}	T{
-The txt outputter has been developed to make the output from shell
+The txt outputter has been developed to make the output from shell commands on minions appear as they do when the command is executed on the minion.
 T}
 _
 T{
@@ -90204,7 +90242,7 @@ _
 T{
 \fByaml_out\fP
 T}	T{
-Output data in YAML, this outputter defaults to printing in YAML block mode
+Output data in YAML, this outputter defaults to printing in YAML block mode for better readability.
 T}
 _
 .TE
@@ -90380,103 +90418,103 @@ _
 T{
 \fBbotocore_aws\fP
 T}	T{
-The AWS Cloud Module
+The AWS Cloud Module ====================  The AWS cloud module is used to interact with the Amazon Web Services system.
 T}
 _
 T{
 \fBcloudstack\fP
 T}	T{
-CloudStack Cloud Module
+CloudStack Cloud Module =======================  The CloudStack cloud module is used to control access to a CloudStack based Public Cloud.
 T}
 _
 T{
 \fBdigital_ocean\fP
 T}	T{
-Digital Ocean Cloud Module
+Digital Ocean Cloud Module ==========================  The Digital Ocean cloud module is used to control access to the Digital Ocean VPS system.
 T}
 _
 T{
 \fBec2\fP
 T}	T{
-The EC2 Cloud Module
+The EC2 Cloud Module ====================  The EC2 cloud module is used to interact with the Amazon Elastic Cloud Computing.
 T}
 _
 T{
 \fBgce\fP
 T}	T{
-Copyright 2013 Google Inc. All Rights Reserved.
+Copyright 2013 Google Inc.
 T}
 _
 T{
 \fBgogrid\fP
 T}	T{
-GoGrid Cloud Module
+GoGrid Cloud Module ====================  The GoGrid cloud module.
 T}
 _
 T{
 \fBibmsce\fP
 T}	T{
-IBM SCE Cloud Module
+IBM SCE Cloud Module ====================  The IBM SCE cloud module.
 T}
 _
 T{
 \fBjoyent\fP
 T}	T{
-Joyent Cloud Module
+Joyent Cloud Module ===================  The Joyent Cloud module is used to interact with the Joyent cloud system.
 T}
 _
 T{
 \fBlibcloud_aws\fP
 T}	T{
-The AWS Cloud Module
+The AWS Cloud Module ====================  The AWS cloud module is used to interact with the Amazon Web Services system.
 T}
 _
 T{
 \fBlinode\fP
 T}	T{
-Linode Cloud Module
+Linode Cloud Module ===================  The Linode cloud module is used to control access to the Linode VPS system  Use of this module only requires the \fBapikey\fP parameter.
 T}
 _
 T{
 \fBmsazure\fP
 T}	T{
-Azure Cloud Module
+Azure Cloud Module ==================  The Azure cloud module is used to control access to Microsoft Azure  Use of this module only requires the \fBapikey\fP parameter.
 T}
 _
 T{
 \fBnova\fP
 T}	T{
-OpenStack Nova Cloud Module
+OpenStack Nova Cloud Module ===========================  PLEASE NOTE: This module is currently in early development, and considered to be experimental and unstable.
 T}
 _
 T{
 \fBopenstack\fP
 T}	T{
-OpenStack Cloud Module
+OpenStack Cloud Module ======================  OpenStack is an open source project that is in use by a number a cloud providers, each of which have their own ways of using it.
 T}
 _
 T{
 \fBparallels\fP
 T}	T{
-Parallels Cloud Module
+Parallels Cloud Module ======================  The Parallels cloud module is used to control access to cloud providers using the Parallels VPS system.
 T}
 _
 T{
 \fBrackspace\fP
 T}	T{
-Rackspace Cloud Module
+Rackspace Cloud Module ======================  The Rackspace cloud module.
 T}
 _
 T{
 \fBsaltify\fP
 T}	T{
-Saltify Module
+Saltify Module ============== The Saltify module is designed to install Salt on a remote machine, virtual or bare metal, using SSH.
 T}
 _
 T{
 \fBsoftlayer\fP
 T}	T{
-SoftLayer Cloud Module
+SoftLayer Cloud Module ======================  The SoftLayer cloud module is used to control access to the SoftLayer VPS system.
 T}
 _
 .TE
@@ -94613,13 +94651,13 @@ _
 T{
 \fBroots\fP
 T}	T{
-The default file server backend
+The default file server backend  Based on the environments in the \fBfile_roots\fP configuration option.
 T}
 _
 T{
 \fBs3fs\fP
 T}	T{
-The backend for a fileserver based on Amazon S3
+The backend for a fileserver based on Amazon S3  ..
 T}
 _
 T{
@@ -106071,7 +106109,7 @@ the client calls work, and that they manage passed data, in a desirable way.
 .INDENT 0.0
 .TP
 .B release
-2014\-02\-03
+2014\-02\-24
 .UNINDENT
 .sp
 The 2014.1.0 release of Salt is a major release which not only increases

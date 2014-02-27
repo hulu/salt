@@ -1,4 +1,4 @@
-Source: salt
+Source: hulu-salt
 Section: admin
 Priority: optional
 Maintainer: Corey Quinn <corey@sequestered.net>
@@ -18,7 +18,7 @@ Homepage: http://saltstack.org
 XS-Python-Version: >= 2.6, <= 2.7
 
 
-Package: salt-common
+Package: hulu-salt-common
 Architecture: all
 Depends: ${python:Depends}, ${misc:Depends}, ${shlibs:Depends},
          python, python-support, python-pkg-resources,
@@ -48,7 +48,7 @@ Description: Shared libraries that salt requires for all packages
  This particular package provides shared libraries that salt-master,
  salt-minion, and salt-syndic require to function.
 
-Package: salt-master
+Package: hulu-salt-master
 Architecture: all
 Depends: ${misc:Depends}, python, python-support, python-pkg-resources
 Pre-Depends: salt-common (= ${source:Version})
@@ -70,7 +70,7 @@ Description: This package provides a remote manager to administer servers via sa
  This particular package provides the salt controller.
 
 
-Package: salt-minion
+Package: hulu-salt-minion
 Architecture: all
 Depends: ${misc:Depends}, python, python-support, python-pkg-resources,
 Pre-Depends: salt-common (= ${source:Version})
@@ -93,7 +93,7 @@ Description: This package represents the client package for salt
  This particular package provides the worker / agent for salt.
 
 
-Package: salt-syndic
+Package: hulu-salt-syndic
 Architecture: all
 Depends: ${misc:Depends}, python, python-support, python-pkg-resources,
          salt-master (= ${source:Version})
@@ -115,7 +115,7 @@ Description: This package represents the master-of-masters for salt
  This particular package provides the master of masters for salt-- it enables
  the management of multiple masters at a time..
 
-Package: salt-ssh
+Package: hulu-salt-ssh
 Architecture: all
 Depends: ${misc:Depends},
          ${python:Depends},
@@ -143,7 +143,7 @@ Description: remote manager to administer servers via salt
  No minion or other salt specific software needs to be installed
  on the remote host.
 
-Package: salt-doc
+Package: hulu-salt-doc
 Architecture: all
 Section: doc
 Depends: ${misc:Depends}
