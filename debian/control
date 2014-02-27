@@ -51,7 +51,7 @@ Description: Shared libraries that salt requires for all packages
 Package: hulu-salt-master
 Architecture: all
 Depends: ${misc:Depends}, python, python-support, python-pkg-resources
-Pre-Depends: salt-common (= ${source:Version})
+Pre-Depends: hulu-salt-common (= ${source:Version})
 Description: This package provides a remote manager to administer servers via salt
  This package is a powerful remote execution manager that can be used
  to administer servers in a fast and efficient way.
@@ -73,7 +73,7 @@ Description: This package provides a remote manager to administer servers via sa
 Package: hulu-salt-minion
 Architecture: all
 Depends: ${misc:Depends}, python, python-support, python-pkg-resources,
-Pre-Depends: salt-common (= ${source:Version})
+Pre-Depends: hulu-salt-common (= ${source:Version})
 Recommends: debconf-utils
 Description: This package represents the client package for salt
  This package is a powerful remote execution manager that can be used
@@ -96,7 +96,7 @@ Description: This package represents the client package for salt
 Package: hulu-salt-syndic
 Architecture: all
 Depends: ${misc:Depends}, python, python-support, python-pkg-resources,
-         salt-master (= ${source:Version})
+         hulu-salt-master (= ${source:Version})
 Description: This package represents the master-of-masters for salt
  This package is a powerful remote execution manager that can be used
  to administer servers in a fast and efficient way.
@@ -119,7 +119,7 @@ Package: hulu-salt-ssh
 Architecture: all
 Depends: ${misc:Depends},
          ${python:Depends},
-         salt-common (= ${source:Version}),
+         hulu-salt-common (= ${source:Version}),
          sshpass
 Description: remote manager to administer servers via salt
  salt is a powerful remote execution manager that can be used to
