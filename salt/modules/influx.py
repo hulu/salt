@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 '''
+InfluxDB - A distributed time series database
+
 Module to provide InfluxDB compatibility to Salt
+(compatible with InfluxDB version 0.5+)
+
+.. versionadded:: Helium
 
 :depends:    - influxdb Python module
 
@@ -243,7 +248,7 @@ def user_exists(
     users = user_list(database, user, password, host, port)
     if not isinstance(users, list):
         return False
-    return name in [u['username'] for u in users]
+    return name in [u['name'] for u in users]
 
 
 def user_create(name, passwd, database, user=None, password=None, host=None,
@@ -381,13 +386,13 @@ def query(database, query, time_precision='s', chunked=False, user=None,
         The database to query
 
     query
-        Query to be exectuted
+        Query to be executed
 
     time_precision
         Time precision to use ('s', 'm', or 'u')
 
     chunked
-        Wether is chuncked or not
+        Whether is chunked or not
 
     user
         The user to connect as
