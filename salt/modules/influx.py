@@ -377,7 +377,7 @@ def user_remove(name, database, user=None, password=None, host=None,
     return client.delete_database_user(user)
 
 
-def query(database, query, time_precision='s', chunked=False, user=None,
+def query(database, query, time_precision='s', chunked=False, user=None,  # pylint: disable=W0621
           password=None, host=None, port=None):
     """
     Querying data
