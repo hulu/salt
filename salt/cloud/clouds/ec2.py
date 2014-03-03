@@ -2520,7 +2520,7 @@ def attach_volume(name=None, kwargs=None, instance_id=None, call=None):
     return data
 
 
-def show_volume(name=None, kwargs=None, instance_id=None, call=None):
+def show_volume(name=None, kwargs=None, instance_id=None, call=None):  # pylint: disable=W0613
     '''
     Show volume details
     '''
@@ -2538,7 +2538,7 @@ def show_volume(name=None, kwargs=None, instance_id=None, call=None):
     return data
 
 
-def detach_volume(name=None, kwargs=None, instance_id=None, call=None):
+def detach_volume(name=None, kwargs=None, instance_id=None, call=None):  # pylint: disable=W0613
     '''
     Detach a volume from an instance
     '''
@@ -2561,7 +2561,7 @@ def detach_volume(name=None, kwargs=None, instance_id=None, call=None):
     return data
 
 
-def delete_volume(name=None, kwargs=None, instance_id=None, call=None):
+def delete_volume(name=None, kwargs=None, instance_id=None, call=None):  # pylint: disable=W0613
     '''
     Delete a volume
     '''
