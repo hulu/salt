@@ -47,11 +47,11 @@ def fileserver_update(self):
     salt.daemons.masterapi.fileserver_update(self.opts.value)
 
 
-class UXDRouter(ioflo.base.deeding.Deed):
+class UxdRouter(ioflo.base.deeding.Deed):  # pylint: disable=W0232
     '''
     Routes the communication in and out of uxd connections
     '''
-    Ioinits = {'opts': '.salt.etc.opts',
+    Ioinits = {'opts': '.salt.opts',
                'event_yards': '.salt.uxd.yards.event',
                'com_yards': '.salt.uxd.yards.com',
                'local_cmd': '.salt.uxd.local_cmd',
@@ -59,10 +59,7 @@ class UXDRouter(ioflo.base.deeding.Deed):
                'events': '.salt.uxd.events',
                'stack': '.salt.uxd.stack.stack'}
 
-    def __init__(self):
-        ioflo.base.deeding.Deed.__init__(self)
-
-    def postioinit(self):
+    def postinitio(self):
         '''
         Set up required objects
         '''
@@ -106,9 +103,9 @@ class UXDRouter(ioflo.base.deeding.Deed):
         Send the message to the correct location
         '''
         try:
-            if msg['route']['src'][0] == 'router' and msg['route']['src'][2] == 'local_cmd':
-                self.local_cmd.append(msg)
-            elif msg['route']['src'][0] == 'router' and msg['route']['src'][2] == 'event_req':
+            if msg['route']['dst'][2] == 'local_cmd':
+                self.local_cmd.value.append(msg)
+            elif msg['route']['dst'][2] == 'event_req':
                 # Register the event interface
                 self._register_event_yard(msg)
         except Exception:
@@ -121,26 +118,25 @@ class UXDRouter(ioflo.base.deeding.Deed):
         self.stack.value.serviceAll()
         # Process inboud communication stack
         for msg in self.stack.value.rxMsgs:
-            self._process_msg(msg)
+            self._process_rxmsg(msg)
+        self.stack.value.rxMsgs.clear()
         for event in self.events.value:
             self._fire_event(event)
         for ret in self.local_ret.value:
             self.stack.value.transmit(ret)
+        self.local_ret.value.clear()
         self.stack.value.serviceAll()
 
 
-class RemoteMaster(ioflo.base.deeding.Deed):
+class RemoteMaster(ioflo.base.deeding.Deed):  # pylint: disable=W0232
     '''
     Abstract access to the core salt master api
     '''
-    Ioinits = {'opts': '.salt.etc.opts',
+    Ioinits = {'opts': '.salt.opts',
                'ret_in': '.salt.net.ret_in',
                'ret_out': '.salt.net.ret_out'}
 
-    def __init__(self):
-        ioflo.base.deeding.Deed.__init__(self)
-
-    def postioinit(self):
+    def postinitio(self):
         '''
         Set up required objects
         '''
@@ -162,22 +158,21 @@ class RemoteMaster(ioflo.base.deeding.Deed):
             self.ret_out.value.append(exchange)
 
 
-class LocalMaster(ioflo.base.deeding.Deed):
+class LocalCmd(ioflo.base.deeding.Deed):  # pylint: disable=W0232
     '''
     Abstract access to the core salt master api
     '''
-    Ioinits = {'opts': '.salt.etc.opts',
+    Ioinits = {'opts': '.salt.opts',
                'local_cmd': '.salt.uxd.local_cmd',
-               'local_ret': '.salt.uxd.local_ret'}
+               'local_ret': '.salt.uxd.local_ret',
+               'stack': '.salt.uxd.stack.stack'}
 
-    def __init__(self):
-        ioflo.base.deeding.Deed.__init__(self)
-
-    def postioinit(self):
+    def postinitio(self):
         '''
         Set up required objects
         '''
-        self.local = salt.daemons.masterapi.LocalFuncs(self.opts.value)
+        self.access_keys = salt.daemons.masterapi.access_keys(self.opts.value)
+        self.local = salt.daemons.masterapi.LocalFuncs(self.opts.value, self.access_keys)
 
     def action(self):
         '''
@@ -194,6 +189,7 @@ class LocalMaster(ioflo.base.deeding.Deed):
             if hasattr(self.local, load['cmd']):
                 ret['return'] = getattr(self.local, load['cmd'])(load)
                 ret['route'] = {'src': ('router', self.stack.value.yard.name, None),
-                                'dst': cmd['route']('src')}
+                                'dst': cmd['route']['src']}
 
             self.local_ret.value.append(ret)
+        self.local_cmd.value.clear()
