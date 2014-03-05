@@ -1,0 +1,2 @@
+/etc/salt/master
+/etc/init/hulu-salt-master.conf

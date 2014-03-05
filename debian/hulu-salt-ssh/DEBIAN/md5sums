@@ -1,0 +1,4 @@
+f99b580d014c85893561bd068ed61430  usr/bin/salt-ssh
+b01a7d7cd771106a4ba0674560241659  usr/share/doc/hulu-salt-ssh/changelog.Debian.gz
+004df296ffd07ab35da93fd365d84614  usr/share/doc/hulu-salt-ssh/copyright
+c818f729c6b0e649ac5197ae7e54a012  usr/share/man/man1/salt-ssh.1.gz

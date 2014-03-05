@@ -1,0 +1,3 @@
+/etc/bash_completion.d/salt.bash
+/etc/logrotate.d/hulu-salt-common
+/etc/ufw/applications.d/salt.ufw

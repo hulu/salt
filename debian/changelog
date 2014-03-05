@@ -1,8 +1,8 @@
-hulu-salt (2014.1.0-1) unstable; urgency=low
+hulu-salt (2014.1.0-1ubuntu1) unstable; urgency=low
 
   * First hulu-compiled package
 
- -- Keith Ainsworth <keith@hulu.com> Thu, 27 Feb 2014 13:37:00 -0700
+ -- keith <keith@hulu.com>  Mon, 03 Mar 2014 16:11:38 -0800
 
 hulu-salt (0.17.0-1) unstable; urgency=low
 

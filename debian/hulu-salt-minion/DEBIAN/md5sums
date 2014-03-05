@@ -1,0 +1,7 @@
+8ef6ab9bf9750f146d31bd8da9da963b  lib/systemd/system/salt-minion.service
+8469e8c9029a5cec6c235c3e2ee6f199  usr/bin/salt-call
+e1a5637af6c8f2f68dd07df865af8cac  usr/bin/salt-minion
+b01a7d7cd771106a4ba0674560241659  usr/share/doc/hulu-salt-minion/changelog.Debian.gz
+004df296ffd07ab35da93fd365d84614  usr/share/doc/hulu-salt-minion/copyright
+0efc597c6d4f6ad6deca38af2c787a0c  usr/share/man/man1/salt-call.1.gz
+4e7a78fb4acd5e50e9a0b92d52df0118  usr/share/man/man1/salt-minion.1.gz

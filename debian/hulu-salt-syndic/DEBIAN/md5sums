@@ -1,0 +1,5 @@
+97e1daa0f7232f48d109b62890b68d0e  lib/systemd/system/salt-syndic.service
+2a1ebacb8d21c2fa08c1553397c4e51b  usr/bin/salt-syndic
+b01a7d7cd771106a4ba0674560241659  usr/share/doc/hulu-salt-syndic/changelog.Debian.gz
+004df296ffd07ab35da93fd365d84614  usr/share/doc/hulu-salt-syndic/copyright
+b077d28afdfece048b3e29136c14258e  usr/share/man/man1/salt-syndic.1.gz

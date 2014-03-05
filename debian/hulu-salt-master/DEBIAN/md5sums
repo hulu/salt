@@ -1,0 +1,13 @@
+3be813f49bf5ab9580cfc23e915eea4b  lib/systemd/system/salt-master.service
+b19d2af8ee152676d00c23d2bc441954  usr/bin/salt
+241ec234cd3b4fffc4e80e542d3b3a89  usr/bin/salt-cp
+8c65b24e15e4c396f63e6ce2f43de7bb  usr/bin/salt-key
+2e27c1f37d09253fb63ffd139aba44dc  usr/bin/salt-master
+2bc4fb894be9dd90c06e26ebbab58c7a  usr/bin/salt-run
+b01a7d7cd771106a4ba0674560241659  usr/share/doc/hulu-salt-master/changelog.Debian.gz
+004df296ffd07ab35da93fd365d84614  usr/share/doc/hulu-salt-master/copyright
+9d047f75407deb7c7edd98c99fdd6a47  usr/share/man/man1/salt-cp.1.gz
+fe2746524258fb7d06c716644d51ce20  usr/share/man/man1/salt-key.1.gz
+2042e0533521d8cc4cc275e5441e5507  usr/share/man/man1/salt-master.1.gz
+ad1f2440554d6182531a0d7d3167d27a  usr/share/man/man1/salt-run.1.gz
+ac1fd6331c101369365e710f536306f0  usr/share/man/man1/salt.1.gz

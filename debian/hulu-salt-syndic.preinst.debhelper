@@ -1,0 +1,14 @@
+# Automatically added by dh_installinit
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+	if [ -e "/etc/init.d/hulu-salt-syndic" ] && [ ! -L "/etc/init.d/hulu-salt-syndic" ]; then
+		if [ "`md5sum \"/etc/init.d/hulu-salt-syndic\" | sed -e \"s/ .*//\"`" != \
+		     "`dpkg-query -W -f='${Conffiles}' hulu-salt-syndic | sed -n -e \"\\\\' /etc/init.d/hulu-salt-syndic '{s/ obsolete$//;s/.* //p}\"`" ]
+		then
+			echo "Obsolete conffile /etc/init.d/hulu-salt-syndic has been modified by you, renaming to .dpkg-bak"
+			mv -f "/etc/init.d/hulu-salt-syndic" "/etc/init.d/hulu-salt-syndic.dpkg-bak"
+		else
+			rm -f "/etc/init.d/hulu-salt-syndic"
+		fi
+	fi
+fi
+# End automatically added section
