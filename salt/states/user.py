@@ -125,7 +125,7 @@ def _changes(name,
             change['inactdays'] = inactdays
         if warndays is not 7 and lshad['warn'] != warndays:
             change['warndays'] = warndays
-        if exire is not -1 and lshad['expire'] != exiredate:
+        if expire is not -1 and lshad['expire'] != expire:
             change['expire'] = expire
     # GECOS fields
     if fullname is not None and lusr['fullname'] != fullname:
@@ -514,7 +514,7 @@ def present(name,
                 if expire:
                     __salt__['shadow.set_expire'](name, expire)
                     spost = __salt__['shadow.info'](name)
-                    if spost['expire'] != expiredays:
+                    if spost['expire'] != expire:
                         ret['comment'] = 'User {0} created but failed to set' \
                                          ' expire days to' \
                                          ' {1}'.format(name, expire)

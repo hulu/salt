@@ -47,7 +47,7 @@ def fileserver_update(self):
     salt.daemons.masterapi.fileserver_update(self.opts.value)
 
 
-class UxdRouter(ioflo.base.deeding.Deed):  # pylint: disable=W0232
+class RouterMaster(ioflo.base.deeding.Deed):  # pylint: disable=W0232
     '''
     Routes the communication in and out of uxd connections
     '''
@@ -57,7 +57,9 @@ class UxdRouter(ioflo.base.deeding.Deed):  # pylint: disable=W0232
                'local_cmd': '.salt.uxd.local_cmd',
                'local_ret': '.salt.uxd.local_ret',
                'events': '.salt.uxd.events',
-               'stack': '.salt.uxd.stack.stack'}
+               'publish': '.salt.net.publish',
+               'stack': '.salt.uxd.stack.stack',
+               'udp_stack': '.raet.udp.stack.stack'}
 
     def postinitio(self):
         '''
@@ -65,7 +67,7 @@ class UxdRouter(ioflo.base.deeding.Deed):  # pylint: disable=W0232
         '''
         self.stack.value = stacking.StackUxd(
                 name='router',
-                lanename='com',
+                lanename='master',
                 yid=0,
                 dirpath=self.opts.value['sock_dir'])
         self.event_yards.value = set()
@@ -73,19 +75,17 @@ class UxdRouter(ioflo.base.deeding.Deed):  # pylint: disable=W0232
         self.local_cmd.value = deque()
         self.local_ret.value = deque()
         self.events.value = deque()
+        if not self.publish.value:
+            self.publish.value = deque()
 
     def _register_event_yard(self, msg):
         '''
         register an incoming event request with the requesting yard id
         '''
-        try:
-            ev_yard = yarding.Yard(
-                    yid=msg['load']['yid'],
-                    prefix='com',
-                    dirpath=msg['load']['dirpath'])
-        except Exception:
-            return
-        self.stack.value.addRemoteYard(ev_yard)
+        ev_yard = yarding.Yard(
+                yid=msg['load']['yid'],
+                prefix='master',
+                dirpath=msg['load']['dirpath'])
         self.event_yards.value.add(ev_yard.name)
 
     def _fire_event(self, event):
@@ -96,7 +96,7 @@ class UxdRouter(ioflo.base.deeding.Deed):  # pylint: disable=W0232
             route = {'src': ('router', self.stack.value.yard.name, None),
                      'dst': ('router', y_name, None)}
             msg = {'route': route, 'event': event}
-            self.stack.value.transmit(msg)
+            self.stack.value.transmit(msg, y_name)
 
     def _process_rxmsg(self, msg):
         '''
@@ -108,8 +108,27 @@ class UxdRouter(ioflo.base.deeding.Deed):  # pylint: disable=W0232
             elif msg['route']['dst'][2] == 'event_req':
                 # Register the event interface
                 self._register_event_yard(msg)
+            elif msg['route']['dst'][2] == 'event_fire':
+                # Register the event interface
+                self.events.value.append(
+                        {'tag': msg['tag'],
+                         'data': msg['data']})
         except Exception:
             return
+
+    def _publish(self, pub_msg):
+        '''
+        Publish the message out to the targetted minions
+        '''
+        import pprint
+        pprint.pprint(self.udp_stack.value.eids)
+        pprint.pprint(pub_msg)
+        for minion in self.udp_stack.value.eids:
+            eid = self.udp_stack.value.eids.get(minion)
+            if eid:
+                route = {'dst': (minion, None, 'fun')}
+                msg = {'route': route, 'pub': pub_msg['pub']}
+                self.udp_stack.value.message(msg, eid)
 
     def action(self):
         '''
@@ -117,14 +136,16 @@ class UxdRouter(ioflo.base.deeding.Deed):  # pylint: disable=W0232
         '''
         self.stack.value.serviceAll()
         # Process inboud communication stack
-        for msg in self.stack.value.rxMsgs:
-            self._process_rxmsg(msg)
-        self.stack.value.rxMsgs.clear()
-        for event in self.events.value:
-            self._fire_event(event)
-        for ret in self.local_ret.value:
-            self.stack.value.transmit(ret)
-        self.local_ret.value.clear()
+        while self.stack.value.rxMsgs:
+            self._process_rxmsg(self.stack.value.rxMsgs.popleft())
+        while self.events.value:
+            self._fire_event(self.events.value.popleft())
+        while self.local_ret.value:
+            msg = self.local_ret.value.popleft()
+            self.stack.value.transmit(msg, msg['route']['dst'][1])
+        while self.publish.value:
+            pub_msg = self.publish.value.popleft()
+            self._publish(pub_msg)
         self.stack.value.serviceAll()
 
 
@@ -165,6 +186,7 @@ class LocalCmd(ioflo.base.deeding.Deed):  # pylint: disable=W0232
     Ioinits = {'opts': '.salt.opts',
                'local_cmd': '.salt.uxd.local_cmd',
                'local_ret': '.salt.uxd.local_ret',
+               'publish': '.salt.net.publish',
                'stack': '.salt.uxd.stack.stack'}
 
     def postinitio(self):
@@ -173,12 +195,15 @@ class LocalCmd(ioflo.base.deeding.Deed):  # pylint: disable=W0232
         '''
         self.access_keys = salt.daemons.masterapi.access_keys(self.opts.value)
         self.local = salt.daemons.masterapi.LocalFuncs(self.opts.value, self.access_keys)
+        if not self.publish.value:
+            self.publish.value = deque()
 
     def action(self):
         '''
         Perform an action
         '''
-        for cmd in self.local_cmd.value:
+        while self.local_cmd.value:
+            cmd = self.local_cmd.value.popleft()
             ret = {}
             load = cmd.get('load')
             # If the load is invalid, just ignore the request
@@ -190,6 +215,6 @@ class LocalCmd(ioflo.base.deeding.Deed):  # pylint: disable=W0232
                 ret['return'] = getattr(self.local, load['cmd'])(load)
                 ret['route'] = {'src': ('router', self.stack.value.yard.name, None),
                                 'dst': cmd['route']['src']}
-
+                if load['cmd'] == 'publish':
+                    self.publish.value.append(ret['return'])
             self.local_ret.value.append(ret)
-        self.local_cmd.value.clear()

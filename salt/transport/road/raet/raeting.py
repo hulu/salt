@@ -126,7 +126,7 @@ HeadKind = namedtuple('HeadKind', HEAD_KINDS.keys())
 headKinds = HeadKind(**HEAD_KINDS)  # headKinds.json is '00'
 
 
-BODY_KINDS = odict([('nada', 0), ('json', 1), ('raw', 2), ('msgpck', 3),
+BODY_KINDS = odict([('nada', 0), ('json', 1), ('raw', 2), ('msgpack', 3),
                     ('unknown', 255)])
 BODY_KIND_NAMES = odict((v, k) for k, v in BODY_KINDS.iteritems())  # inverse map
 BodyKind = namedtuple('BodyKind', BODY_KINDS.keys())
@@ -182,6 +182,11 @@ ACCEPTANCES = odict([('rejected', 0), ('accepted', 1), ('pending', 2),])
 ACCEPTANCE_NAMES = odict((v, k) for k, v in ACCEPTANCES.iteritems())  # inverse map
 Acceptance = namedtuple('Acceptance', ACCEPTANCES.keys())
 acceptance = Acceptance(**ACCEPTANCES)
+
+PACK_KINDS = odict([('json', 0), ('pack', 1)])
+PACK_KIND_NAMES = odict((v, k) for k, v in PACK_KINDS.iteritems())  # inverse map
+PackKind = namedtuple('PackKind', PACK_KINDS.keys())
+packKinds = PackKind(**PACK_KINDS)
 
 # head fields that may be included in json header if not default value
 PACKET_DEFAULTS = odict([

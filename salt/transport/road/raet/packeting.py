@@ -12,6 +12,11 @@ try:
 except ImportError:
     import json
 
+try:
+    import msgpack
+except ImportError:
+    mspack = None
+
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base.aiding import packByte, unpackByte
@@ -190,8 +195,13 @@ class TxBody(Body):
         if bk == raeting.bodyKinds.json:
             if self.data:
                 self.packed = json.dumps(self.data, separators=(',', ':'))
-
-        if bk == raeting.bodyKinds.raw:
+        elif bk == raeting.bodyKinds.msgpack:
+            if self.data:
+                if not msgpack:
+                    emsg = "Msgpack not installed."
+                    raise raeting.PacketError(emsg)
+                self.packed = msgpack.dumps(self.data)
+        elif bk == raeting.bodyKinds.raw:
             self.packed = self.data # data is already formatted string
 
 class RxBody(Body):
@@ -219,10 +229,18 @@ class RxBody(Body):
                     emsg = "Packet body not a mapping."
                     raise raeting.PacketError(emsg)
                 self.data = kit
-
-        if bk == raeting.bodyKinds.raw:
+        elif bk == raeting.bodyKinds.msgpack:
+            if self.packed:
+                if not msgpack:
+                    emsg = "Msgpack not installed."
+                    raise raeting.PacketError(emsg)
+                kit = msgpack.loads(self.packed, object_pairs_hook=odict)
+                if not isinstance(kit, Mapping):
+                    emsg = "Packet body not a mapping."
+                    raise raeting.PacketError(emsg)
+                self.data = kit
+        elif bk == raeting.bodyKinds.raw:
             self.data = self.packed # return as string
-
         elif bk == raeting.bodyKinds.nada:
             pass
 
@@ -448,16 +466,16 @@ class TxPacket(Packet):
         data = self.data
         le = data['se']
         if le == 0:
-            host = data['sh']
-            if host == '0.0.0.0':
-                host = '127.0.0.1'
-            le = (host, data['sp'])
+            #host = data['sh']
+            #if host == '0.0.0.0':
+                #host = '127.0.0.1'
+            le = (data['sh'], data['sp'])
         re = data['de']
         if re == 0:
-            host = data['dh']
-            if host == '0.0.0.0':
-                host = '127.0.0.1'
-            re = (host, data['dp'])
+            #host = data['dh']
+            #if host == '0.0.0.0':
+                #host = '127.0.0.1'
+            re = (data['dh'], data['dp'])
         return ((data['cf'], le, re, data['si'], data['ti'], data['bf']))
 
     def signature(self, msg):
@@ -560,16 +578,16 @@ class RxPacket(Packet):
         data = self.data
         le = data['de']
         if le == 0:
-            host = data['dh']
-            if host == '0.0.0.0':
-                host = '127.0.0.1'
-            le = (host, data['dp'])
+            #host = data['dh']
+            #if host == '0.0.0.0':
+                #host = '127.0.0.1'
+            le = (data['dh'], data['dp'])
         re = data['se']
         if re == 0:
-            host = data['sh']
-            if host == '0.0.0.0':
-                host = '127.0.0.1'
-            re = (host, data['sp'])
+            #host = data['sh']
+            #if host == '0.0.0.0':
+                #host = '127.0.0.1'
+            re = (data['sh'], data['sp'])
         return ((not data['cf'], le, re, data['si'], data['ti'], data['bf']))
 
     def verify(self, signature, msg):
