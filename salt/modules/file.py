@@ -1349,7 +1349,7 @@ def contains_regex_multiline(path, regex):
         return False
 
 
-def contains_glob(path, glob):
+def contains_glob(path, glob):  # pylint: disable=W0621
     '''
     .. deprecated:: 0.17.0
        Use :func:`search` instead.
