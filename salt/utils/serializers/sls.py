@@ -171,7 +171,7 @@ def serialize(obj, **options):
         raise SerializationError(error)
 
 
-class Loader(BaseLoader):
+class Loader(BaseLoader):  # pylint: disable=W0232
     '''
     Create a custom YAML loader that uses the custom constructor. This allows
     for the YAML loading defaults to be manipulated based on needs within salt
