@@ -327,7 +327,7 @@ class SaltNova(object):
 
     def flavor_create(self,
                       name,      # pylint: disable=C0103
-                      id=0,      # pylint: disable=C0103
+                      id=0,      # pylint: disable=C0103,W0622
                       ram=0,
                       disk=0,
                       vcpus=1):
@@ -344,7 +344,7 @@ class SaltNova(object):
                 'disk': disk,
                 'vcpus': vcpus}
 
-    def flavor_delete(self, id):  # pylint: disable=C0103
+    def flavor_delete(self, id):  # pylint: disable=C0103,W0622
         '''
         Delete a flavor
         '''
@@ -419,7 +419,7 @@ class SaltNova(object):
     list_images = image_list
 
     def image_meta_set(self,
-                       id=None,
+                       id=None,  # pylint: disable=W0622
                        name=None,
                        **kwargs):  # pylint: disable=C0103
         '''
@@ -436,7 +436,7 @@ class SaltNova(object):
         return {id: kwargs}
 
     def image_meta_delete(self,
-                          id=None,     # pylint: disable=C0103
+                          id=None,     # pylint: disable=C0103,W0622
                           name=None,
                           keys=None):
         '''
