@@ -13,7 +13,7 @@ when identifying discrepancies in a large infrastructure managed by salt.
 import salt.client
 
 
-def hash(*args, **kwargs):
+def hash(*args, **kwargs):  # pylint: disable=W0622
     '''
     Return the MATCHING minion pools from the aggregated and sorted results of
     a salt command.  This command is submitted via a salt runner using the
