@@ -200,7 +200,7 @@ def init(name,
         If salt-minion is not already installed, install it. Default: true
 
     config
-        Optional config paramers. By default, the id is set to the name of the
+        Optional config parameters. By default, the id is set to the name of the
         container.
     '''
     nicp = _nic_profile(nic)
@@ -299,15 +299,18 @@ def create(name, config=None, profile=None, options=None, **kwargs):
     if template:
         cmd += ' -t {0}'.format(template)
     if backing:
+        backing = backing.lower()
         cmd += ' -B {0}'.format(backing)
-        if lvname:
-            cmd += ' --lvname {0}'.format(vgname)
-        if vgname:
-            cmd += ' --vgname {0}'.format(vgname)
-        if fstype:
-            cmd += ' --fstype {0}'.format(size)
-        if size:
-            cmd += ' --fssize {0}'.format(size)
+        if backing in ['lvm']:
+            if lvname:
+                cmd += ' --lvname {0}'.format(vgname)
+            if vgname:
+                cmd += ' --vgname {0}'.format(vgname)
+        if backing not in ['dir', 'overlayfs']:
+            if fstype:
+                cmd += ' --fstype {0}'.format(fstype)
+            if size:
+                cmd += ' --fssize {0}'.format(size)
     if profile:
         cmd += ' --'
         options = profile
@@ -967,7 +970,7 @@ def update_lxc_conf(name, lxc_conf, lxc_conf_unset):
 
 
 def set_dns(name, dnsservers=None, searchdomains=None):
-    '''Update container dns configuration
+    '''Update container DNS configuration
     and possibly also resolvonf one.
 
     CLI Example:
@@ -1008,14 +1011,14 @@ def set_dns(name, dnsservers=None, searchdomains=None):
     return ret
 
 
-def saltify(name, config=None, approve_key=True, install=True):
+def bootstrap(name, config=None, approve_key=True, install=True):
     '''
     Install and configure salt in a container.
 
     .. code-block:: bash
 
-        salt 'minion' lxc.saltify name [config=config_data] \\
-                [approve_key=(true|false)] [approve_key=(true|false)]
+        salt 'minion' lxc.bootstrap name [config=config_data] \\
+                [approve_key=(true|false)] [install=(true|false)]
 
     config
         Minion configuration options. By default, the 'master' option is set to
@@ -1027,16 +1030,16 @@ def saltify(name, config=None, approve_key=True, install=True):
         expect a signing request from the target host. Default: true.
 
     install
-        Whether to attempt a full installtion of salt-minion if needed.
+        Whether to attempt a full installation of salt-minion if needed.
     '''
 
-    info = __salt__['lxc.info'](name)
-    if not info:
+    infos = __salt__['lxc.info'](name)
+    if not infos:
         return None
 
     prior_state = _ensure_running(name)
 
-    __salt__['seed.apply'](info['rootfs'], id_=name, config=config,
+    __salt__['seed.apply'](infos['rootfs'], id_=name, config=config,
                            approve_key=approve_key, install=False,
                            prep_install=True)
 
