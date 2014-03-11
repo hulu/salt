@@ -377,8 +377,8 @@ class SaltNova(object):
     list_sizes = flavor_list
 
     def flavor_create(self,
-                      name,      # pylint: disable=C0103
-                      id=0,      # pylint: disable=C0103,W0622
+                      name,  # pylint: disable=C0103
+                      flavor_id=0,  # pylint: disable=C0103
                       ram=0,
                       disk=0,
                       vcpus=1):
@@ -387,21 +387,21 @@ class SaltNova(object):
         '''
         nt_ks = self.compute_conn
         nt_ks.flavors.create(
-            name=name, flavorid=id, ram=ram, disk=disk, vcpus=vcpus
+            name=name, flavorid=flavor_id, ram=ram, disk=disk, vcpus=vcpus
         )
         return {'name': name,
-                'id': id,
+                'id': flavor_id,
                 'ram': ram,
                 'disk': disk,
                 'vcpus': vcpus}
 
-    def flavor_delete(self, id):  # pylint: disable=C0103,W0622
+    def flavor_delete(self, flavor_id):  # pylint: disable=C0103
         '''
         Delete a flavor
         '''
         nt_ks = self.compute_conn
-        nt_ks.flavors.delete(id)
-        return 'Flavor deleted: {0}'.format(id)
+        nt_ks.flavors.delete(flavor_id)
+        return 'Flavor deleted: {0}'.format(flavor_id)
 
     def keypair_list(self):
         '''
@@ -439,6 +439,32 @@ class SaltNova(object):
         nt_ks.keypairs.delete(name)
         return 'Keypair deleted: {0}'.format(name)
 
+    def image_show(self, image_id):
+        '''
+        Show image details and metadata
+        '''
+        nt_ks = self.compute_conn
+        image = nt_ks.images.get(image_id)
+        links = {}
+        for link in image.links:
+            links[link['rel']] = link['href']
+        ret = {
+            'name': image.name,
+            'id': image.id,
+            'status': image.status,
+            'progress': image.progress,
+            'created': image.created,
+            'updated': image.updated,
+            'metadata': image.metadata,
+            'links': links,
+        }
+        if hasattr(image, 'minDisk'):
+            ret['minDisk'] = image.minDisk
+        if hasattr(image, 'minRam'):
+            ret['minRam'] = image.minRam
+
+        return ret
+
     def image_list(self, name=None):
         '''
         List server images
@@ -470,7 +496,7 @@ class SaltNova(object):
     list_images = image_list
 
     def image_meta_set(self,
-                       id=None,  # pylint: disable=W0622
+                       image_id=None,
                        name=None,
                        **kwargs):  # pylint: disable=C0103
         '''
@@ -480,14 +506,14 @@ class SaltNova(object):
         if name:
             for image in nt_ks.images.list():
                 if image.name == name:
-                    id = image.id  # pylint: disable=C0103
-        if not id:
+                    image_id = image.id  # pylint: disable=C0103
+        if not image_id:
             return {'Error': 'A valid image name or id was not specified'}
-        nt_ks.images.set_meta(id, kwargs)
-        return {id: kwargs}
+        nt_ks.images.set_meta(image_id, kwargs)
+        return {image_id: kwargs}
 
     def image_meta_delete(self,
-                          id=None,     # pylint: disable=C0103,W0622
+                          image_id=None,     # pylint: disable=C0103
                           name=None,
                           keys=None):
         '''
@@ -497,12 +523,12 @@ class SaltNova(object):
         if name:
             for image in nt_ks.images.list():
                 if image.name == name:
-                    id = image.id  # pylint: disable=C0103
+                    image_id = image.id  # pylint: disable=C0103
         pairs = keys.split(',')
-        if not id:
+        if not image_id:
             return {'Error': 'A valid image name or id was not specified'}
-        nt_ks.images.delete_meta(id, pairs)
-        return {id: 'Deleted: {0}'.format(pairs)}
+        nt_ks.images.delete_meta(image_id, pairs)
+        return {image_id: 'Deleted: {0}'.format(pairs)}
 
     def server_list(self):
         '''
@@ -535,7 +561,7 @@ class SaltNova(object):
 
         return ret
 
-    def server_list_detailed(self,):
+    def server_list_detailed(self):
         '''
         Detailed list of servers
         '''
