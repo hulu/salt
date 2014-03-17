@@ -407,7 +407,7 @@ def _parse_config(config, slot=None):
     return ret.read()
 
 
-def config(name, config, edit=True):
+def config(name, config, edit=True):  # pylint: disable=W0621
     '''
     Create VirtualHost configuration files
 
