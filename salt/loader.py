@@ -277,7 +277,7 @@ def ssh_wrapper(opts, functions=None):
     return load.gen_functions(pack)
 
 
-def render(opts, functions, states=None):
+def render(opts, functions, states=None):  # pylint: disable=W0621
     '''
     Returns the render modules
     '''
