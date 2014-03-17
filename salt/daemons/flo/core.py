@@ -17,7 +17,10 @@ from collections import deque
 # Import salt libs
 import salt.daemons.masterapi
 from salt.transport.road.raet import stacking
+from salt.transport.road.raet import estating
+from salt.transport.road.raet import raeting
 from salt.transport.road.raet import yarding
+from salt.transport.road.raet import salting
 from salt.exceptions import (
         CommandExecutionError, CommandNotFoundError, SaltInvocationError)
 
@@ -39,6 +42,62 @@ try:
 except ImportError:
     pass
 log = logging.getLogger(__name__)
+
+
+class StackUdpRaetSalt(ioflo.base.deeding.Deed):
+    '''
+    Initialize and run raet udp stack for Salt
+    '''
+    Ioinits = dict(
+            inode='raet.udp.stack.',
+            stack='stack',
+            opts='.salt.opts',
+            txmsgs=dict(ipath='txmsgs', ival=deque()),
+            rxmsgs=dict(ipath='rxmsgs', ival=deque()),
+            local=dict(ipath='local', ival=dict(name='master',
+                                            dirpath='raet/test/keep',
+                                            main=False,
+                                            auto=True,
+                                            eid=0,
+                                            host='0.0.0.0',
+                                            port=raeting.RAET_PORT,
+                                            sigkey=None,
+                                            prikey=None)),)
+
+    def postinitio(self):
+        '''
+        Setup stack instance
+        '''
+        sigkey = self.local.data.sigkey
+        prikey = self.local.data.prikey
+        name = self.local.data.name
+        dirpath = os.path.abspath(os.path.join(self.local.data.dirpath, name))
+        auto = self.local.data.auto
+        main = self.local.data.main
+        ha = (self.local.data.host, self.local.data.port)
+
+        eid = self.local.data.eid
+        estate = estating.LocalEstate(
+                eid=eid,
+                name=name,
+                ha=ha,
+                sigkey=sigkey,
+                prikey=prikey)
+        txMsgs = self.txmsgs.value
+        rxMsgs = self.rxmsgs.value
+        safe = salting.SaltSafe(opts=self.opts.value)
+
+        self.stack.value = stacking.StackUdp(
+                estate=estate,
+                store=self.store,
+                name=name,
+                auto=auto,
+                main=main,
+                dirpath=dirpath,
+                safe=safe,
+                txMsgs=txMsgs,
+                rxMsgs=rxMsgs)
+        self.stack.value.Bk = raeting.bodyKinds.msgpack
 
 
 class ModulesLoad(ioflo.base.deeding.Deed):
@@ -130,9 +189,11 @@ class Setup(ioflo.base.deeding.Deed):
         Set up required objects and queues
         '''
         self.uxd_stack.value = stacking.StackUxd(
+                name='yard',
                 lanename=self.opts.value['id'],
                 yid=0,
                 dirpath=self.opts.value['sock_dir'])
+        self.uxd_stack.value.Pk = raeting.packKinds.pack
         self.event_yards.value = set()
         self.local_cmd.value = deque()
         self.remote_cmd.value = deque()
@@ -140,10 +201,11 @@ class Setup(ioflo.base.deeding.Deed):
         self.event.value = deque()
         self.event_req.value = deque()
         self.publish.value = deque()
-        worker_seed = []
-        for ind in range(self.opts.value['worker_threads']):
-            worker_seed.append('yard{0}'.format(ind + 1))
-        self.workers.value = itertools.cycle(worker_seed)
+        if self.opts.value.get('worker_threads'):
+            worker_seed = []
+            for ind in range(self.opts.value['worker_threads']):
+                worker_seed.append('yard{0}'.format(ind + 1))
+            self.workers.value = itertools.cycle(worker_seed)
 
 
 class Rx(ioflo.base.deeding.Deed):
@@ -185,6 +247,9 @@ class Tx(ioflo.base.deeding.Deed):
 class Router(ioflo.base.deeding.Deed):
     '''
     Routes the communication in and out of uxd connections
+
+    This is the initial static salt router, we want to create a dynamic
+    router that takes a map that defines where packets are send
     '''
     Ioinits = {'opts': '.salt.opts',
                'local_cmd': '.salt.local.local_cmd',
@@ -193,11 +258,9 @@ class Router(ioflo.base.deeding.Deed):
                'fun': '.salt.local.fun',
                'event': '.salt.event.events',
                'event_req': '.salt.event.event_req',
+               'workers': '.salt.track.workers',
                'uxd_stack': '.salt.uxd.stack.stack',
                'udp_stack': '.raet.udp.stack.stack'}
-
-    def postinitio(self):
-        self.next_worker  # pylint: disable=W0104
 
     def _process_udp_rxmsg(self, msg):
         '''
@@ -210,7 +273,9 @@ class Router(ioflo.base.deeding.Deed):
         except (ValueError, IndexError):
             log.error('Received invalid message: {0}'.format(msg))
             return
-        if d_estate != self.udp_stack.value.estate:
+        if d_estate is None:
+            pass
+        elif d_estate != self.udp_stack.value.estate.name:
             log.error(
                     'Received message for wrong estate: {0}'.format(d_estate))
             return
@@ -224,13 +289,15 @@ class Router(ioflo.base.deeding.Deed):
             # No queue destination!
             log.error('Received message without share: {0}'.format(msg))
             return
-        if d_share == 'local_cmd':
+        elif d_share == 'local_cmd':
             # Refuse local commands over the wire
             log.error('Received local command remotely! Ignoring: {0}'.format(msg))
             return
-        if d_share == 'remote_cmd':
+        elif d_share == 'remote_cmd':
             # Send it to a remote worker
             self.uxd_stack.value.transmit(msg, next(self.workers.value))
+        elif d_share == 'fun':
+            self.fun.value.append(msg)
 
     def _process_uxd_rxmsg(self, msg):
         '''
@@ -251,7 +318,11 @@ class Router(ioflo.base.deeding.Deed):
             eid = self.udp_stack.value.eids.get(d_estate)
             self.udp_stack.value.message(msg, eid)
             return
-        if d_yard is not None:
+        if d_share == 'pub_ret':
+            self.publish.value.append(msg)
+        if d_yard is None:
+            pass
+        elif d_yard != self.uxd_stack.value.yard.name:
             # Meant for another yard, send it off!
             if d_yard in self.uxd_stack.value.yards:
                 self.uxd_stack.value.transmit(msg, d_yard)
@@ -261,8 +332,12 @@ class Router(ioflo.base.deeding.Deed):
             # No queue destination!
             log.error('Received message without share: {0}'.format(msg))
             return
-        if d_share == 'local_cmd':
+        elif d_share == 'local_cmd':
             self.uxd_stack.value.transmit(msg, next(self.workers.value))
+        elif d_share == 'event_req':
+            self.event_req.value.append(msg)
+        elif d_share == 'event_fire':
+            self.event.value.append(msg)
 
     def action(self):
         '''
@@ -288,21 +363,24 @@ class Eventer(ioflo.base.deeding.Deed):
         '''
         register an incoming event request with the requesting yard id
         '''
-        ev_yard = yarding.Yard(
-                yid=msg['load']['yid'],
-                prefix='master',
-                dirpath=msg['load']['dirpath'])
-        self.event_yards.value.add(ev_yard.name)
+        self.event_yards.value.add(msg['route']['src'][1])
 
     def _fire_event(self, event):
         '''
         Fire an event to all subscribed yards
         '''
+        rm_ = []
         for y_name in self.event_yards.value:
-            route = {'src': ('router', self.stack.value.yard.name, None),
+            if y_name not in self.uxd_stack.value.yards:
+                rm_.append(y_name)
+                continue
+            route = {'src': ('router', self.uxd_stack.value.yard.name, None),
                      'dst': ('router', y_name, None)}
             msg = {'route': route, 'event': event}
             self.uxd_stack.value.transmit(msg, y_name)
+            self.uxd_stack.value.serviceAll()
+        for y_name in rm_:
+            self.event_yards.value.remove(y_name)
 
     def action(self):
         '''
@@ -332,11 +410,14 @@ class Publisher(ioflo.base.deeding.Deed):
         '''
         Publish the message out to the targeted minions
         '''
+        pub_data = pub_msg['return']
         for minion in self.udp_stack.value.eids:
             eid = self.udp_stack.value.eids.get(minion)
             if eid:
-                route = {'dst': (minion, None, 'fun')}
-                msg = {'route': route, 'pub': pub_msg['pub']}
+                route = {
+                        'dst': (minion, None, 'fun'),
+                        'src': (self.udp_stack.value.estate.name, None, None)}
+                msg = {'route': route, 'pub': pub_data['pub']}
                 self.udp_stack.value.message(msg, eid)
 
     def action(self):
@@ -373,7 +454,7 @@ class ExecutorNix(ioflo.base.deeding.Deed):
         self.serial = salt.payload.Serial(self.opts)
         self.executors.value = {}
 
-    def _return_pub(self, ret):
+    def _return_pub(self, msg, ret):
         '''
         Send the return data back via the uxd socket
         '''
@@ -381,6 +462,7 @@ class ExecutorNix(ioflo.base.deeding.Deed):
                 lanename=self.opts['id'],
                 yid=ret['jid'],
                 dirpath=self.opts['sock_dir'])
+        ret_stack.Pk = raeting.packKinds.pack
         main_yard = yarding.Yard(
                 yid=0,
                 prefix=self.opts['id'],
@@ -388,8 +470,10 @@ class ExecutorNix(ioflo.base.deeding.Deed):
                 )
         ret_stack.addRemoteYard(main_yard)
         route = {'src': (self.opts['id'], ret_stack.yard.name, 'jid_ret'),
-                 'dst': ('master', None, 'return')}
-        msg = {'route': route, 'return': ret}
+                 'dst': (msg['route']['src'][0], None, 'remote_cmd')}
+        ret['cmd'] = '_return'
+        ret['id'] = self.opts['id']
+        msg = {'route': route, 'load': ret}
         ret_stack.transmit(msg, 'yard0')
         ret_stack.serviceAll()
 
@@ -520,7 +604,7 @@ class ExecutorNix(ioflo.base.deeding.Deed):
         ret['jid'] = data['jid']
         ret['fun'] = data['fun']
         ret['fun_args'] = data['arg']
-        self._return_pub(ret)
+        self._return_pub(exchange, ret)
         if data['ret']:
             ret['id'] = self.opts['id']
             for returner in set(data['ret'].split(',')):

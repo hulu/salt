@@ -130,4 +130,5 @@ def test(preClearMaster=False, preClearMinion=False, postClearMaster=False, post
 if __name__ == "__main__":
     test(True, True, False, True)
     test(False, False, True, True)
-
+    test(False, False, False, False)
+    test(False, False, True, True)

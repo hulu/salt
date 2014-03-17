@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Tests to try out packeting. Potentially ephemeral
+Tests to try out keeping. Potentially ephemeral
 
 '''
 # pylint: skip-file

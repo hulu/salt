@@ -448,6 +448,7 @@ SETUP_KWARGS = {'name': NAME,
                              'salt.search',
                              'salt.states',
                              'salt.tops',
+                             'salt.templates',
                              'salt.transport',
                              'salt.transport.road',
                              'salt.transport.road.raet',
@@ -464,7 +465,8 @@ SETUP_KWARGS = {'name': NAME,
                 'package_data': {'salt.templates': [
                                     'rh_ip/*.jinja',
                                     'debian_ip/*.jinja',
-                                    'virt/*.jinja'
+                                    'virt/*.jinja',
+                                    'git/*'
                                     ],
                                  'salt.daemons.flo': [
                                     '*.flo'

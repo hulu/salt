@@ -17,13 +17,14 @@ opts['ioflo_realtime']
 opts['ioflo_verbose']
 '''
 
-# Import python libs
-import multiprocessing
-
 # Import modules
 from . import core
+from . import worker
 
-__all__ = ['core']
+__all__ = ['core', 'worker']
+
+# Import salt libs
+import salt.daemons.masterapi
 
 # Import ioflo libs
 import ioflo.app.run
@@ -33,7 +34,6 @@ def explode_opts(opts):
     '''
     Explode the opts into a preloads list
     '''
-    preloads = []
     preloads = [('.salt.opts', dict(value=opts))]
     for key, val in opts.items():
         ukey = key.replace('.', '_')
@@ -51,38 +51,9 @@ class IofloMaster(object):
         '''
         self.opts = opts
         self.preloads = explode_opts(self.opts)
-
-    def _make_workers(self):
-        '''
-        Spin up a process for each worker thread
-        '''
-        for ind in range(int(self.opts['worker_threads'])):
-            proc = multiprocessing.Process(
-                    target=self._worker, kwargs={'yid': ind + 1}
-                    )
-            proc.start()
-
-    def _worker(self, yid):
-        '''
-        Spin up a worker, do this in s multiprocess
-        '''
-        behaviors = ['salt.transport.road.raet', 'salt.daemons.flo']
-        self.preloads.append('.salt.yid', yid)
-        ioflo.app.run.start(
-                name='worker{0}'.format(yid),
-                period=float(self.opts['ioflo_period']),
-                stamp=0.0,
-                real=self.opts['ioflo_realtime'],
-                filepath=self.opts['worker_floscript'],
-                behaviors=behaviors,
-                username="",
-                password="",
-                mode=None,
-                houses=None,
-                metas=None,
-                preloads=self.preloads,
-                verbose=int(self.opts['ioflo_verbose']),
-                )
+        self.access_keys = salt.daemons.masterapi.access_keys(self.opts)
+        self.preloads.append(
+                ('.salt.access_keys', dict(value=self.access_keys)))
 
     def start(self):
         '''
