@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=W0122
 '''
 Python renderer that includes a Pythonic Object based interface
 
