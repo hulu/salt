@@ -96,7 +96,7 @@ class StackUdp(object):
                                                              main=main,
                                                              ha=ha)
         self.estate.stack = self
-        self.server = aiding.SocketUdpNb(ha=self.estate.ha, bufsize=raeting.MAX_MESSAGE_SIZE)
+        self.server = aiding.SocketUdpNb(ha=self.estate.ha, bufsize=raeting.UDP_MAX_PACKET_SIZE * 2)
         self.server.reopen()  # open socket
         self.estate.ha = self.server.ha  # update estate host address after open
         self.dumpLocal() # save local estate data
@@ -357,9 +357,9 @@ class StackUdp(object):
         '''
         self.stats[key] = value
 
-    def serviceUdp(self):
+    def serviceUdpRx(self):
         '''
-        Service the UDP receive and transmit queues
+        Service the UDP receive and fill the rxes deque
         '''
         if self.server:
             while True:
@@ -369,11 +369,69 @@ class StackUdp(object):
                 # triple = ( packet, source address, destination address)
                 self.rxes.append((rx, ra, self.server.ha))
 
+        return None
+
+    def serviceRxes(self):
+        '''
+        Process all messages in .rxes deque
+        '''
+        while self.rxes:
+            self.processUdpRx()
+
+    def serviceTxMsgs(self):
+        '''
+        Service .txMsgs queue of outgoing  messages and start message transactions
+        '''
+        while self.txMsgs:
+            body, deid = self.txMsgs.popleft() # duple (body dict, destination eid)
+            self.message(body, deid)
+            console.verbose("{0} sending\n{1}\n".format(self.name, body))
+    def serviceTxes(self):
+        '''
+        Service the .txes deque to send Udp messages
+        '''
+        if self.server:
+            laters = deque()
             while self.txes:
                 tx, ta = self.txes.popleft()  # duple = (packet, destination address)
-                self.server.send(tx, ta)
+                try:
+                    self.server.send(tx, ta)
+                except socket.error as ex:
+                    if ex.errno == errno.EAGAIN or ex.errno == errno.EWOULDBLOCK:
+                        #busy with last message save it for later
+                        laters.append((tx, ta))
+                    else:
+                        #console.verbose("socket.error = {0}\n".format(ex))
+                        raise
+            while laters:
+                self.txes.append(laters.popleft())
 
-        return None
+    def serviceUdp(self):
+        '''
+        Service the UDP receive and transmit queues
+        '''
+        self.serviceUdpRx()
+        self.serviceTxes()
+
+    def serviceRx(self):
+        '''
+        Service:
+           UDP Socket receive
+           rxes queue
+           process
+        '''
+        self.serviceUdpRx()
+        self.serviceRxes()
+        self.process()
+
+    def serviceTx(self):
+        '''
+        Service:
+           txMsgs queue
+           txes queue and UDP Socket send
+        '''
+        self.serviceTxMsgs()
+        self.serviceTxes()
 
     def serviceAll(self):
         '''
@@ -382,29 +440,29 @@ class StackUdp(object):
            rxes queue
            process
            txMsgs queue
-           txes queue
-           UDP Socket send
-
+           txes queue and UDP Socket send
         '''
-        if self.server:
-            while True:
-                rx, ra = self.server.receive()  # if no data the duple is ('',None)
-                if not rx:  # no received data so break
-                    break
-                # triple = ( packet, source address, destination address)
-                self.rxes.append((rx, ra, self.server.ha))
+        self.serviceUdpRx()
+        self.serviceRxes()
+        self.process()
 
-            self.serviceUdpRx()
+        self.serviceTxMsgs()
+        self.serviceTxes()
 
-            self.process()
+    def transmit(self, msg, deid=None):
+        '''
+        Append duple (msg,deid) to .txMsgs deque
+        If msg is not mapping then raises exception
+        If deid is None then it will default to the first entry in .estates
+        '''
+        if not isinstance(msg, Mapping):
+            emsg = "Invalid msg, not a mapping {0}\n".format(msg)
+            console.terse(emsg)
+            self.incStat("invalid_transmit_body")
+            return
+        self.txMsgs.append((msg, deid))
 
-            self.serviceTxMsg()
-
-            while self.txes:
-                tx, ta = self.txes.popleft()  # duple = (packet, destination address)
-                self.server.send(tx, ta)
-
-        return None
+    txMsg = transmit
 
     def txUdp(self, packed, deid):
         '''
@@ -417,30 +475,28 @@ class StackUdp(object):
             raise raeting.StackError(msg)
         self.txes.append((packed, self.estates[deid].ha))
 
-    def txMsg(self, msg, deid=None):
+    def processUdpRx(self):
         '''
-        Append duple (msg,deid) to .txMsgs deque
-        If msg is not mapping then raises exception
-        If deid is None then it will default to the first entry in .estates
+        Retrieve next packet from stack receive queue if any and parse
+        Process associated transaction or reply with new correspondent transaction
         '''
-        if not isinstance(msg, Mapping):
-            emsg = "Invalid msg, not a mapping {0}".format(msg)
-            console.terse(emsg + '\n')
-            self.incStat("invalid_transmit_body")
+        packet = self.fetchParseUdpRx()
+        if not packet:
             return
-            #raise raeting.StackError(emsg)
-        self.txMsgs.append((msg, deid))
 
-    transmit = txMsg
+        console.verbose("{0} received packet data\n{1}\n".format(self.name, packet.data))
+        console.verbose("{0} received packet index = '{1}'\n".format(self.name, packet.index))
 
-    def serviceTxMsg(self):
-        '''
-        Service .udpTxMsgs queue of outgoint udp messages for message transactions
-        '''
-        while self.txMsgs:
-            body, deid = self.txMsgs.popleft() # duple (body dict, destination eid)
-            self.message(body, deid)
-            console.verbose("{0} sending\n{1}\n".format(self.name, body))
+        trans = self.transactions.get(packet.index, None)
+        if trans:
+            trans.receive(packet)
+            return
+
+        if packet.data['cf']: #correspondent to stale transaction
+            self.stale(packet)
+            return
+
+        self.reply(packet)
 
     def fetchParseUdpRx(self):
         '''
@@ -460,14 +516,14 @@ class StackUdp(object):
         try:
             packet.parseOuter()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.incStat('parsing_outer_error')
             return None
 
         deid = packet.data['de']
         if deid != 0 and self.estate.eid != 0 and deid != self.estate.eid:
-            emsg = "Invalid destination eid = {0}. Dropping packet.".format(deid)
-            print emsg
+            emsg = "Invalid destination eid = {0}. Dropping packet...\n".format(deid)
+            console.concise( emsg)
             return None
 
         sh, sp = sa
@@ -475,39 +531,6 @@ class StackUdp(object):
         packet.data.update(sh=sh, sp=sp, dh=dh, dp=dp)
 
         return packet # outer only has been parsed
-
-    def processUdpRx(self):
-        '''
-        Retrieve next packet from stack receive queue if any and parse
-        Process associated transaction or reply with new correspondent transaction
-        '''
-        packet = self.fetchParseUdpRx()
-        if not packet:
-            return
-
-        console.verbose("{0} received packet data\n{1}\n".format(self.name, packet.data))
-        console.verbose("{0} received packet index = '{1}'\n".format(self.name, packet.index))
-
-        trans = self.transactions.get(packet.index, None)
-        if trans:
-            trans.receive(packet)
-            return
-
-        if packet.data['cf']: #correspondent to stale transaction so drop
-            emsg = "{0} Stale Transaction, dropping ...".format(self.name)
-            console.terse(emsg + '\n')
-            self.incStat('stale_correspondent_attempt')
-            # Should send abort nack to drop transaction on other side
-            return
-
-        self.reply(packet)
-
-    def serviceUdpRx(self):
-        '''
-        Process all packets in .udpRxes deque
-        '''
-        while self.rxes:
-            self.processUdpRx()
 
     def reply(self, packet):
         '''
@@ -544,10 +567,24 @@ class StackUdp(object):
             packet.parseInner()
             console.verbose("{0} received packet body\n{1}\n".format(self.name, packet.body.data))
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.incStat('parsing_inner_error')
             return None
         return packet
+
+    def stale(self, packet):
+        '''
+        Initiate stale transaction in order to nack a stale correspondent packet
+        '''
+        data = odict(hk=self.Hk, bk=self.Bk)
+        staler = transacting.Staler(stack=self,
+                                    kind=packet.data['tk'],
+                                    reid=packet.data['se'],
+                                    sid=packet.data['si'],
+                                    tid=packet.data['ti'],
+                                    txData=data,
+                                    rxPacket=packet)
+        staler.nack()
 
     def join(self, mha=None):
         '''
@@ -625,7 +662,7 @@ class StackUdp(object):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.incStat("packing_error")
             return
 
@@ -683,10 +720,9 @@ class StackUxd(object):
 
         self.lane = lane # or keeping.LaneKeep()
         self.accept = self.Accept if accept is None else accept #accept uxd msg if not in lane
-        self.server = aiding.SocketUxdNb(ha=self.yard.ha, bufsize=raeting.MAX_MESSAGE_SIZE)
+        self.server = aiding.SocketUxdNb(ha=self.yard.ha, bufsize=raeting.UXD_MAX_PACKET_SIZE * 2)
         self.server.reopen()  # open socket
         self.yard.ha = self.server.ha  # update estate host address after open
-
         #self.lane.dumpLocalLane(self.yard)
 
     def fetchRemoteByHa(self, ha):
@@ -795,7 +831,7 @@ class StackUxd(object):
 
     def serviceUxdRx(self):
         '''
-        Service the Uxd recieves and fill the .rxes deque
+        Service the Uxd receive and fill the .rxes deque
         '''
         if self.server:
             while True:
@@ -807,10 +843,21 @@ class StackUxd(object):
 
     def serviceRxes(self):
         '''
-        Process all messages in .uxdRxes deque
+        Process all messages in .rxes deque
         '''
         while self.rxes:
-            self.processUdpRx()
+            self.processUxdRx()
+
+    def serviceTxMsgs(self):
+        '''
+        Service .txMsgs queue of outgoing messages
+        '''
+        while self.txMsgs:
+            body, name = self.txMsgs.popleft() # duple (body dict, destination name)
+            packed = self.packUxdTx(body)
+            if packed:
+                console.verbose("{0} sending\n{1}\n".format(self.name, body))
+                self.txUxd(packed, name)
 
     def serviceTxes(self):
         '''
@@ -834,22 +881,10 @@ class StackUxd(object):
                         #busy with last message save it for later
                         laters.append((tx, ta))
                     else:
-                        console.terse("socket.error = {0}\n".format(ex))
+                        #console.verbose("socket.error = {0}\n".format(ex))
                         raise
             while laters:
                 self.txes.append(laters.popleft())
-
-
-    def serviceTxMsgs(self):
-        '''
-        Service .txMsgs queue of outgoing messages
-        '''
-        while self.txMsgs:
-            body, name = self.txMsgs.popleft() # duple (body dict, destination name)
-            packed = self.packUxdTx(body)
-            if packed:
-                console.verbose("{0} sending\n{1}\n".format(self.name, body))
-                self.txUxd(packed, name)
 
     def serviceUxd(self):
         '''
@@ -858,7 +893,23 @@ class StackUxd(object):
         self.serviceUxdRx()
         self.serviceTxes()
 
-        return None
+    def serviceRx(self):
+        '''
+        Service:
+           Uxd Socket receive
+           rxes queue
+        '''
+        self.serviceUxdRx()
+        self.serviceRxes()
+
+    def serviceTx(self):
+        '''
+        Service:
+           txMsgs deque
+           txes deque and send Uxd messages
+        '''
+        self.serviceTxMsgs()
+        self.serviceTxes()
 
     def serviceAll(self):
         '''
@@ -866,55 +917,48 @@ class StackUxd(object):
            Uxd Socket receive
            rxes queue
            txMsgs queue
-           txes queue
-           Uxd Socket send
-
+           txes queue and Uxd Socket send
         '''
         self.serviceUxdRx()
         self.serviceRxes()
         self.serviceTxMsgs()
         self.serviceTxes()
 
-        return None
-
     def txUxd(self, packed, name):
         '''
-        Queue duple of (packed, da) on stack transmit queue
+        Queue duple of (packed, da) on stack .txes queue
         Where da is the ip destination address associated with
         the estate with name
         If name is None then it will default to the first entry in .yards
         '''
         if name is None:
             if not self.yards:
-                emsg = "No yard to send to"
-                console.terse(emsg + '\n')
+                emsg = "No yard to send to\n"
+                console.terse(emsg)
                 self.incStat("invalid_destination_yard")
                 return
-                #raise raeting.StackError(emsg)
             name = self.yards.values()[0].name
         if name not in self.yards:
             msg = "Invalid destination yard name '{0}'".format(name)
             console.terse(msg + '\n')
             self.incStat("invalid_destination_yard")
             return
-            #raise raeting.StackError(msg)
         self.txes.append((packed, self.yards[name].ha))
 
-    def txMsg(self, msg, name=None):
+    def transmit(self, msg, name=None):
         '''
         Append duple (msg, name) to .txMsgs deque
         If msg is not mapping then raises exception
         If name is None then txUxd will supply default
         '''
         if not isinstance(msg, Mapping):
-            emsg = "Invalid msg, not a mapping {0}".format(msg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid msg, not a mapping {0}\n".format(msg)
+            console.terse(emsg)
             self.incStat("invalid_transmit_body")
             return
-            #raise raeting.StackError(emsg)
         self.txMsgs.append((msg, name))
 
-    transmit = txMsg # alias
+    txMsg = transmit # alias
 
     def packUxdTx(self, body=None, name=None, kind=None):
         '''
@@ -925,11 +969,10 @@ class StackUxd(object):
 
         packed = ""
         if kind not in [raeting.packKinds.json, raeting.packKinds.pack]:
-            emsg = "Invalid message pack kind '{0}'".format(kind)
-            console.terse(emsg + '\n')
+            emsg = "Invalid message pack kind '{0}'\n".format(kind)
+            console.terse(emsg)
             self.incStat("invalid_transmit_serialization")
             return ""
-            #raise raeting.StackError(emsg)
 
         if kind == raeting.packKinds.json:
             head = 'RAET\njson\n\n'
@@ -937,23 +980,32 @@ class StackUxd(object):
 
         elif kind == raeting.packKinds.pack:
             if not msgpack:
-                emsg = "Msgpack not installed."
-                console.terse(emsg + '\n')
+                emsg = "Msgpack not installed\n"
+                console.terse(emsg)
                 self.incStat("invalid_transmit_serialization")
                 return ""
-                #raise raeting.StackError(emsg)
             head = 'RAET\npack\n\n'
             packed = "".join([head, msgpack.dumps(body)])
 
-        if len(packed) > raeting.MAX_MESSAGE_SIZE:
-            emsg = "Message length of {0}, exceeds max of {1}".format(
-                     len(packed), raeting.MAX_MESSAGE_SIZE)
-            console.terse(emsg + '\n')
+        if len(packed) > raeting.UXD_MAX_PACKET_SIZE: #raeting.MAX_MESSAGE_SIZE
+            emsg = "Message length of {0}, exceeds max of {1}\n".format(
+                     len(packed), raeting.UXD_MAX_PACKET_SIZE)
+            console.terse(emsg)
             self.incStat("invalid_transmit_size")
-            #raise raeting.StackError(emsg)
 
         return packed
 
+    def processUxdRx(self):
+        '''
+        Retrieve next message from stack receive queue if any and parse
+        '''
+        body = self.fetchParseUxdRx()
+        if not body:
+            return
+
+        console.verbose("{0} received message data\n{1}\n".format(self.name, body))
+
+        self.rxMsgs.append(body)
 
     def fetchParseUxdRx(self):
         '''
@@ -971,8 +1023,8 @@ class StackUxd(object):
 
         if sa not in self.names:
             if not self.accept:
-                emsg = "Unaccepted source ha = {0}. Dropping packet.".format(sa)
-                console.terse(emsg + '\n')
+                emsg = "Unaccepted source ha = {0}. Dropping packet...\n".format(sa)
+                console.terse(emsg)
                 self.incStat('unaccepted_source_yard')
                 return None
 
@@ -983,7 +1035,7 @@ class StackUxd(object):
             try:
                 self.addRemoteYard(yard)
             except raeting.StackError as ex:
-                console.terse(ex + '\n')
+                console.terse(str(ex) + '\n')
                 self.incStat('invalid_source_yard')
                 return None
 
@@ -996,67 +1048,50 @@ class StackUxd(object):
         body = None
 
         if (not packed.startswith('RAET\n') or raeting.HEAD_END not in packed):
-            emsg = "Unrecognized packed body head"
-            console.terse(emsg + '\n')
+            emsg = "Unrecognized packed body head\n"
+            console.terse(emsg)
             self.incStat("invalid_receive_head")
             return None
-            #raise raeting.StackError(emsg)
 
         front, sep, back = packed.partition(raeting.HEAD_END)
         code, sep, kind = front.partition('\n')
         if kind not in [raeting.PACK_KIND_NAMES[raeting.packKinds.json],
                         raeting.PACK_KIND_NAMES[raeting.packKinds.pack]]:
-            emsg = "Unrecognized message pack kind '{0}'".format(kind)
-            console.terse(emsg + '\n')
+            emsg = "Unrecognized message pack kind '{0}'\n".format(kind)
+            console.terse(emsg)
             self.incStat("invalid_receive_serialization")
             return None
-            #raise raeting.StackError(emsg)
 
-        if len(back) > raeting.MAX_MESSAGE_SIZE:
-            emsg = "Message length of {0}, exceeds max of {1}".format(
-                     len(back), raeting.MAX_MESSAGE_SIZE)
-            console.terse(emsg + '\n')
+        if len(back) > raeting.UXD_MAX_PACKET_SIZE: #raeting.MAX_MESSAGE_SIZE
+            emsg = "Message length of {0}, exceeds max of {1}\n".format(
+                     len(back), raeting.UXD_MAX_PACKET_SIZE)
+            console.terse(emsg)
             self.incStat("invalid_receive_size")
             return None
-            #raise raeting.StackError(emsg)
 
         kind = raeting.PACK_KINDS[kind]
         if kind == raeting.packKinds.json:
             body = json.loads(back, object_pairs_hook=odict)
             if not isinstance(body, Mapping):
-                emsg = "Message body not a mapping."
-                console.terse(emsg + '\n')
+                emsg = "Message body not a mapping\n"
+                console.terse(emsg)
                 self.incStat("invalid_receive_body")
                 return  None
-                #raise raeting.PacketError(emsg)
         elif kind == raeting.packKinds.pack:
             if not msgpack:
-                emsg = "Msgpack not installed."
-                console.terse(emsg + '\n')
+                emsg = "Msgpack not installed\n"
+                console.terse(emsg)
                 self.incStat("invalid_receive_serialization")
                 return None
-                #raise raeting.StackError(emsg)
             body = msgpack.loads(back, object_pairs_hook=odict)
             if not isinstance(body, Mapping):
-                emsg = "Message body not a mapping."
-                console.terse(emsg + '\n')
+                emsg = "Message body not a mapping\n"
+                console.terse(emsg)
                 self.incStat("invalid_receive_body")
                 return None
-                #raise raeting.PacketError(emsg)
 
         return body
 
-    def processUdpRx(self):
-        '''
-        Retrieve next message from stack receive queue if any and parse
-        '''
-        body = self.fetchParseUxdRx()
-        if not body:
-            return
-
-        console.verbose("{0} received message data\n{1}\n".format(self.name, body))
-
-        self.rxMsgs.append(body)
 
 
 

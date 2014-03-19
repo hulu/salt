@@ -50,13 +50,13 @@ header data =
     ti: Transaction ID (TID) Default 0
     tk: Transaction Kind (TrnsKind)
 
-
     dt: Datetime Stamp  (Datetime) Default 0
     oi: Order index (OrdrIndx)   Default 0
 
     pf: Pending Ack Flag    (PendFlag) Default 0
         Next segment or ordered packet is pended waiting for ack to this packet
-
+    ml: Message Length (MsgLen)  Default 0
+        Length of message only (unsegmented)
     sn: Segment Number (SgmtNum) Default 0
     sc: Segment Count  (SgmtCnt) Default 1
     sf: Segment Flag  (SgmtFlag) Default 0
@@ -100,18 +100,20 @@ import struct
 # Import ioflo libs
 from ioflo.base.odicting import odict
 
-UDP_MAX_SAFE_PAYLOAD = 548  # IPV4 MTU 576 - udp headers 28
-# IPV6 MTU is 1280 but headers are bigger
-MAX_PACKET_SIZE = 1024 # assuming IPV6 capable equipment
-MAX_SEGMENT_COUNT = (2 ** 16) - 1
-
 RAET_PORT = 7530
 RAET_TEST_PORT = 7531
 DEFAULT_SRC_HOST = ''
 DEFAULT_DST_HOST = '127.0.0.1'
 
-MAX_MESSAGE_SIZE = min(67107840, MAX_PACKET_SIZE * MAX_SEGMENT_COUNT) # assuming IPV6 capable equipment
+UDP_MAX_DATAGRAM_SIZE = (2 ** 16) - 1 # 65535
+UDP_MAX_SAFE_PAYLOAD = 548  # IPV4 MTU 576 - udp headers 28
+# IPV6 MTU is 1280 but headers are bigger
+UDP_MAX_PACKET_SIZE = min(1024, UDP_MAX_DATAGRAM_SIZE) # assumes IPV6 capable equipment
+UXD_MAX_PACKET_SIZE = (2 ** 16) - 1 # 65535
+MAX_SEGMENT_COUNT = (2 ** 16) - 1 # 65535
+MAX_MESSAGE_SIZE = min(67107840, UDP_MAX_PACKET_SIZE * MAX_SEGMENT_COUNT)
 MAX_HEAD_SIZE = 255
+
 JSON_END = '\r\n\r\n'
 HEAD_END = '\n\n'
 
@@ -212,7 +214,7 @@ PACKET_DEFAULTS = odict([
                             ('pf', False),
                             ('sn', 0),
                             ('sc', 1),
-                            ('sl', 0),
+                            ('ml', 0),
                             ('sf', False),
                             ('af', False),
                             ('bk', 0),
@@ -225,12 +227,12 @@ PACKET_DEFAULTS = odict([
 PACKET_FIELDS = ['sh', 'sp', 'dh', 'dp',
                  'ri', 'vn', 'pk', 'pl', 'hk', 'hl',
                  'se', 'de', 'cf', 'bf', 'si', 'ti', 'tk',
-                 'dt', 'oi', 'pf', 'sn', 'sc', 'sl', 'sf', 'af',
+                 'dt', 'oi', 'pf', 'sn', 'sc', 'ml', 'sf', 'af',
                  'bk', 'ck', 'fk', 'fl', 'fg']
 
 HEAD_FIELDS = ['ri', 'vn', 'pk', 'pl', 'hk', 'hl',
                'se', 'de', 'cf', 'bf', 'si', 'ti', 'tk',
-               'dt', 'oi', 'pf', 'sn', 'sc', 'sl', 'sf', 'af',
+               'dt', 'oi', 'pf', 'sn', 'sc', 'ml', 'sf', 'af',
                'bk', 'bl', 'ck', 'cl', 'fk', 'fl', 'fg']
 
 PACKET_FLAGS = ['af', 'sf', 'pf', 'bf', 'cf']
@@ -292,6 +294,17 @@ class PacketError(RaetError):
             raise raeting.PacketError(emsg)
     '''
     pass
+
+class PacketSizeError(PacketError):
+    '''
+       Packet too large error needs to be segmented
+
+       Usage:
+            emsg = "Packet size {0} too large needs to be segmented".format(size)
+            raise raeting.PacketSizeError(emsg)
+    '''
+    pass
+
 
 class KeepError(RaetError):
     '''

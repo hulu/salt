@@ -94,7 +94,7 @@ class Transaction(object):
         try:
             self.stack.txUdp(packet.packed, self.reid)
         except raeting.StackError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat(self.statKey())
             self.remove(packet.index)
             return
@@ -162,6 +162,75 @@ class Correspondent(Transaction):
 
         super(Correspondent, self).__init__(**kwa)
 
+class Staler(Initiator):
+    '''
+    RAET protocol Staler initiator transaction class
+    '''
+    def __init__(self, **kwa):
+        '''
+        Setup Transaction instance
+        '''
+        for key in ['kind', 'reid', 'sid', 'tid', 'rxPacket']:
+            if key not  in kwa:
+                emsg = "Missing required keyword argumens: '{0}'".format(key)
+                raise TypeError(emsg)
+        super(Staler, self).__init__(**kwa)
+
+        self.prep()
+
+
+    def prep(self):
+        '''
+        Prepare .txData for nack to stale
+        '''
+        self.txData.update( sh=self.stack.estate.host,
+                            sp=self.stack.estate.port,
+                            dh=self.rxPacket.data['sh'],
+                            dp=self.rxPacket.data['sp'],
+                            se=self.stack.estate.eid,
+                            de=self.reid,
+                            tk=self.kind,
+                            cf=self.rmt,
+                            bf=self.bcst,
+                            si=self.sid,
+                            ti=self.tid,
+                            ck=raeting.coatKinds.nada,
+                            fk=raeting.footKinds.nada)
+
+    def nack(self):
+        '''
+        Send nack to stale packet from correspondent.
+        This is used when a correspondent packet is received but no matching
+        Initiator transaction is found. So create a dummy initiator and send
+        a nack packet back. Do not add transaction so don't need to remove it.
+        '''
+        ha = (self.rxPacket.data['sh'], self.rxPacket.data['sp'])
+        emsg = "{0} Stale Transaction from {1} dropping ...\n".format(self.stack.name, ha )
+        console.terse(emsg)
+        self.stack.incStat('stale_correspondent_attempt')
+
+        if self.reid not in self.stack.estates:
+            emsg = "Unknown correspondent estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
+            self.stack.incStat('unknown_correspondent_eid')
+            #return #maybe we should return and not respond at all in this case
+
+        body = odict()
+        packet = packeting.TxPacket(stack=self.stack,
+                                    kind=raeting.pcktKinds.nack,
+                                    embody=body,
+                                    data=self.txData)
+        try:
+            packet.pack()
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.stack.incStat("packing_error")
+            return
+
+        self.stack.txes.append((packet.packed, ha))
+        console.terse("Nack stale correspondent at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat('stale_correspondent_nack')
+
 class Joiner(Initiator):
     '''
     RAET protocol Joiner Initiator class Dual of Joinent
@@ -191,7 +260,7 @@ class Joiner(Initiator):
                 try:
                     self.stack.addRemote(master)
                 except raeting.StackError as ex:
-                    console.terse(ex + '\n')
+                    console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
                     return
 
@@ -263,9 +332,8 @@ class Joiner(Initiator):
         Send join request
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat(self.statKey())
             self.remove()
             return
@@ -280,7 +348,7 @@ class Joiner(Initiator):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove()
             return
@@ -306,45 +374,40 @@ class Joiner(Initiator):
 
         leid = body.get('leid')
         if not leid:
-            emsg = "Missing local estate id in accept packet"
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Missing local estate id in accept packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(self.txPacket.index)
             return
 
         reid = body.get('reid')
         if not reid:
-            emsg = "Missing remote estate id in accept packet"
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Missing remote estate id in accept packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(self.txPacket.index)
             return
 
         name = body.get('name')
         if not name:
-            emsg = "Missing remote name in accept packet"
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Missing remote name in accept packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(self.txPacket.index)
             return
 
         verhex = body.get('verhex')
         if not verhex:
-            emsg = "Missing remote verifier key in accept packet"
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Missing remote verifier key in accept packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(self.txPacket.index)
             return
 
         pubhex = body.get('pubhex')
         if not pubhex:
-            emsg = "Missing remote crypt key in accept packet"
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Missing remote crypt key in accept packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_accept')
             self.remove(self.txPacket.index)
             return
@@ -358,7 +421,7 @@ class Joiner(Initiator):
             try:
                 self.stack.moveRemote(old=remote.eid, new=reid)
             except raeting.StackError as ex:
-                console.terse(ex + '\n')
+                console.terse(str(ex) + '\n')
                 self.stack.incStat(self.statKey())
                 self.remove(self.txPacket.index)
                 return
@@ -366,7 +429,7 @@ class Joiner(Initiator):
             try:
                 self.stack.renameRemote(old=remote.name, new=name)
             except raeting.StackError as ex:
-                console.terse(ex + '\n')
+                console.terse(str(ex) + '\n')
                 self.stack.incStat(self.statKey())
                 self.remove(self.txPacket.index)
                 return
@@ -405,9 +468,8 @@ class Joiner(Initiator):
         Send ack to accept response
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove(self.txPacket.index)
             return
@@ -420,7 +482,7 @@ class Joiner(Initiator):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove(self.txPacket.index)
             return
@@ -435,9 +497,8 @@ class Joiner(Initiator):
         Send nack to accept response
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove(self.txPacket.index)
             return
@@ -450,7 +511,7 @@ class Joiner(Initiator):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove(self.txPacket.index)
             return
@@ -492,6 +553,8 @@ class Joinent(Correspondent):
         if packet.data['tk'] == raeting.trnsKinds.join:
             if packet.data['pk'] == raeting.pcktKinds.ack: #accepted by joiner
                 self.joined()
+            elif packet.data['pk'] == raeting.pcktKinds.nack: #rejected
+                self.rejected()
 
     def process(self):
         '''
@@ -586,30 +649,27 @@ class Joinent(Correspondent):
 
         name = body.get('name')
         if not name:
-            emsg = "Missing remote name in join packet"
-            console.terse(emsg + '\n')
+            emsg = "Missing remote name in join packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_join')
             self.remove(self.rxPacket.index)
             return
-            #raise raeting.TransactionError(emsg)
 
         verhex = body.get('verhex')
         if not verhex:
-            emsg = "Missing remote verifier key in join packet"
-            console.terse(emsg + '\n')
+            emsg = "Missing remote verifier key in join packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_join')
             self.remove(self.rxPacket.index)
             return
-            #raise raeting.TransactionError(emsg)
 
         pubhex = body.get('pubhex')
         if not pubhex:
-            emsg = "Missing remote crypt key in join packet"
-            console.terse(emsg + '\n')
+            emsg = "Missing remote crypt key in join packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_join')
             self.remove(self.rxPacket.index)
             return
-            #raise raeting.TransactionError(emsg)
 
         host = data['sh']
         port = data['sp']
@@ -623,7 +683,7 @@ class Joinent(Correspondent):
                     try:
                         self.stack.removeRemote(other.eid)
                     except raeting.StackError as ex:
-                        console.terse(ex + '\n')
+                        console.terse(str(ex) + '\n')
                         self.stack.incStat(self.statKey())
                         self.remove(self.rxPacket.index)
                         return
@@ -640,7 +700,7 @@ class Joinent(Correspondent):
                 try:
                     self.stack.removeRemote(other.eid)
                 except raeting.StackError as ex:
-                    console.terse(ex + '\n')
+                    console.terse(str(ex) + '\n')
                     self.stack.incStat(self.statKey())
                     self.remove(self.rxPacket.index)
                     return
@@ -657,7 +717,7 @@ class Joinent(Correspondent):
             try:
                 self.stack.addRemote(remote) #provisionally add .accepted is None
             except raeting.StackError as ex:
-                console.terse(ex + '\n')
+                console.terse(str(ex) + '\n')
                 self.stack.incStat(self.statKey())
                 self.remove(self.rxPacket.index)
                 return
@@ -688,9 +748,8 @@ class Joinent(Correspondent):
         Send ack to join request
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove(self.rxPacket.index)
             return
@@ -706,7 +765,7 @@ class Joinent(Correspondent):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove(self.rxPacket.index)
             return
@@ -719,9 +778,8 @@ class Joinent(Correspondent):
         Send accept response to join request
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove(self.rxPacket.index)
             return
@@ -740,7 +798,7 @@ class Joinent(Correspondent):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove(self.rxPacket.index)
             return
@@ -752,6 +810,9 @@ class Joinent(Correspondent):
         '''
         process ack to accept response
         '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+
         remote = self.stack.estates[self.reid]
         remote.joined = True # accepted
         remote.nextSid()
@@ -760,14 +821,26 @@ class Joinent(Correspondent):
 
         self.stack.incStat("join_correspond_complete")
 
+    def rejected(self):
+        '''
+        Process nack to accept response or stale
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        remote = self.stack.estates[self.reid]
+        # use presence to remove remote
+
+        self.remove(self.rxPacket.index)
+        console.terse("Joinent Rejected at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+
     def nackJoin(self):
         '''
         Send nack to join request
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove(self.rxPacket.index)
             return
@@ -780,7 +853,7 @@ class Joinent(Correspondent):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove(self.rxPacket.index)
             return
@@ -796,7 +869,7 @@ class Allower(Initiator):
     RAET protocol Allower Initiator class Dual of Allowent
     CurveCP handshake
     '''
-    Timeout = 2.0
+    Timeout = 4.0
     RedoTimeoutMin = 0.25 # initial timeout
     RedoTimeoutMax = 1.0 # max timeout
 
@@ -817,11 +890,10 @@ class Allower(Initiator):
             self.reid = self.stack.estates.values()[0].eid # zeroth is channel master
         remote = self.stack.estates[self.reid]
         if not remote.joined:
-            emsg = "Must be joined first"
-            console.terse(emsg + '\n')
+            emsg = "Must be joined first\n"
+            console.terse(emsg)
             self.stack.incStat('unjoined_allow_attempt')
             return
-            #raise raeting.TransactionError(emsg)
         remote.refresh() # refresh short term keys and .allowed
         self.sid = remote.sid
         self.tid = remote.nextTid()
@@ -839,6 +911,8 @@ class Allower(Initiator):
                 self.cookie()
             elif packet.data['pk'] == raeting.pcktKinds.ack:
                 self.allow()
+            elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
+                self.rejected()
 
     def process(self):
         '''
@@ -869,7 +943,6 @@ class Allower(Initiator):
                     self.transmit(self.txPacket) # redo
                     console.concise("Allower Redo Ack Final at {0}\n".format(self.stack.store.stamp))
 
-
     def prep(self):
         '''
         Prepare .txData
@@ -892,9 +965,8 @@ class Allower(Initiator):
         Send hello request
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove()
             return
@@ -911,7 +983,7 @@ class Allower(Initiator):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove()
             return
@@ -928,20 +1000,18 @@ class Allower(Initiator):
         body = self.rxPacket.body.data
 
         if not isinstance(body, basestring):
-            emsg = "Invalid format of cookie packet body"
-            console.terse(emsg + '\n')
+            emsg = "Invalid format of cookie packet body\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         if len(body) != raeting.COOKIE_PACKER.size:
-            emsg = "Invalid length of cookie packet body"
-            console.terse(emsg + '\n')
+            emsg = "Invalid length of cookie packet body\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         cipher, nonce = raeting.COOKIE_PACKER.unpack(body)
 
@@ -949,22 +1019,20 @@ class Allower(Initiator):
 
         msg = remote.privee.decrypt(cipher, nonce, remote.pubber.key)
         if len(msg) != raeting.COOKIESTUFF_PACKER.size:
-            emsg = "Invalid length of cookie stuff"
-            console.terse(emsg + '\n')
+            emsg = "Invalid length of cookie stuff\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         shortraw, seid, deid, oreo = raeting.COOKIESTUFF_PACKER.unpack(msg)
 
         if seid != remote.eid or deid != self.stack.estate.eid:
-            emsg = "Invalid seid or deid fields in cookie stuff"
-            console.terse(emsg + '\n')
+            emsg = "Invalid seid or deid fields in cookie stuff\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_cookie')
             self.remove()
             return
-            #raeting.TransactionError(emsg)
 
         self.oreo = binascii.hexlify(oreo)
         remote.publee = nacling.Publican(key=shortraw)
@@ -976,9 +1044,8 @@ class Allower(Initiator):
         Send initiate request to cookie response to hello request
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove()
             return
@@ -1010,7 +1077,7 @@ class Allower(Initiator):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove()
             return
@@ -1029,14 +1096,24 @@ class Allower(Initiator):
         self.ackFinal()
         #self.remove()
 
+    def rejected(self):
+        '''
+        Process nack packet
+        terminate in response to nack
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        self.remove()
+        console.concise("Allower rejected at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
+
     def ackFinal(self):
         '''
         Send ack to ack Initiate to terminate transaction
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove()
             return
@@ -1049,22 +1126,22 @@ class Allower(Initiator):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove()
             return
 
         self.transmit(packet)
-        console.concise("Allower Ack Final at {0}\n".format(self.stack.store.stamp))
-
         self.remove()
+        console.concise("Allower Ack Final at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat("allow_initiate_complete")
 
 class Allowent(Correspondent):
     '''
     RAET protocol Allowent Correspondent class Dual of Allower
     CurveCP handshake
     '''
-    Timeout = 2.0
+    Timeout = 4.0
     RedoTimeoutMin = 0.25 # initial timeout
     RedoTimeoutMax = 1.0 # max timeout
 
@@ -1085,18 +1162,17 @@ class Allowent(Correspondent):
 
         remote = self.stack.estates[self.reid]
         if not remote.joined:
-            emsg = "Must be joined first"
-            console.terse(emsg + '\n')
+            emsg = "Must be joined first\n"
+            console.terse(emsg)
             self.stack.incStat('unjoined_allow_attempt')
             return
-            #raise raeting.TransactionError(emsg)
+
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
         if not remote.validRsid(self.sid):
-            emsg = "Stale sid '{0}' in packet".format(self.sid)
-            console.terse(emsg + '\n')
+            emsg = "Stale sid '{0}' in packet\n".format(self.sid)
+            console.terse(emsg)
             self.stack.incStat('stale_sid_allow_attempt')
             return
-            #raise raeting.TransactionError(emsg)
         remote.rsid = self.sid #update last received rsid for estate
         remote.rtid = self.tid #update last received rtid for estate
         self.oreo = None #keep locally generated oreo around for redos
@@ -1117,6 +1193,8 @@ class Allowent(Correspondent):
                 self.initiate()
             elif packet.data['pk'] == raeting.pcktKinds.ack:
                 self.final()
+            elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
+                self.rejected()
 
     def process(self):
         '''
@@ -1172,20 +1250,18 @@ class Allowent(Correspondent):
         body = self.rxPacket.body.data
 
         if not isinstance(body, basestring):
-            emsg = "Invalid format of hello packet body"
-            console.terse(emsg + '\n')
+            emsg = "Invalid format of hello packet body\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_hello')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         if len(body) != raeting.HELLO_PACKER.size:
-            emsg = "Invalid length of hello packet body"
-            console.terse(emsg + '\n')
+            emsg = "Invalid length of hello packet body\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_hello')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         plain, shortraw, cipher, nonce = raeting.HELLO_PACKER.unpack(body)
 
@@ -1193,12 +1269,11 @@ class Allowent(Correspondent):
         remote.publee = nacling.Publican(key=shortraw)
         msg = self.stack.estate.priver.decrypt(cipher, nonce, remote.publee.key)
         if msg != plain :
-            emsg = "Invalid plain not match decrypted cipher"
-            console.terse(emsg + '\n')
+            emsg = "Invalid plain not match decrypted cipher\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_hello')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         self.cookie()
 
@@ -1207,9 +1282,8 @@ class Allowent(Correspondent):
         Send Cookie Packet
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove()
             return
@@ -1232,7 +1306,7 @@ class Allowent(Correspondent):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove()
             return
@@ -1249,76 +1323,68 @@ class Allowent(Correspondent):
         body = self.rxPacket.body.data
 
         if not isinstance(body, basestring):
-            emsg = "Invalid format of initiate packet body"
-            console.terse(emsg + '\n')
+            emsg = "Invalid format of initiate packet body\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         if len(body) != raeting.INITIATE_PACKER.size:
-            emsg = "Invalid length of initiate packet body"
-            console.terse(emsg + '\n')
+            emsg = "Invalid length of initiate packet body\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         shortraw, oreo, cipher, nonce = raeting.INITIATE_PACKER.unpack(body)
 
         remote = self.stack.estates[self.reid]
 
         if shortraw != remote.publee.keyraw:
-            emsg = "Mismatch of short term public key in initiate packet"
-            console.terse(emsg + '\n')
+            emsg = "Mismatch of short term public key in initiate packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         if (binascii.hexlify(oreo) != self.oreo):
-            emsg = "Stale or invalid cookie in initiate packet"
-            console.terse(emsg + '\n')
+            emsg = "Stale or invalid cookie in initiate packet\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         msg = remote.privee.decrypt(cipher, nonce, remote.publee.key)
         if len(msg) != raeting.INITIATESTUFF_PACKER.size:
-            emsg = "Invalid length of initiate stuff"
-            console.terse(emsg + '\n')
+            emsg = "Invalid length of initiate stuff\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         pubraw, vcipher, vnonce, fqdn = raeting.INITIATESTUFF_PACKER.unpack(msg)
         if pubraw != remote.pubber.keyraw:
-            emsg = "Mismatch of long term public key in initiate stuff"
-            console.terse(emsg + '\n')
+            emsg = "Mismatch of long term public key in initiate stuff\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         fqdn = fqdn.rstrip(' ')
         if fqdn != self.stack.estate.fqdn:
-            emsg = "Mismatch of fqdn in initiate stuff"
-            console.terse(emsg + '\n')
-            self.stack.incStat('invalid_initiate')
-            self.remove()
-            return
-            #raise raeting.TransactionError(emsg)
+            emsg = "Mismatch of fqdn in initiate stuff\n"
+            console.terse(emsg)
+            #self.stack.incStat('invalid_initiate')
+            #self.remove()
+            #return
 
         vouch = self.stack.estate.priver.decrypt(vcipher, vnonce, remote.pubber.key)
         if vouch != remote.publee.keyraw or vouch != shortraw:
-            emsg = "Short term key vouch failed"
-            console.terse(emsg + '\n')
+            emsg = "Short term key vouch failed\n"
+            console.terse(emsg)
             self.stack.incStat('invalid_initiate')
             self.remove()
             return
-            #raise raeting.TransactionError(emsg)
 
         self.ackInitiate()
 
@@ -1327,9 +1393,8 @@ class Allowent(Correspondent):
         Send ack to initiate request
         '''
         if self.reid not in self.stack.estates:
-            msg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(msg)
-            console.terse(emsg + '\n')
+            msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove()
             return
@@ -1342,7 +1407,7 @@ class Allowent(Correspondent):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove()
             return
@@ -1365,15 +1430,27 @@ class Allowent(Correspondent):
         if not self.stack.parseInner(self.rxPacket):
             return
         self.remove()
+        console.concise("Allowent Do Final at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat("allow_correspond_complete")
+
+    def rejected(self):
+        '''
+        Process nack packet
+        terminate in response to nack
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        self.remove()
+        console.concise("Allowent rejected at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
 
     def nack(self):
         '''
         Send nack to terminate allower transaction
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove()
             return
@@ -1386,7 +1463,7 @@ class Allowent(Correspondent):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove()
             return
@@ -1394,31 +1471,41 @@ class Allowent(Correspondent):
         self.transmit(packet)
         self.remove()
         console.concise("Allowent Reject at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
 
 class Messenger(Initiator):
     '''
     RAET protocol Messenger Initiator class Dual of Messengent
     Generic messages
     '''
-    def __init__(self, **kwa):
+    Timeout = 10.0
+    RedoTimeoutMin = 1.0 # initial timeout
+    RedoTimeoutMax = 3.0 # max timeout
+
+    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
         '''
         Setup instance
         '''
         kwa['kind'] = raeting.trnsKinds.message
         super(Messenger, self).__init__(**kwa)
-        self.segmentage = None # special packet to hold segments if any
+
+        self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
+        self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
+        self.redoTimer = aiding.StoreTimer(self.stack.store,
+                                           duration=self.redoTimeoutMin)
+
         if self.reid is None:
             self.reid = self.stack.estates.values()[0].eid # zeroth is channel master
         remote = self.stack.estates[self.reid]
         if not remote.allowed:
-            emsg = "Must be allowed first"
-            console.terse(emsg + '\n')
+            emsg = "Must be allowed first\n"
+            console.terse(emsg)
             self.stack.incStat('unallowed_message_attempt')
             return
-            #raise raeting.TransactionError(emsg)
         self.sid = remote.sid
         self.tid = remote.nextTid()
         self.prep() # prepare .txData
+        self.tray = packeting.TxTray(stack=self.stack)
         self.add(self.index)
 
     def receive(self, packet):
@@ -1429,7 +1516,31 @@ class Messenger(Initiator):
 
         if packet.data['tk'] == raeting.trnsKinds.message:
             if packet.data['pk'] == raeting.pcktKinds.ack:
-                self.done()
+                self.again()
+            elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
+                self.rejected()
+
+    def process(self):
+        '''
+        Perform time based processing of transaction
+        '''
+        if self.timeout > 0.0 and self.timer.expired:
+            self.remove()
+            console.concise("Messenger timed out at {0}\n".format(self.stack.store.stamp))
+            return
+
+        # need keep sending message until completed or timed out
+        if self.redoTimer.expired:
+            duration = min(
+                         max(self.redoTimeoutMin,
+                              self.redoTimer.duration) * 2.0,
+                         self.redoTimeoutMin)
+            self.redoTimer.restart(duration=duration)
+            if self.txPacket:
+                if self.txPacket.data['pk'] == raeting.pcktKinds.message:
+                    self.transmit(self.txPacket) # redo
+                    console.concise("Messenger Redo Segment {0} at {1}\n".format(
+                        self.tray.current, self.stack.store.stamp))
 
     def prep(self):
         '''
@@ -1453,46 +1564,69 @@ class Messenger(Initiator):
         Send message
         '''
         if self.reid not in self.stack.estates:
-            emsg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(emsg)
-            console.terse(emsg + '\n')
+            emsg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove()
             return
 
-        if body is None:
-            body = odict()
+        if not self.tray.packets:
+            try:
+                self.tray.pack(data=self.txData, body=body)
+            except raeting.PacketError as ex:
+                console.terse(str(ex) + '\n')
+                self.stack.incStat("packing_error")
+                self.remove()
+                return
 
-        packet = packeting.TxPacket(stack=self.stack,
-                                    kind=raeting.pcktKinds.message,
-                                    embody=body,
-                                    data=self.txData)
-        try:
-            packet.pack()
-        except raeting.PacketError as ex:
-            console.terse(ex + '\n')
-            self.stack.incStat("packing_error")
-            self.remove()
+        if self.tray.current >= len(self.tray.packets):
             return
-        if packet.segmented:
-            self.segmentage = packet
-            for segment in self.segmentage.segments.values():
-                self.transmit(segment)
-        else:
-            self.transmit(packet)
 
-    def done(self):
+        packet = self.tray.packets[self.tray.current]
+        self.transmit(packet)
+        self.stack.incStat("message_segment_tx")
+        console.concise("Messenger Do Message Segment {0} at {1}\n".format(
+                self.tray.current, self.stack.store.stamp))
+        self.tray.current += 1
+
+    def again(self):
+        '''
+        Process ack packet
+        '''
+        if self.tray.current >= len(self.tray.packets):
+            self.complete()
+        else:
+            self.message()
+
+    def complete(self):
         '''
         Complete transaction and remove
         '''
         self.remove()
+        console.concise("Messenger Done at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat("message_initiate_complete")
+
+    def rejected(self):
+        '''
+        Process nack packet
+        terminate in response to nack
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        self.remove()
+        console.concise("Messenger rejected at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
 
 class Messengent(Correspondent):
     '''
     RAET protocol Messengent Correspondent class Dual of Messenger
     Generic Messages
     '''
-    def __init__(self, **kwa):
+    Timeout = 10.0
+    RedoTimeoutMin = 1.0 # initial timeout
+    RedoTimeoutMax = 3.0 # max timeout
+
+    def __init__(self, redoTimeoutMin=None, redoTimeoutMax=None, **kwa):
         '''
         Setup instance
         '''
@@ -1501,24 +1635,28 @@ class Messengent(Correspondent):
             emsg = "Missing required keyword argumens: '{0}'".format('reid')
             raise TypeError(emsg)
         super(Messengent, self).__init__(**kwa)
-        self.segmentage = None # special packet to hold segments if any
+
+        self.redoTimeoutMax = redoTimeoutMax or self.RedoTimeoutMax
+        self.redoTimeoutMin = redoTimeoutMin or self.RedoTimeoutMin
+        self.redoTimer = aiding.StoreTimer(self.stack.store,
+                                           duration=self.redoTimeoutMin)
+
         remote = self.stack.estates[self.reid]
         if not remote.allowed:
-            emsg = "Must be allowed first"
-            console.terse(emsg + '\n')
+            emsg = "Must be allowed first\n"
+            console.terse(emsg)
             self.stack.incStat('unallowed_message_attempt')
             return
-            #raise raeting.TransactionError(emsg)
         #Current .sid was set by stack from rxPacket.data sid so it is the new rsid
         if not remote.validRsid(self.sid):
-            emsg = "Stale sid '{0}' in packet".format(self.sid)
-            console.terse(emsg + '\n')
+            emsg = "Stale sid '{0}' in packet\n".format(self.sid)
+            console.terse(emsg)
             self.stack.incStat('stale_sid_message_attempt')
             return
-            #raise raeting.TransactionError(emsg)
         remote.rsid = self.sid #update last received rsid for estate
         remote.rtid = self.tid #update last received rtid for estate
         self.prep() # prepare .txData
+        self.tray = packeting.RxTray(stack=self.stack)
         self.add(self.index)
 
     def receive(self, packet):
@@ -1531,6 +1669,32 @@ class Messengent(Correspondent):
         if packet.data['tk'] == raeting.trnsKinds.message:
             if packet.data['pk'] == raeting.pcktKinds.message:
                 self.message()
+            elif packet.data['pk'] == raeting.pcktKinds.nack: # rejected
+                self.rejected()
+
+    def process(self):
+        '''
+        Perform time based processing of transaction
+
+        '''
+        if self.timeout > 0.0 and self.timer.expired:
+            self.nack()
+            console.concise("Messengent timed out at {0}\n".format(self.stack.store.stamp))
+            return
+
+        # need to include current segment in ack or resend
+        #if self.redoTimer.expired:
+            #duration = min(
+                        #max(self.redoTimeoutMin,
+                              #self.redoTimer.duration) * 2.0,
+                        #self.redoTimeoutMax)
+            #self.redoTimer.restart(duration=duration)
+
+            #if self.txPacket:
+                #if self.txPacket.data['pk'] == raeting.pcktKinds.ack:
+                    #self.transmit(self.txPacket) #redo
+                    #console.concise("Messengent Redo Ack at {0}\n".format(self.stack.store.stamp))
+
 
     def prep(self):
         '''
@@ -1553,35 +1717,30 @@ class Messengent(Correspondent):
         '''
         Process message packet
         '''
-        console.verbose("segment count = {0} tid={1}\n".format(
-                 self.rxPacket.data['sc'], self.tid))
-        if self.rxPacket.segmentive:
-            if not self.segmentage:
-                self.segmentage = packeting.RxPacket(stack=self.stack,
-                                                data=self.rxPacket.data)
-            self.segmentage.parseSegment(self.rxPacket)
-            if not self.segmentage.desegmentable():
-                return
-            self.segmentage.desegmentize()
-            if not self.stack.parseInner(self.segmentage):
-                return
-            body = self.segmentage.body.data
-        else:
-            if not self.stack.parseInner(self.rxPacket):
-                return
-            body = self.rxPacket.body.data
+        try:
+            body = self.tray.parse(self.rxPacket)
+        except raeting.PacketError as ex:
+            console.terse(str(ex) + '\n')
+            self.incStat('parsing_message_error')
+            self.remove()
+            return
 
-        self.stack.rxMsgs.append(body)
         self.ackMessage()
+
+        if self.tray.complete:
+            console.verbose("{0} received message body\n{1}\n".format(
+                    self.stack.name, body))
+            self.stack.rxMsgs.append(body)
+            self.complete()
+
 
     def ackMessage(self):
         '''
         Send ack to message
         '''
         if self.reid not in self.stack.estates:
-            msg = "Invalid remote destination estate id '{0}'".format(self.reid)
-            #raise raeting.TransactionError(msg)
-            console.terse(emsg + '\n')
+            msg = "Invalid remote destination estate id '{0}'\n".format(self.reid)
+            console.terse(emsg)
             self.stack.incStat('invalid_remote_eid')
             self.remove()
             return
@@ -1594,10 +1753,30 @@ class Messengent(Correspondent):
         try:
             packet.pack()
         except raeting.PacketError as ex:
-            console.terse(ex + '\n')
+            console.terse(str(ex) + '\n')
             self.stack.incStat("packing_error")
             self.remove()
             return
         self.transmit(packet)
-        self.remove()
+        self.stack.incStat("message_segment_rx")
+        console.concise("Messengent Do Ack Segment at {0}\n".format(
+                self.stack.store.stamp))
 
+    def complete(self):
+        '''
+        Complete transaction and remove
+        '''
+        self.remove()
+        console.concise("Messengent Complete at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat("messagent_correspond_complete")
+
+    def rejected(self):
+        '''
+        Process nack packet
+        terminate in response to nack
+        '''
+        if not self.stack.parseInner(self.rxPacket):
+            return
+        self.remove()
+        console.concise("Messengent rejected at {0}\n".format(self.stack.store.stamp))
+        self.stack.incStat(self.statKey())
