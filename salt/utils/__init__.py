@@ -2090,7 +2090,7 @@ def get_group_list(user=None, include_default=True):
         # Try os.getgrouplist, available in python >= 3.3
         log.trace('Trying os.getgrouplist for {0!r}'.format(user))
         try:
-            group_names = list(os.getgrouplist(user, pwd.getpwnam(user).pw_gid))
+            group_names = list(os.getgrouplist(user, pwd.getpwnam(user).pw_gid))  # pylint: disable=E1101
         except Exception:
             pass
     else:
