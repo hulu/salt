@@ -557,7 +557,7 @@ class SaltNova(object):
         ret = {}
         servers = self.server_list()
         for server in servers.keys():
-            ret.append(self.server_show_libcloud(servers[server]['id']))
+            ret.append(self.server_show_libcloud(servers[server]['id']))  # pylint: disable=E1101
 
         return ret
 
