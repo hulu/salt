@@ -285,7 +285,7 @@ def _run(cmd,
 
     if not env:
         env = {}
-    elif isinstance(env, basestring):
+    elif isinstance(env, string_types):
         try:
             env = yaml.safe_load(env)
         except yaml.parser.ParserError as err:
@@ -924,6 +924,45 @@ def retcode(cmd,
             )
         log.log(lvl, 'output: {0}'.format(ret['stdout']))
     return ret['retcode']
+
+
+def _retcode_quiet(cmd,
+                   cwd=None,
+                   stdin=None,
+                   runas=None,
+                   shell=DEFAULT_SHELL,
+                   python_shell=True,
+                   env=(),
+                   clean_env=False,
+                   template=None,
+                   umask=None,
+                   output_loglevel='quiet',
+                   quiet=True,
+                   timeout=None,
+                   reset_system_locale=True,
+                   ignore_retcode=False,
+                   saltenv='base',
+                   **kwargs):
+    '''
+    Helper for running commands quietly for minion startup.
+    Returns same as retcode
+    '''
+    return retcode(cmd,
+                   cwd=cwd,
+                   stdin=stdin,
+                   runas=runas,
+                   shell=shell,
+                   python_shell=python_shell,
+                   env=env,
+                   clean_env=clean_env,
+                   template=template,
+                   umask=umask,
+                   output_loglevel=output_loglevel,
+                   timeout=timeout,
+                   reset_system_locale=reset_system_locale,
+                   ignore_retcode=ignore_retcode,
+                   saltenv=saltenv,
+                   **kwargs)
 
 
 def script(source,

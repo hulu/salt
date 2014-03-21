@@ -17,7 +17,6 @@ import multiprocessing
 from itertools import groupby
 
 # Import salt.cloud libs
-import salt.utils.event
 from salt.cloud.exceptions import (
     SaltCloudNotFound,
     SaltCloudException,
@@ -32,6 +31,7 @@ import salt.loader
 import salt.utils
 import salt.utils.cloud
 from salt.utils import context
+from salt._compat import string_types
 
 # Import third party libs
 import yaml
@@ -552,7 +552,7 @@ class Cloud(object):
 
     def get_running_by_names(self, names, query='list_nodes', cached=False,
                              profile=None):
-        if isinstance(names, basestring):
+        if isinstance(names, string_types):
             names = [names]
 
         matches = {}
@@ -1097,7 +1097,7 @@ class Cloud(object):
 
                 # a small pause makes the sync work reliably
                 time.sleep(3)
-                client = salt.client.LocalClient()
+                client = salt.client.get_local_client()
                 ret = client.cmd(vm_['name'], 'saltutil.sync_{0}'.format(
                     self.opts['sync_after_install']
                 ))
@@ -1122,7 +1122,7 @@ class Cloud(object):
                     self.opts['start_action'], vm_['name']
                 )
             )
-            client = salt.client.LocalClient()
+            client = salt.client.get_local_client()
             action_out = client.cmd(
                 vm_['name'],
                 self.opts['start_action'],
@@ -1508,7 +1508,7 @@ class Map(Cloud):
             if isinstance(mapped, (list, tuple)):
                 entries = {}
                 for mapping in mapped:
-                    if isinstance(mapping, basestring):
+                    if isinstance(mapping, string_types):
                         # Foo:
                         #   - bar1
                         #   - bar2
@@ -1540,7 +1540,7 @@ class Map(Cloud):
                 map_[profile] = entries
                 continue
 
-            if isinstance(mapped, basestring):
+            if isinstance(mapped, string_types):
                 # If it's a single string entry, let's make iterable because of
                 # the next step
                 mapped = [mapped]
@@ -1969,7 +1969,7 @@ class Map(Cloud):
                             self.opts['start_action'], ', '.join(group)
                         )
                     )
-                    client = salt.client.LocalClient()
+                    client = salt.client.get_local_client()
                     out.update(client.cmd(
                         ','.join(group), self.opts['start_action'],
                         timeout=self.opts['timeout'] * 60, expr_form='list'

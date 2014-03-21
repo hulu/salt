@@ -4,6 +4,9 @@ from __future__ import absolute_import
 # Import python libs
 import json
 
+# Import salt libs
+from salt._compat import string_types
+
 
 def render(json_data,
            saltenv='base',  # pylint: disable=W0613
@@ -15,7 +18,7 @@ def render(json_data,
 
     :rtype: A Python data structure
     '''
-    if not isinstance(json_data, basestring):
+    if not isinstance(json_data, string_types):
         json_data = json_data.read()
 
     if json_data.startswith('#!'):

@@ -30,9 +30,8 @@ import salt.pillar
 import salt.fileclient
 import salt.utils.event
 import salt.syspaths as syspaths
-from salt.utils import context
+from salt.utils import context, immutabletypes
 from salt._compat import string_types
-from salt.utils.immutabletypes import ImmutableLazyProxy
 from salt.template import compile_template, compile_template_str
 from salt.exceptions import SaltRenderError, SaltReqTimeoutError, SaltException
 from salt.utils.odict import OrderedDict, DefaultOrderedDict
@@ -1335,9 +1334,9 @@ class State(object):
             # the current state dictionaries.
             # We pass deep copies here because we don't want any misbehaving
             # state module to change these at runtime.
-            '__low__': ImmutableLazyProxy(low),
-            '__running__': ImmutableLazyProxy(running) if running else {},
-            '__lowstate__': ImmutableLazyProxy(chunks) if chunks else {}
+            '__low__': immutabletypes.freeze(low),
+            '__running__': immutabletypes.freeze(running) if running else {},
+            '__lowstate__': immutabletypes.freeze(chunks) if chunks else {}
         }
 
         if low.get('__prereq__'):
@@ -2377,20 +2376,27 @@ class BaseHighState(object):
         for saltenv, states in matches.items():
             for sls_match in states:
                 statefiles = fnmatch.filter(self.avail[saltenv], sls_match)
+
+                # if we did not found any sls in the fileserver listing, this
+                # may be because the sls was generated or added later, we can
+                # try to directly execute it, and if it fails, anyway it will
+                # return the former error
                 if not statefiles:
-                    # No matching sls file was found!  Output an error
-                    all_errors.append(
-                        'No matching sls found for {0!r} in env {1!r}'.format(
-                            sls_match, saltenv
-                        )
-                    )
+                    statefiles = [sls_match]
+
                 for sls in statefiles:
                     r_env = '{0}:{1}'.format(saltenv, sls)
                     if r_env in mods:
                         continue
-                    state, errors = self.render_state(sls, saltenv, mods, matches)
+                    state, errors = self.render_state(
+                        sls, saltenv, mods, matches)
                     if state:
                         self.merge_included_states(highstate, state, errors)
+                    for i, error in enumerate(errors[:]):
+                        if 'is not available on the salt master' in error:
+                            errors[i] = (
+                                'No matching sls found for {0!r} '
+                                'in env {1!r}'.format(sls_match, saltenv))
                     all_errors.extend(errors)
 
         self.clean_duplicate_extends(highstate)

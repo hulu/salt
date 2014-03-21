@@ -583,7 +583,7 @@ def run(name,
         return ret
 
     if env:
-        if isinstance(env, basestring):
+        if isinstance(env, string_types):
             try:
                 env = yaml.safe_load(env)
             except Exception:
@@ -604,7 +604,7 @@ def run(name,
             _env = {}
             for comp in env:
                 try:
-                    if isinstance(comp, basestring):
+                    if isinstance(comp, string_types):
                         _env.update(yaml.safe_load(comp))
                     if isinstance(comp, dict):
                         _env.update(comp)
@@ -824,8 +824,9 @@ def script(name,
         else:
             ret['result'] = not bool(cmd_all['retcode'])
         if ret.get('changes', {}).get('cache_error'):
-            ret['comment'] = 'Unable to cache script {0} from env ' \
-                             '{1!r}'.format(source, env)
+            ret['comment'] = 'Unable to cache script {0} from saltenv ' \
+                             '{1!r}'.format(source, kwargs.get('saltenv',
+                                                               'base'))
         else:
             ret['comment'] = 'Command {0!r} run'.format(name)
         return _reinterpreted_state(ret) if stateful else ret
@@ -872,7 +873,7 @@ def call(name,
             'name': name
             'changes': {'retval': result},
             'result': True if result is None else bool(result),
-            'comment': result if isinstance(result, basestring) else ''
+            'comment': result if isinstance(result, string_types) else ''
         }
     '''
     ret = {'name': name,
@@ -905,7 +906,7 @@ def call(name,
         # result must be JSON serializable else we get an error
         ret['changes'] = {'retval': result}
         ret['result'] = True if result is None else bool(result)
-        if isinstance(result, basestring):
+        if isinstance(result, string_types):
             ret['comment'] = result
         return ret
 

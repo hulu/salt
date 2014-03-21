@@ -18,6 +18,7 @@ except ImportError:
 # Import ioflo libs
 from ioflo.base.odicting import odict
 from ioflo.base import aiding
+from salt._compat import string_types
 
 from . import raeting
 from . import nacling
@@ -270,6 +271,13 @@ class Joiner(Initiator):
         self.prep()
         self.add(self.index)
 
+    def transmit(self, packet):
+        '''
+        Augment transmit with restart of redo timer
+        '''
+        super(Joiner, self).transmit(packet)
+        self.redoTimer.restart()
+
     def receive(self, packet):
         """
         Process received packet belonging to this transaction
@@ -307,6 +315,8 @@ class Joiner(Initiator):
                     self.txPacket.data['pk'] == raeting.pcktKinds.request):
                 self.transmit(self.txPacket) #redo
                 console.concise("Joiner Redo Join at {0}\n".format(self.stack.store.stamp))
+                self.stack.incStat('redo_join')
+
 
 
     def prep(self):
@@ -544,6 +554,13 @@ class Joinent(Correspondent):
         # Since corresponding bootstrap transaction use packet.index not self.index
         self.add(self.rxPacket.index)
 
+    def transmit(self, packet):
+        '''
+        Augment transmit with restart of redo timer
+        '''
+        super(Joinent, self).transmit(packet)
+        self.redoTimer.restart()
+
     def receive(self, packet):
         """
         Process received packet belonging to this transaction
@@ -579,6 +596,7 @@ class Joinent(Correspondent):
 
                 self.transmit(self.txPacket) #redo
                 console.concise("Joinent Redo Accept at {0}\n".format(self.stack.store.stamp))
+                self.stack.incStat('redo_accept')
             else: #check to see if status has changed to accept
                 remote = self.stack.estates[self.reid]
                 if remote:
@@ -900,6 +918,13 @@ class Allower(Initiator):
         self.prep() # prepare .txData
         self.add(self.index)
 
+    def transmit(self, packet):
+        '''
+        Augment transmit with restart of redo timer
+        '''
+        super(Allower, self).transmit(packet)
+        self.redoTimer.restart()
+
     def receive(self, packet):
         """
         Process received packet belonging to this transaction
@@ -934,14 +959,17 @@ class Allower(Initiator):
                 if self.txPacket.data['pk'] == raeting.pcktKinds.hello:
                     self.transmit(self.txPacket) # redo
                     console.concise("Allower Redo Hello at {0}\n".format(self.stack.store.stamp))
+                    self.stack.incStat('redo_hello')
 
                 if self.txPacket.data['pk'] == raeting.pcktKinds.initiate:
                     self.transmit(self.txPacket) # redo
                     console.concise("Allower Redo Initiate at {0}\n".format(self.stack.store.stamp))
+                    self.stack.incStat('redo_initiate')
 
                 if self.txPacket.data['pk'] == raeting.pcktKinds.ack:
                     self.transmit(self.txPacket) # redo
                     console.concise("Allower Redo Ack Final at {0}\n".format(self.stack.store.stamp))
+                    self.stack.incStat('redo_final')
 
     def prep(self):
         '''
@@ -999,7 +1027,7 @@ class Allower(Initiator):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        if not isinstance(body, basestring):
+        if not isinstance(body, string_types):
             emsg = "Invalid format of cookie packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_cookie')
@@ -1180,6 +1208,13 @@ class Allowent(Correspondent):
         self.prep() # prepare .txData
         self.add(self.index)
 
+    def transmit(self, packet):
+        '''
+        Augment transmit with restart of redo timer
+        '''
+        super(Allowent, self).transmit(packet)
+        self.redoTimer.restart()
+
     def receive(self, packet):
         """
         Process received packet belonging to this transaction
@@ -1218,10 +1253,12 @@ class Allowent(Correspondent):
                 if self.txPacket.data['pk'] == raeting.pcktKinds.cookie:
                     self.transmit(self.txPacket) #redo
                     console.concise("Allowent Redo Cookie at {0}\n".format(self.stack.store.stamp))
+                    self.stack.incStat('redo_cookie')
 
                 if self.txPacket.data['pk'] == raeting.pcktKinds.ack:
                     self.transmit(self.txPacket) #redo
                     console.concise("Allowent Redo Ack at {0}\n".format(self.stack.store.stamp))
+                    self.stack.incStat('redo_allow')
 
     def prep(self):
         '''
@@ -1249,7 +1286,7 @@ class Allowent(Correspondent):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        if not isinstance(body, basestring):
+        if not isinstance(body, string_types):
             emsg = "Invalid format of hello packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_hello')
@@ -1322,7 +1359,7 @@ class Allowent(Correspondent):
         data = self.rxPacket.data
         body = self.rxPacket.body.data
 
-        if not isinstance(body, basestring):
+        if not isinstance(body, string_types):
             emsg = "Invalid format of initiate packet body\n"
             console.terse(emsg)
             self.stack.incStat('invalid_initiate')
@@ -1508,6 +1545,13 @@ class Messenger(Initiator):
         self.tray = packeting.TxTray(stack=self.stack)
         self.add(self.index)
 
+    def transmit(self, packet):
+        '''
+        Augment transmit with restart of redo timer
+        '''
+        super(Messenger, self).transmit(packet)
+        self.redoTimer.restart()
+
     def receive(self, packet):
         """
         Process received packet belonging to this transaction
@@ -1541,6 +1585,7 @@ class Messenger(Initiator):
                     self.transmit(self.txPacket) # redo
                     console.concise("Messenger Redo Segment {0} at {1}\n".format(
                         self.tray.current, self.stack.store.stamp))
+                    self.stack.incStat('redo_segment')
 
     def prep(self):
         '''
@@ -1659,6 +1704,13 @@ class Messengent(Correspondent):
         self.tray = packeting.RxTray(stack=self.stack)
         self.add(self.index)
 
+    def transmit(self, packet):
+        '''
+        Augment transmit with restart of redo timer
+        '''
+        super(Messengent, self).transmit(packet)
+        self.redoTimer.restart()
+
     def receive(self, packet):
         """
         Process received packet belonging to this transaction
@@ -1694,6 +1746,7 @@ class Messengent(Correspondent):
                 #if self.txPacket.data['pk'] == raeting.pcktKinds.ack:
                     #self.transmit(self.txPacket) #redo
                     #console.concise("Messengent Redo Ack at {0}\n".format(self.stack.store.stamp))
+                    #self.stack.incStat('redo_segment_ack')
 
 
     def prep(self):
@@ -1732,7 +1785,6 @@ class Messengent(Correspondent):
                     self.stack.name, body))
             self.stack.rxMsgs.append(body)
             self.complete()
-
 
     def ackMessage(self):
         '''

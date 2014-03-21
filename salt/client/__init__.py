@@ -33,13 +33,15 @@ import salt.config
 import salt.payload
 import salt.transport
 import salt.utils
-import salt.utils.verify
+import salt.utils.args
 import salt.utils.event
 import salt.utils.minions
+import salt.utils.verify
 import salt.syspaths as syspaths
 from salt.exceptions import (
     EauthAuthenticationError, SaltInvocationError, SaltReqTimeoutError
 )
+from salt._compat import string_types
 
 # Try to import range from https://github.com/ytoolshed/range
 HAS_RANGE = False
@@ -50,18 +52,6 @@ except ImportError:
     pass
 
 log = logging.getLogger(__name__)
-
-
-def condition_kwarg(arg, kwarg):
-    '''
-    Return a single arg structure for the publisher to safely use
-    '''
-    if isinstance(kwarg, dict) and kwarg:
-        kw_ = {'__kwarg__': True}
-        for key, val in kwarg.items():
-            kw_[key] = val
-        return list(arg) + [kw_]
-    return arg
 
 
 def get_local_client(
@@ -270,7 +260,7 @@ class LocalClient(object):
             >>> local.run_job('*', 'test.sleep', [300])
             {'jid': '20131219215650131543', 'minions': ['jerry']}
         '''
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         jid = ''
 
         # Subscribe to all events and subscribe as early as possible
@@ -310,7 +300,7 @@ class LocalClient(object):
             >>> local.cmd_async('*', 'test.sleep', [300])
             '20131219215921857715'
         '''
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         pub_data = self.run_job(tgt,
                                 fun,
                                 arg,
@@ -395,7 +385,7 @@ class LocalClient(object):
             {'stewart': {...}}
         '''
         import salt.cli.batch  # pylint: disable=W0621
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         opts = {'tgt': tgt,
                 'fun': fun,
                 'arg': arg,
@@ -520,7 +510,7 @@ class LocalClient(object):
             minion ID. A compound command will return a sub-dictionary keyed by
             function name.
         '''
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         pub_data = self.run_job(tgt,
                                 fun,
                                 arg,
@@ -557,7 +547,7 @@ class LocalClient(object):
         :param verbose: Print extra information about the running command
         :returns: A generator
         '''
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         pub_data = self.run_job(
             tgt,
             fun,
@@ -619,7 +609,7 @@ class LocalClient(object):
             {'dave': {'ret': True}}
             {'stewart': {'ret': True}}
         '''
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         pub_data = self.run_job(
             tgt,
             fun,
@@ -672,7 +662,7 @@ class LocalClient(object):
             None
             {'stewart': {'ret': True}}
         '''
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         pub_data = self.run_job(
             tgt,
             fun,
@@ -707,7 +697,7 @@ class LocalClient(object):
         '''
         Execute a salt command and return
         '''
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         pub_data = self.run_job(
             tgt,
             fun,
@@ -846,7 +836,7 @@ class LocalClient(object):
         :returns: all of the information for the JID
         '''
         if not isinstance(minions, set):
-            if isinstance(minions, basestring):
+            if isinstance(minions, string_types):
                 minions = set([minions])
             elif isinstance(minions, (list, tuple)):
                 minions = set(list(minions))
@@ -1174,7 +1164,7 @@ class LocalClient(object):
         Get the returns for the command line interface via the event system
         '''
         if not isinstance(minions, set):
-            if isinstance(minions, basestring):
+            if isinstance(minions, string_types):
                 minions = set([minions])
             elif isinstance(minions, (list, tuple)):
                 minions = set(list(minions))
@@ -1492,7 +1482,7 @@ class SSHClient(object):
         opts = copy.deepcopy(self.opts)
         opts.update(kwargs)
         opts['timeout'] = timeout
-        arg = condition_kwarg(arg, kwarg)
+        arg = salt.utils.args.condition_input(arg, kwarg)
         opts['arg_str'] = '{0} {1}'.format(fun, ' '.join(arg))
         opts['selected_target_option'] = expr_form
         opts['tgt'] = tgt
@@ -1661,5 +1651,8 @@ class Caller(object):
         Call a single salt function
         '''
         func = self.sminion.functions[fun]
-        args, kwargs = salt.minion.parse_args_and_kwargs(func, args, kwargs)
+        args, kwargs = salt.minion.load_args_and_kwargs(
+            func,
+            salt.utils.args.parse_input(args),
+            kwargs)
         return func(*args, **kwargs)

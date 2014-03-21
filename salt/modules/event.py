@@ -23,6 +23,17 @@ def fire_master(data, tag, preload=None):
 
         salt '*' event.fire_master '{"data":"my event data"}' 'tag'
     '''
+    if __opts__['transport'] == 'raet':
+        sreq = salt.transport.Channel.factory(__opts__)
+        load = {'id': __opts__['id'],
+                'tag': tag,
+                'data': data,
+                'cmd': '_minion_event'}
+        try:
+            sreq.send(load)
+        except Exception:
+            pass
+        return True
 
     if preload:
         # If preload is specified, we must send a raw event (this is
@@ -62,6 +73,11 @@ def fire(data, tag):
         salt '*' event.fire '{"data":"my event data"}' 'tag'
     '''
     try:
-        return salt.utils.event.MinionEvent(**__opts__).fire_event(data, tag)
+        event = salt.utils.event.get_event(
+                __opts__['id'],
+                __opts__['sock_dir'],
+                __opts__['transport'],
+                listen=False)
+        return event.fire_event(data, tag)
     except Exception:
         return False

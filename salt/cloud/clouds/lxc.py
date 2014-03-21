@@ -24,8 +24,8 @@ import salt.utils.cloud
 import salt.config as config
 from salt.cloud.exceptions import SaltCloudSystemExit
 
-from salt.client import LocalClient
-from salt.runner import RunnerClient
+import salt.client
+import salt.runner
 import salt.syspaths
 
 
@@ -82,13 +82,13 @@ def _master_opts(cfg='master'):
 
 
 def _client():
-    return LocalClient(mopts=_master_opts())
+    return salt.client.get_local_client(mopts=_master_opts())
 
 
 def _runner():
     # opts = _master_opts()
     # opts['output'] = 'quiet'
-    return RunnerClient(_master_opts())
+    return salt.runner.RunnerClient(_master_opts())
 
 
 def _salt(fun, *args, **kw):
@@ -338,6 +338,7 @@ def destroy(vm_, call=None):
             'destroying instance',
             'salt/cloud/{0}/destroying'.format(vm_),
             {'name': vm_, 'instance_id': vm_},
+            transport=__opts__['transport']
         )
         gid = 'lxc.{0}.initial_pass'.format(vm_)
         _salt('grains.setval', gid, False)
@@ -353,6 +354,7 @@ def destroy(vm_, call=None):
                 'destroyed instance',
                 'salt/cloud/{0}/destroyed'.format(vm_),
                 {'name': vm_, 'instance_id': vm_},
+                transport=__opts__['transport']
             )
     return ret
 
@@ -416,6 +418,7 @@ def create(vm_, call=None):
             'profile': vm_['profile'],
             'provider': vm_['provider'],
         },
+        transport=__opts__['transport']
     )
     if not dnsservers:
         dnsservers = ['8.8.8.8', '4.4.4.4']

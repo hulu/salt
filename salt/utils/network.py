@@ -70,6 +70,24 @@ def host_to_ip(host):
     return ip
 
 
+def get_fqhostname():
+    '''
+    Returns the fully qualified hostname
+
+    CLI Example::
+
+        salt '*' network.get_fqhostname
+    '''
+    h_name = socket.gethostname()
+    if h_name.find('.') >= 0:
+        return h_name
+    else:
+        family, socktype, proto, canonname, sockaddr = socket.getaddrinfo(
+                h_name, 0, socket.AF_UNSPEC, socket.SOCK_STREAM,
+                socket.SOL_TCP, socket.AI_CANONNAME)[0]
+        return canonname
+
+
 def ip_to_host(ip):
     '''
     Returns the hostname of a given IP

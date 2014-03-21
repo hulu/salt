@@ -224,14 +224,14 @@ def init(name,
     seed_cmd = select('seed_cmd')
     config = select('config')
     approve_key = select('approve_key', True)
-    clone = select('clone')
+    clone_from = select('clone')
 
     with tempfile.NamedTemporaryFile() as cfile:
         cfile.write(_gen_config(cpuset=cpuset, cpushare=cpushare,
                                 memory=memory, nicp=nicp, nic_opts=nic_opts))
         cfile.flush()
-        if clone:
-            ret = __salt__['lxc.clone'](name, clone, config=cfile.name,
+        if clone_from:
+            ret = __salt__['lxc.clone'](name, clone_from, config=cfile.name,
                                         profile=profile, **kwargs)
         else:
             ret = __salt__['lxc.create'](name, config=cfile.name,
@@ -1070,11 +1070,11 @@ def bootstrap(name, config=None, approve_key=True, install=True):
     if not infos:
         return None
 
+    prior_state = _ensure_running(name)
+
     __salt__['seed.apply'](infos['rootfs'], id_=name, config=config,
                            approve_key=approve_key, install=False,
                            prep_install=True)
-
-    prior_state = _ensure_running(name)
 
     cmd = 'bash -c "if type salt-minion; then exit 0; '
     if install:
