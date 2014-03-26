@@ -4,7 +4,7 @@ estating.py raet protocol estate classes
 '''
 # pylint: skip-file
 # pylint: disable=W0611
-# Import python libs
+
 import socket
 
 # Import ioflo libs
@@ -17,8 +17,6 @@ from . import nacling
 from ioflo.base.consoling import getConsole
 console = getConsole()
 
-# Import salt libs
-import salt.utils.network
 
 class Estate(object):
     '''
@@ -45,7 +43,7 @@ class Estate(object):
         self.sid = sid # current session ID
         self.tid = tid # current transaction ID
 
-        if ha:  # takes precendence
+        if ha:  # takes precedence
             host, port = ha
         self.host = socket.gethostbyname(host)
         self.port = port
@@ -53,8 +51,7 @@ class Estate(object):
             host = '127.0.0.1'
         else:
             host = self.host
-        self.fqdn = salt.utils.network.get_fqhostname()
-
+        self.fqdn = socket.getfqdn(host)
 
     @property
     def ha(self):
@@ -86,7 +83,7 @@ class Estate(object):
 
     def nextTid(self):
         '''
-        Generates next session id number.
+        Generates next transaction id number.
         '''
         self.tid += 1
         if self.tid > 0xffffffffL:
@@ -96,7 +93,7 @@ class Estate(object):
 class LocalEstate(Estate):
     '''
     RAET protocol endpoint local estate object
-    Maintains signer for signing and privateer for encrypt/decript
+    Maintains signer for signing and privateer for encrypt/decrypt
     '''
     def __init__(self, main=False, sigkey=None, prikey=None, **kwa):
         '''
@@ -114,7 +111,7 @@ class LocalEstate(Estate):
 class RemoteEstate(Estate):
     '''
     RAET protocol endpoint remote estate object
-    Maintains verifier for verifying signatures and publican for encrypt/decript
+    Maintains verifier for verifying signatures and publican for encrypt/decrypt
     '''
     def __init__(self, verkey=None, pubkey=None, acceptance=None, rsid=0, rtid=0, **kwa):
         '''

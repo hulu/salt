@@ -16,12 +16,13 @@ import pipes
 import logging
 import tempfile
 import os
+import shutil
 import re
 
 #import salt libs
 import salt.utils
-#import subprocess
 import salt.utils.cloud
+import salt.config
 
 # Set up logging
 log = logging.getLogger(__name__)
@@ -30,6 +31,9 @@ log = logging.getLogger(__name__)
 __func_alias__ = {
     'list_': 'list'
 }
+
+
+DEFAULT_NIC_PROFILE = {'eth0': {'link': 'br0', 'type': 'veth'}}
 
 
 def _ip_sort(ip):
@@ -87,63 +91,92 @@ def _lxc_profile(profile):
     return __salt__['config.option']('lxc.profile', {}).get(profile, {})
 
 
-def _nic_profile(nic):
+class LXCConfig(object):
     '''
-    Gather the nic profile from the config or apply the default.
-
-    This is the ``default`` profile, which can be overridden in the
-    configuration:
-
-    .. code-block:: yaml
-
-        lxc.nic:
-          default:
-            eth0:
-              link: br0
-              type: veth
+    LXC configuration data
     '''
-    default = {'eth0': {'link': 'br0', 'type': 'veth'}}
-    return __salt__['config.option']('lxc.nic', {}).get(nic, default)
+    pattern = re.compile(r'^(\S+)(\s*)(=)(\s*)(.*)')
 
-
-def _gen_config(nicp,
-                cpuset=None,
-                cpushare=None,
-                memory=None,
-                nic_opts=None):
-    '''
-    Generate the config string for an lxc container
-    '''
-    data = []
-
-    if memory:
-        data.append(('lxc.cgroup.memory.limit_in_bytes', memory * 1024 * 1024))
-    if cpuset:
-        data.append(('lxc.cgroup.cpuset.cpus', cpuset))
-    if cpushare:
-        data.append(('lxc.cgroup.cpu.shares', cpushare))
-
-    for dev, args in nicp.items():
-        data.append(('lxc.network.type', args.pop('type', 'veth')))
-        data.append(('lxc.network.name', dev))
-        data.append(('lxc.network.flags', args.pop('flags', 'up')))
-        opts = nic_opts.get(dev) if nic_opts else None
-        if opts:
-            mac = opts.get('mac')
-            ipv4 = opts.get('ipv4')
-            ipv6 = opts.get('ipv6')
+    def __init__(self, **kwargs):
+        self.name = kwargs.pop('name', None)
+        self.data = []
+        if self.name:
+            self.path = '/var/lib/lxc/{0}/config'.format(self.name)
+            if os.path.isfile(self.path):
+                with open(self.path) as f:
+                    for l in f.readlines():
+                        match = self.pattern.findall((l.strip()))
+                        if match:
+                            self.data.append((match[0][0], match[0][-1]))
         else:
-            ipv4, ipv6 = None, None
-            mac = salt.utils.gen_mac()
-        data.append(('lxc.network.hwaddr', mac))
-        if ipv4:
-            data.append(('lxc.network.ipv4', ipv4))
-        if ipv6:
-            data.append(('lxc.network.ipv6', ipv6))
-        for k, v in args.items():
-            data.append(('lxc.network.{0}'.format(k), v))
+            self.path = None
 
-    return '\n'.join(['{0} = {1}'.format(k, v) for k, v in data]) + '\n'
+        def _replace(k, v):
+            if v:
+                self._filter_data(k)
+                self.data.append((k, v))
+
+        memory = kwargs.pop('memory', None)
+        if memory:
+            memory = memory * 1024 * 1024
+        _replace('lxc.cgroup.memory.limit_in_bytes', memory)
+        cpuset = kwargs.pop('cpuset', None)
+        _replace('lxc.cgroup.cpuset.cpus', cpuset)
+        cpushare = kwargs.pop('cpushare', None)
+        _replace('lxc.cgroup.cpu.shares', cpushare)
+
+        nic = kwargs.pop('nic')
+        if nic:
+            self._filter_data('lxc.network')
+            nicp = __salt__['config.option']('lxc.nic', {}).get(
+                        nic, DEFAULT_NIC_PROFILE
+                    )
+            nic_opts = kwargs.pop('nic_opts', None)
+
+            for dev, args in nicp.items():
+                self.data.append(('lxc.network.type',
+                                  args.pop('type', 'veth')))
+                self.data.append(('lxc.network.name', dev))
+                self.data.append(('lxc.network.flags',
+                                  args.pop('flags', 'up')))
+                opts = nic_opts.get(dev) if nic_opts else None
+                if opts:
+                    mac = opts.get('mac')
+                    ipv4 = opts.get('ipv4')
+                    ipv6 = opts.get('ipv6')
+                else:
+                    ipv4, ipv6 = None, None
+                    mac = salt.utils.gen_mac()
+                self.data.append(('lxc.network.hwaddr', mac))
+                if ipv4:
+                    self.data.append(('lxc.network.ipv4', ipv4))
+                if ipv6:
+                    self.data.append(('lxc.network.ipv6', ipv6))
+                for k, v in args.items():
+                    self.data.append(('lxc.network.{0}'.format(k), v))
+
+    def as_string(self):
+        return '\n'.join(
+                ['{0} = {1}'.format(k, v) for k, v in self.data]) + '\n'
+
+    def write(self):
+        if self.path:
+            salt.utils.fopen(self.path, 'w').write(self.as_string())
+
+    def tempfile(self):
+        # this might look like the function name is shadowing the
+        # module, but it's not since the method belongs to the class
+        f = tempfile.NamedTemporaryFile()
+        f.write(self.as_string())
+        f.flush()
+        return f
+
+    def _filter_data(self, pat):
+        x = []
+        for i in self.data:
+            if not re.match('^' + pat, i[0]):
+                x.append(i)
+        self.data = x
 
 
 def init(name,
@@ -210,7 +243,6 @@ def init(name,
     clone
         Original from which to use a clone operation to create the container. Default: ``None``
     '''
-    nicp = _nic_profile(nic)
     profile = _lxc_profile(profile)
 
     def select(k, default=None):
@@ -222,28 +254,32 @@ def init(name,
     seed = select('seed', True)
     install = select('install', True)
     seed_cmd = select('seed_cmd')
-    config = select('config')
+    salt_config = select('config')
     approve_key = select('approve_key', True)
     clone_from = select('clone')
 
-    with tempfile.NamedTemporaryFile() as cfile:
-        cfile.write(_gen_config(cpuset=cpuset, cpushare=cpushare,
-                                memory=memory, nicp=nicp, nic_opts=nic_opts))
-        cfile.flush()
-        if clone_from:
-            ret = __salt__['lxc.clone'](name, clone_from, config=cfile.name,
-                                        profile=profile, **kwargs)
-        else:
+    if clone_from:
+        ret = __salt__['lxc.clone'](name, clone_from,
+                                    profile=profile, **kwargs)
+        if not ret.get('cloned', False):
+            return ret
+        cfg = LXCConfig(name=name, nic=nic, cpuset=cpuset,
+                        cpushare=cpushare, memory=memory)
+        cfg.write()
+    else:
+        cfg = LXCConfig(nic=nic, cpuset=cpuset,
+                        cpushare=cpushare, memory=memory)
+        with cfg.tempfile() as cfile:
             ret = __salt__['lxc.create'](name, config=cfile.name,
                                          profile=profile, **kwargs)
-    if not (ret.get('created', False) or ret.get('cloned', False)):
-        return ret
+        if not ret.get('created', False):
+            return ret
     rootfs = info(name)['rootfs']
     if seed:
         ret['seeded'] = __salt__['lxc.bootstrap'](
-            name, config=config, approve_key=approve_key, install=install)
+            name, config=salt_config, approve_key=approve_key, install=install)
     elif seed_cmd:
-        ret['seeded'] = __salt__[seed_cmd](rootfs, name, config)
+        ret['seeded'] = __salt__[seed_cmd](rootfs, name, salt_config)
     if start_:
         ret['state'] = start(name)['state']
     else:
@@ -1071,19 +1107,41 @@ def bootstrap(name, config=None, approve_key=True, install=True):
         return None
 
     prior_state = _ensure_running(name)
+    if not prior_state:
+        return prior_state
 
-    __salt__['seed.apply'](infos['rootfs'], id_=name, config=config,
-                           approve_key=approve_key, install=False,
-                           prep_install=True)
+    cmd = 'bash -c "if type salt-minion; then ' \
+          'salt-call --local service.stop salt-minion; exit 0; ' \
+          'else exit 1; fi"'
+    needs_install = bool(__salt__['lxc.run_cmd'](name, cmd, stdout=False))
 
-    cmd = 'bash -c "if type salt-minion; then exit 0; '
-    if install:
-        cmd += 'else sh /tmp/bootstrap.sh -c /tmp; '
+    tmp = tempfile.mkdtemp()
+    cfg_files = __salt__['seed.mkconfig'](config, tmp=tmp, id_=name,
+                                          approve_key=approve_key)
+
+    if needs_install:
+        if install:
+            bs_ = __salt__['config.gather_bootstrap_script']()
+            cp(name, bs_, '/tmp/')
+            cp(name, cfg_files['config'], '/tmp/')
+            cp(name, cfg_files['privkey'], '/tmp/')
+            cp(name, cfg_files['pubkey'], '/tmp/')
+
+            cmd = 'sh /tmp/bootstrap.sh -c /tmp'
+            res = not __salt__['lxc.run_cmd'](name, cmd, stdout=False)
+        else:
+            res = False
     else:
-        cmd += 'else exit 1; '
-    cmd += 'fi"'
-    res = not __salt__['lxc.run_cmd'](name, cmd, stdout=False,
-                                      no_start=True, preserve_state=False)
+        minion_config = salt.config.minion_config(cfg_files['config'])
+        pki_dir = os.path.join(minion_config['pki_dir'], 'minion')
+        cp(name, cfg_files['config'], '/etc/salt/minion')
+        cp(name, cfg_files['privkey'], pki_dir)
+        cp(name, cfg_files['pubkey'], pki_dir)
+        run_cmd(name, 'salt-call --local service.start salt-minion',
+                stdout=False)
+        res = True
+
+    shutil.rmtree(tmp)
     if prior_state == 'stopped':
         __salt__['lxc.stop'](name)
     elif prior_state == 'frozen':
@@ -1132,7 +1190,6 @@ def run_cmd(name, cmd, no_start=False, preserve_state=True,
     prior_state = _ensure_running(name, no_start=no_start)
     if not prior_state:
         return prior_state
-
     res = __salt__['cmd.run_all'](
             'lxc-attach -n \'{0}\' -- {1}'.format(name, cmd))
 
@@ -1150,3 +1207,35 @@ def run_cmd(name, cmd, no_start=False, preserve_state=True,
         return res['stderr']
     else:
         return res['retcode']
+
+
+def cp(name, src, dest, saltenv='base'):
+    '''
+    Copy a file or directory from the host into a container
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt 'minion' lxc.cp /tmp/foo /root/
+    '''
+
+    if state(name) != 'running':
+        return {'error': 'container is not running'}
+    if not os.path.exists(src):
+        return {'error': 'src does not exist'}
+    if not os.path.isfile(src):
+        return {'error': 'src must be a regular file'}
+    src_dir, src_name = os.path.split(src)
+
+    dest_dir, dest_name = os.path.split(dest)
+    if run_cmd(name, 'test -d {0}'.format(dest_dir), stdout=False):
+        return {'error': '{0} is not a directory on the container'.format(dest_dir)}
+    if not dest_name:
+        dest_name = src_name
+
+    cmd = 'tar -C {0} -cf - {1} | lxc-attach -n {2} -- tar -C {3} -xf -'.format(
+            src_dir, src_name, name, dest_dir)
+    log.info(cmd)
+    ret = __salt__['cmd.run_all'](cmd)
+    return ret

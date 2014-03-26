@@ -25,7 +25,7 @@ or holds the field from a received packet.
 What fields are included in a header is dependent on the header kind.
 
 Header encoding.
-    When the head kind is json = 0,then certain optimizations are
+    When the head kind is json = 0, then certain optimizations are
     used to minimize the header length.
         The header field keys are two bytes long
         If a header field value is the default then the field is not included
@@ -267,6 +267,17 @@ FIELD_FORMATS = odict([
                     ('fg', '.2s'),
               ])
 
+# head fields that may be included in json header if not default value
+PAGE_DEFAULTS = odict([
+                        ('syn', ''),
+                        ('dyn', ''),
+                        ('mid', 0),
+                        ('number', 0),
+                        ('count', 1),
+                        ('section', ''),
+                      ])
+
+
 
 class RaetError(Exception):
     '''
@@ -347,10 +358,20 @@ class KeepError(RaetError):
 
 class YardError(RaetError):
     '''
-       Exceptions in RAET estate processing
+       Exceptions in RAET yard processing
 
        Usage:
-            emsg = "Invalid estate id '{0}'".format(eid)
+            emsg = "Invalid yard id '{0}'".format(yid)
             raise raeting.YardError(emsg)
+    '''
+    pass
+
+class PageError(RaetError):
+    '''
+       Exceptions in RAET page processing
+
+       Usage:
+            emsg = "Invalid page kind '{0}'".format(kind)
+            raise raeting.PageError(emsg)
     '''
     pass

@@ -25,7 +25,7 @@ class SaltEvent(object):
     '''
     The base class used to manage salt events
     '''
-    def __init__(self, node, sock_dir=None, listen=True, **kwargs):
+    def __init__(self, node, sock_dir=None, listen=True):
         '''
         Set up the stack and remote yard
         '''
@@ -42,7 +42,7 @@ class SaltEvent(object):
                 lanename=self.node,
                 dirpath=self.sock_dir)
         self.stack.Pk = raeting.packKinds.pack
-        self.router_yard = yarding.Yard(
+        self.router_yard = yarding.RemoteYard(
                 prefix=self.node,
                 yid=0,
                 dirpath=self.sock_dir)
