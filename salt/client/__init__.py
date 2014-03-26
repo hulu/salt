@@ -66,7 +66,7 @@ def get_local_client(
     if mopts:
         opts = mopts
     else:
-        import salt.config
+        import salt.config  # pylint: disable=W0404,W0621
         opts = salt.config.client_config(c_path)
     if opts['transport'] == 'raet':
         import salt.client.raet
