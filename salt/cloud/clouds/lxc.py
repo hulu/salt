@@ -217,7 +217,7 @@ def avail_images():
     return _salt('lxc.templates')
 
 
-def list_nodes(conn=None, call=None):
+def list_nodes(conn=None, call=None):  # pylint: disable=W0613
     hide = False
     names = __opts__.get('names', [])
     profile = __opts__.get('profile', [])
