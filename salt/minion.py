@@ -189,7 +189,7 @@ def load_args_and_kwargs(func, args, data=None):
                     # **kwargs not in argspec and parsed argument name not in
                     # list of positional arguments. This keyword argument is
                     # invalid.
-                    invalid_kwargs.append(arg)
+                    invalid_kwargs.append('{0}'.format(arg))
                 continue
 
         # if the arg is a dict with __kwarg__ == True, then its a kwarg
@@ -203,7 +203,7 @@ def load_args_and_kwargs(func, args, data=None):
                     # **kwargs not in argspec and parsed argument name not in
                     # list of positional arguments. This keyword argument is
                     # invalid.
-                    invalid_kwargs.append(arg)
+                    invalid_kwargs.append('{0}'.format(arg))
             continue
 
         else:
@@ -1173,12 +1173,9 @@ class Minion(MinionBase):
                 log.info('Authentication with master successful!')
                 break
             log.info('Waiting for minion key to be accepted by the master.')
-
-            if self.opts.get('check_dns'):
-                log.info('Resolve master dns name.')
-                self.opts.update(resolve_dns(self.opts))
-
-            time.sleep(acceptance_wait_time)
+            if acceptance_wait_time:
+                log.info('Waiting {0} seconds before retry.'.format(acceptance_wait_time))
+                time.sleep(acceptance_wait_time)
             if acceptance_wait_time < acceptance_wait_time_max:
                 acceptance_wait_time += acceptance_wait_time
                 log.debug('Authentication wait time is {0}'.format(acceptance_wait_time))

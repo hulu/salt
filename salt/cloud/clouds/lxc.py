@@ -151,6 +151,8 @@ def _salt(fun, *args, **kw):
         runner = _runner()
         rkwargs = kwargs.copy()
         rkwargs['timeout'] = timeout
+        rkwargs.setdefault('expr_form', 'list')
+        kwargs.setdefault('expr_form', 'list')
         jid = conn.cmd_async(tgt=target,
                              fun=fun,
                              arg=args,
@@ -404,6 +406,7 @@ def create(vm_, call=None):
     if backing in ['dir', 'overlayfs']:
         fstype = None
         size = None
+    if backing in ['dir']:
         snapshot = False
     for k in ['password',
               'ssh_username']:
