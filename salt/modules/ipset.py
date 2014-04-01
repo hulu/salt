@@ -119,7 +119,7 @@ def version():
     return out[1]
 
 
-def new_set(set=None, set_type=None, family='ipv4', comment=False, **kwargs):
+def new_set(set=None, set_type=None, family='ipv4', comment=False, **kwargs):  # pylint: disable=W0622
     '''
     .. versionadded:: Helium
 
@@ -172,7 +172,7 @@ def new_set(set=None, set_type=None, family='ipv4', comment=False, **kwargs):
     return out
 
 
-def delete_set(set=None, family='ipv4'):
+def delete_set(set=None, family='ipv4'):  # pylint: disable=W0622
     '''
     .. versionadded:: Helium
 
@@ -199,7 +199,7 @@ def delete_set(set=None, family='ipv4'):
     return out
 
 
-def rename_set(set=None, new_set=None, family='ipv4'):
+def rename_set(set=None, new_set=None, family='ipv4'):  # pylint: disable=W0621,W0622
     '''
     .. versionadded:: Helium
 
@@ -268,7 +268,7 @@ def list_sets(family='ipv4'):
     return sets
 
 
-def check_set(set=None, family='ipv4'):
+def check_set(set=None, family='ipv4'):  # pylint: disable=W0622
     '''
     .. versionadded:: Helium
 
@@ -290,7 +290,7 @@ def check_set(set=None, family='ipv4'):
     return True
 
 
-def add(set=None, entry=None, family='ipv4', **kwargs):
+def add(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622
     '''
     Append an entry to the specified set.
 
@@ -339,7 +339,7 @@ def add(set=None, entry=None, family='ipv4', **kwargs):
     return out
 
 
-def delete(set=None, entry=None, family='ipv4', **kwargs):
+def delete(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622
     '''
     Delete an entry from the specified set.
 
@@ -368,7 +368,7 @@ def delete(set=None, entry=None, family='ipv4', **kwargs):
     return out
 
 
-def test(set=None, entry=None, family='ipv4', **kwargs):
+def test(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622
     '''
     Test if an entry is in the specified set.
 
@@ -400,7 +400,7 @@ def test(set=None, entry=None, family='ipv4', **kwargs):
     return True
 
 
-def flush(set=None, family='ipv4'):
+def flush(set=None, family='ipv4'):  # pylint: disable=W0622
     '''
     Flush entries in the specified set,
     Flush all sets if set is not specified.
@@ -438,7 +438,7 @@ def flush(set=None, family='ipv4'):
         return False
 
 
-def build_entry(set=None, entry=None, full=None, family='ipv4', **kwargs):
+def build_entry(set=None, entry=None, full=None, family='ipv4', **kwargs):  # pylint: disable=W0622
     '''
     Append an entry to the specified set.
 
@@ -486,7 +486,7 @@ def build_entry(set=None, entry=None, full=None, family='ipv4', **kwargs):
     return cmd
 
 
-def _find_set_info(set):
+def _find_set_info(set):  # pylint: disable=W0622
     '''
     Return information about the set
     '''
@@ -506,7 +506,7 @@ def _find_set_info(set):
     return setinfo
 
 
-def _find_set_type(set):
+def _find_set_type(set):  # pylint: disable=W0622
     '''
     Find the type of the set
     '''
