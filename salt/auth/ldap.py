@@ -212,7 +212,7 @@ def groups(username, **kwargs):
     group_list = []
     bind = _bind(username, kwargs['password'])
     if bind:
-        search_results = bind.search_s('ou={0},{1}'.format(_config('groupou'), _config('basedn')),
+        search_results = bind.search_s('ou={0},{1}'.format(_config('groupou'), _config('basedn')),  # pylint: disable=E1103
                                        ldap.SCOPE_SUBTREE,
                                        '(&(memberUid={0})(objectClass=posixGroup))'.format(username),
                                        ['memberUid', 'cn'])
