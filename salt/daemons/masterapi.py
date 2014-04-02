@@ -8,7 +8,6 @@ involves preparing the three listeners and the workers needed by the master.
 import os
 import re
 import logging
-import getpass
 import shutil
 import datetime
 try:
@@ -120,7 +119,7 @@ def access_keys(opts):
     acl_users = set(opts['client_acl'].keys())
     if opts.get('user'):
         acl_users.add(opts['user'])
-    acl_users.add(getpass.getuser())
+    acl_users.add(salt.utils.get_user())
     for user in pwd.getpwall():
         users.append(user.pw_name)
     for user in acl_users:
@@ -475,7 +474,7 @@ class RemoteFuncs(object):
         if any(key not in load for key in ('return', 'jid', 'id')):
             return False
         if load['jid'] == 'req':
-        # The minion is returning a standalone job, request a jobid
+            # The minion is returning a standalone job, request a jobid
             load['jid'] = salt.utils.prep_jid(
                     self.opts['cachedir'],
                     self.opts['hash_type'],
@@ -1235,7 +1234,7 @@ class LocalFuncs(object):
                         'Authentication failure of type "user" occurred.'
                     )
                     return ''
-            elif load['user'] == getpass.getuser():
+            elif load['user'] == salt.utils.get_user():
                 if load.pop('key') != self.key.get(load['user']):
                     log.warning(
                         'Authentication failure of type "user" occurred.'
@@ -1273,7 +1272,7 @@ class LocalFuncs(object):
                     )
                     return ''
         else:
-            if load.pop('key') != self.key[getpass.getuser()]:
+            if load.pop('key') != self.key[salt.utils.get_user()]:
                 log.warning(
                     'Authentication failure of type "other" occurred.'
                 )

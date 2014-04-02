@@ -60,6 +60,7 @@ To use the EC2 cloud module, set up the cloud configuration at
 
       provider: ec2
 
+:depends: requests
 '''
 # pylint: disable=E0102
 
@@ -80,7 +81,7 @@ import hashlib
 import binascii
 import datetime
 import urllib
-import urllib2
+import requests
 
 # Import salt libs
 from salt._compat import ElementTree as ET
@@ -150,10 +151,6 @@ def __virtual__():
     Set up the libcloud functions and check for EC2 configurations
     '''
     if get_configured_provider() is False:
-        log.debug(
-            'There is no EC2 cloud provider configuration available. Not '
-            'loading module'
-        )
         return False
 
     for provider, details in __opts__['providers'].iteritems():
@@ -181,7 +178,6 @@ def __virtual__():
                 )
             )
 
-    log.debug('Loading EC2 cloud compute module')
     return True
 
 
@@ -319,19 +315,19 @@ def query(params=None, setname=None, requesturl=None, location=None,
             sig = binascii.b2a_base64(hashed.digest())
             params['Signature'] = sig.strip()
 
-            querystring = urllib.urlencode(params)
-            requesturl = 'https://{0}/?{1}'.format(endpoint, querystring)
+            requesturl = 'https://{0}/'.format(endpoint)
 
         log.debug('EC2 Request: {0}'.format(requesturl))
         try:
-            result = urllib2.urlopen(requesturl)
+            result = requests.get(requesturl, params=params)
             log.debug(
                 'EC2 Response Status Code: {0}'.format(
-                    result.getcode()
+                    #result.getcode()
+                    result.status_code
                 )
             )
             break
-        except urllib2.URLError as exc:
+        except requests.exceptions.HTTPError as exc:
             root = ET.fromstring(exc.read())
             data = _xml_to_dict(root)
 
@@ -367,7 +363,7 @@ def query(params=None, setname=None, requesturl=None, location=None,
             return {'error': data}, requesturl
         return {'error': data}
 
-    response = result.read()
+    response = result.text
     result.close()
 
     root = ET.fromstring(response)
@@ -2222,6 +2218,35 @@ def _list_nodes_full(location=None):
                     public_ips=item.get('ipAddress', [])
                 )
             )
+    return ret
+
+
+def list_nodes_min(location=None, call=None):
+    '''
+    Return a list of the VMs that are on the provider
+    '''
+    if call == 'action':
+        raise SaltCloudSystemExit(
+            'The list_nodes_min function must be called with -f or --function.'
+        )
+
+    ret = {}
+    params = {'Action': 'DescribeInstances'}
+    instances = query(params)
+    if 'error' in instances:
+        raise SaltCloudSystemExit(
+            'An error occurred while listing nodes: {0}'.format(
+                instances['error']['Errors']['Error']['Message']
+            )
+        )
+
+    for instance in instances:
+        if isinstance(instance['instancesSet']['item'], list):
+            for item in instance['instancesSet']['item']:
+                ret[_extract_name_tag(item)] = True
+        else:
+            item = instance['instancesSet']['item']
+            ret[_extract_name_tag(item)] = True
     return ret
 
 

@@ -1164,7 +1164,7 @@ def managed(name,
             contents += '\n'
 
     if not replace and os.path.exists(name):
-       # Check and set the permissions if necessary
+        # Check and set the permissions if necessary
         ret, perms = __salt__['file.check_perms'](name,  # pylint: disable=W0612
                                                   ret,
                                                   user,
@@ -2641,7 +2641,7 @@ def prepend(name,
 
     count = 0
 
-    prepend = []
+    preface = []
     for chunk in text:
 
         if __salt__['file.contains_regex_multiline'](
@@ -2663,10 +2663,10 @@ def prepend(name,
                 ret['comment'] = 'File {0} is set to be updated'.format(name)
                 ret['result'] = None
                 return ret
-            prepend.append(line)
+            preface.append(line)
             count += 1
 
-    __salt__['file.prepend'](name, *prepend)
+    __salt__['file.prepend'](name, *preface)
 
     with salt.utils.fopen(name, 'rb') as fp_:
         nlines = fp_.readlines()
