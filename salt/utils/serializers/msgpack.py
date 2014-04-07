@@ -45,10 +45,10 @@ if not available:
     def _fail():
         raise RuntimeError('msgpack is not available')
 
-    def _serialize(obj, **options):
+    def _serialize(obj, **options):  # pylint: disable=W0613
         _fail()
 
-    def _deserialize(stream_or_string, **options):
+    def _deserialize(stream_or_string, **options):  # pylint: disable=W0613
         _fail()
 
 elif msgpack.version >= (0, 2, 0):
