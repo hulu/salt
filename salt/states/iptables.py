@@ -50,6 +50,21 @@ at some point be deprecated in favor of a more generic `firewall` state.
         - save: True
 
     httpd:
+      iptables.append:
+        - table: filter
+        - family: ipv4
+        - chain: INPUT
+        - jump: ACCEPT
+        - match: state
+        - connstate: NEW
+        - dports:
+            - 80
+            - 443
+        - proto: tcp
+        - sport: 1025:65535
+        - save: True
+
+    httpd:
       iptables.insert:
         - position: 1
         - table: filter
@@ -256,6 +271,7 @@ def append(name, family='ipv4', **kwargs):
     for ignore in _STATE_INTERNAL_KEYWORDS:
         if ignore in kwargs:
             del kwargs[ignore]
+    kwargs['name'] = name
     rule = __salt__['iptables.build_rule'](family=family, **kwargs)
     command = __salt__['iptables.build_rule'](full='True', family=family, command='A', **kwargs)
     if __salt__['iptables.check'](kwargs['table'],
@@ -322,6 +338,7 @@ def insert(name, family='ipv4', **kwargs):
     for ignore in _STATE_INTERNAL_KEYWORDS:
         if ignore in kwargs:
             del kwargs[ignore]
+    kwargs['name'] = name
     rule = __salt__['iptables.build_rule'](family=family, **kwargs)
     command = __salt__['iptables.build_rule'](full=True, family=family, command='I', **kwargs)
     if __salt__['iptables.check'](kwargs['table'],
@@ -388,6 +405,7 @@ def delete(name, family='ipv4', **kwargs):
     for ignore in _STATE_INTERNAL_KEYWORDS:
         if ignore in kwargs:
             del kwargs[ignore]
+    kwargs['name'] = name
     rule = __salt__['iptables.build_rule'](family=family, **kwargs)
     command = __salt__['iptables.build_rule'](full=True, family=family, command='D', **kwargs)
     if not __salt__['iptables.check'](kwargs['table'],

@@ -4,7 +4,7 @@ Control Linux Containers via Salt
 
 :depends: lxc package for distribution
 
-You need lxc >= 1.0 (even beta alpha)
+lxc >= 1.0 (even beta alpha) is required
 
 '''
 
@@ -19,7 +19,8 @@ import os
 import shutil
 import re
 
-#import salt libs
+# Import salt libs
+import salt
 import salt.utils
 import salt.utils.cloud
 import salt.config
@@ -331,7 +332,6 @@ def create(name, config=None, profile=None, options=None, **kwargs):
     options
         Template specific options to pass to the lxc-create command.
     '''
-
     if exists(name):
         return {'created': False, 'error': 'container already exists'}
 
@@ -351,7 +351,16 @@ def create(name, config=None, profile=None, options=None, **kwargs):
     fstype = select('fstype')
     vgname = select('vgname')
     size = select('size', '1G')
+    image = select('image')
 
+    if image:
+        img_tar = __salt__['cp.cache_file'](image)
+        template = os.path.join(
+                os.path.dirname(salt.__file__),
+                'templates',
+                'lxc',
+                'salt_tarball')
+        profile['imgtar'] = img_tar
     if config:
         cmd += ' -f {0}'.format(config)
     if template:
@@ -628,7 +637,7 @@ def start(name, restart=False):
     return ret
 
 
-def stop(name):
+def stop(name, kill=True):
     '''
     Stop the named container.
 
@@ -638,6 +647,9 @@ def stop(name):
 
         salt '*' lxc.stop name
     '''
+    cmd = 'lxc-stop'
+    if kill:
+        cmd += ' -k'
     ret = {'name': name,
            'changes': {},
            'result': True,
@@ -700,7 +712,7 @@ def destroy(name, stop=True):  # pylint: disable=W0621
         salt '*' lxc.destroy name [stop=(True|False)]
     '''
     if stop:
-        _change_state('lxc-stop', name, 'stopped')
+        _change_state('lxc-stop -k', name, 'stopped')
     return _change_state('lxc-destroy', name, None)
 
 

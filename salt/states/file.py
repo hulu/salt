@@ -942,6 +942,7 @@ def managed(name,
             create=True,
             contents=None,
             contents_pillar=None,
+            contents_pillar_newline=True,
             **kwargs):
     '''
     Manage a given file, this function allows for a file to be downloaded from
@@ -956,6 +957,8 @@ def managed(name,
         Both HTTPS and HTTP are supported as well as downloading directly
         from Amazon S3 compatible URLs with both pre-configured and automatic
         IAM credentials. (see s3.get state documentation)
+        File retrieval from Openstack Swift object storage is supported via
+        swift://container/object_path URLs, see swift.get documentation.
         For files hosted on the salt file server, if the file is located on
         the master in the directory named spam, and is called eggs, the source
         string is salt://spam/eggs. If source is left blank or None
@@ -1107,6 +1110,13 @@ def managed(name,
             shows how to do multiline string in YAML. The key is followed by a
             pipe character, and the mutliline string is indented two more
             spaces.
+
+    contents_pillar_newline
+        .. versionadded:: Helium
+
+        When using content_pillar, a newline is inserted into the data gathered
+        from pillar. When loading some data this newline is better left off.
+        Setting contents_pillar_newline to False will omit this newline.
     '''
     # Make sure that leading zeros stripped by YAML loader are added back
     mode = __salt__['config.manage_mode'](mode)
@@ -1159,17 +1169,14 @@ def managed(name,
     # If contents_pillar was used, get the pillar data
     if contents_pillar:
         contents = __salt__['pillar.get'](contents_pillar)
-        # Make sure file ends in newline
-        if not contents.endswith('\n'):
-            contents += '\n'
+        if contents_pillar_newline:
+            # Make sure file ends in newline
+            if not contents.endswith('\n'):
+                contents += '\n'
 
     if not replace and os.path.exists(name):
-        # Check and set the permissions if necessary
-        ret, perms = __salt__['file.check_perms'](name,  # pylint: disable=W0612
-                                                  ret,
-                                                  user,
-                                                  group,
-                                                  mode)
+       # Check and set the permissions if necessary
+        ret, _ = __salt__['file.check_perms'](name, ret, user, group, mode)
         if __opts__['test']:
             ret['comment'] = 'File {0} not updated'.format(name)
         elif not ret['changes'] and ret['result']:
@@ -1192,7 +1199,6 @@ def managed(name,
                 group,
                 mode,
                 template,
-                makedirs,
                 context,
                 defaults,
                 __env__,
@@ -1247,10 +1253,12 @@ def managed(name,
                 mode,
                 __env__,
                 backup,
+                makedirs,
                 template,
                 show_diff,
                 contents,
-                dir_mode
+                dir_mode,
+                makedirs
             )
         except Exception as exc:
             ret['changes'] = {}
@@ -2925,7 +2933,7 @@ def copy(name, source, force=False, makedirs=False):
     dname = os.path.dirname(name)
     if not os.path.isdir(dname):
         if makedirs:
-            os.makedirs(dname)
+            __salt__['file.makedirs'](dname)
         else:
             return _error(
                 ret,
@@ -3011,7 +3019,7 @@ def rename(name, source, force=False, makedirs=False):
     dname = os.path.dirname(name)
     if not os.path.isdir(dname):
         if makedirs:
-            os.makedirs(dname)
+            __salt__['file.makedirs'](dname)
         else:
             return _error(
                 ret,
@@ -3128,6 +3136,7 @@ def serialize(name,
               mode=None,
               env=None,
               backup='',
+              makedirs=False,
               show_diff=True,
               create=True,
               **kwargs):
@@ -3161,6 +3170,11 @@ def serialize(name,
 
     backup
         Overrides the default backup mode for this specific file.
+
+    makedirs
+        Create parent directories for destination file.
+
+        .. versionadded:: 2014.1.2
 
     show_diff
         If set to False, the diff will not be shown.
@@ -3260,6 +3274,7 @@ def serialize(name,
                                         mode=mode,
                                         saltenv=__env__,
                                         backup=backup,
+                                        makedirs=makedirs,
                                         template=None,
                                         show_diff=show_diff,
                                         contents=contents)

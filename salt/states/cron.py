@@ -451,7 +451,6 @@ def file(name,  # pylint: disable=W0622
                                              group,
                                              mode,
                                              template,
-                                             False,  # makedirs = False
                                              context,
                                              defaults,
                                              __env__,
