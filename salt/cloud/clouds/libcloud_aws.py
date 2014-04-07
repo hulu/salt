@@ -401,11 +401,11 @@ def create(vm_):
         set_tags(vm_['name'], tags, call='action')
 
     if ssh_interface(vm_) == 'private_ips':
-        log.info('Salt node data. Private_ip: {0}'.format(data.private_ips[0]))
-        ip_address = data.private_ips[0]
+        log.info('Salt node data. Private_ip: {0}'.format(data.private_ips[0]))  # pylint: disable=E1103
+        ip_address = data.private_ips[0]  # pylint: disable=E1103
     else:
-        log.info('Salt node data. Public_ip: {0}'.format(data.public_ips[0]))
-        ip_address = data.public_ips[0]
+        log.info('Salt node data. Public_ip: {0}'.format(data.public_ips[0]))  # pylint: disable=E1103
+        ip_address = data.public_ips[0]  # pylint: disable=E1103
 
     username = 'ec2-user'
     ssh_connect_timeout = config.get_cloud_config_value(
@@ -526,7 +526,7 @@ def create(vm_):
         'volumes', vm_, __opts__, search_global=True
     )
     if volumes:
-        log.info('Create and attach volumes to node {0}'.format(data.name))
+        log.info('Create and attach volumes to node {0}'.format(data.name))  # pylint: disable=E1103
         create_attach_volumes(volumes, location, data)
 
     return ret
