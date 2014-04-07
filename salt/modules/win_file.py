@@ -553,7 +553,7 @@ def symlink(src, link):
     '''
     # When Python 3.2 or later becomes the minimum version, this function can be
     # replaced with the built-in os.symlink function, which supports Windows.
-    if sys.getwindowsversion().major < 6:
+    if sys.getwindowsversion().major < 6:  # pylint: disable=E1101
         raise SaltInvocationError('Symlinks are only supported on Windows Vista or later.')
 
     if not os.path.exists(src):
@@ -579,7 +579,7 @@ def _islink(path):
     '''
     Returns true if the path is a symlink; false otherwise
     '''
-    if sys.getwindowsversion().major < 6:
+    if sys.getwindowsversion().major < 6:  # pylint: disable=E1101
         raise SaltInvocationError('Symlinks are only supported on Windows Vista or later.')
 
     result = win32file.GetFileAttributesW(path)
@@ -609,7 +609,7 @@ def readlink(path):
 
         salt '*' file.readlink /path/to/link
     '''
-    if sys.getwindowsversion().major < 6:
+    if sys.getwindowsversion().major < 6:  # pylint: disable=E1101
         raise SaltInvocationError('Symlinks are only supported on Windows Vista or later.')
 
     if not os.path.isabs(path):
