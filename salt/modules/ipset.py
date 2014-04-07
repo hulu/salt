@@ -375,7 +375,7 @@ def delete(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0
     return 'Error: {0}'.format(out)
 
 
-def check(set=None, entry=None, family='ipv4'):
+def check(set=None, entry=None, family='ipv4'):  # pylint: disable=W0622
     '''
     Check that an entry exists in the specified set.
 
