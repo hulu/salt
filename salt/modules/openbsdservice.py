@@ -87,7 +87,7 @@ def status(name, sig=None):
     return not __salt__['cmd.retcode'](cmd)
 
 
-def reload(name):
+def reload(name):  # pylint: disable=W0622
     '''
     .. versionadded:: Helium
 
