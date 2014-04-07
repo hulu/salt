@@ -422,7 +422,7 @@ class merger(object):
                     d[k] = [d[k]]
 
 
-def ext_pillar(minion_id, pillar, *args, **kwargs):
+def ext_pillar(minion_id, pillar, *args, **kwargs):  # pylint: disable=W0613
     '''
     Execute queries, merge and return as a dict
     '''
