@@ -68,7 +68,7 @@ class SaltMakoTemplateLookup(TemplateCollection):
             )
         return self.lookup.adjust_uri(uri, filename)
 
-    def get_template(self, uri, relativeto=None):
+    def get_template(self, uri, relativeto=None):  # pylint: disable=W0613
         if uri.startswith("file://"):
             prefix = "file://"
             searchpath = "/"
