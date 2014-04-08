@@ -136,7 +136,7 @@ def build_rule(table=None, chain=None, command=None, position='', full=None, fam
             kwargs['match'] = kwargs['match'].split(',')
         for match in kwargs['match']:
             rule += '-m {0} '.format(match)
-            if 'name' in kwargs and match.strip() in ('quota2', 'recent'):
+            if 'name' in kwargs and match.strip() in ('pknock', 'quota2', 'recent'):
                 rule += '--name {0} '.format(kwargs['name'])
         del kwargs['match']
 
@@ -383,7 +383,7 @@ def save(filename=None, family='ipv4'):
         salt '*' iptables.save /etc/sysconfig/iptables family=ipv6
     '''
     if _conf() and not filename:
-        filename = _conf()
+        filename = _conf(family)
 
     parent_dir = os.path.dirname(filename)
     if not os.path.isdir(parent_dir):

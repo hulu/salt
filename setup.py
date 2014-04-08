@@ -174,7 +174,7 @@ class CloudSdist(sdist):
                     )
                     with open(deploy_path, 'w') as fp_:
                         fp_.write(req.read())
-                except (OSError, IOError), err:
+                except (OSError, IOError) as err:
                     log.error(
                         'Failed to write the updated script: {0}'.format(err)
                     )
@@ -383,19 +383,24 @@ class Install(install):
 
 class InstallLib(install_lib):
     def run(self):
+        executables = [
+                'salt/templates/git/ssh-id-wrapper',
+                'salt/templates/lxc/salt_tarball',
+                ]
         install_lib.run(self)
 
         # input and outputs match 1-1
         inp = self.get_inputs()
         out = self.get_outputs()
+        chmod = []
 
-        #idx = inp.index('build/lib/salt/templates/git/ssh-id-wrapper')
-        for i, word in enumerate(inp):
-            if word.endswith('salt/templates/git/ssh-id-wrapper'):
-                idx = i
-        filename = out[idx]
-
-        os.chmod(filename, 0755)
+        for idx, inputfile in enumerate(inp):
+            for executeable in executables:
+                if inputfile.endswith(executeable):
+                    chmod.append(idx)
+        for idx in chmod:
+            filename = out[idx]
+            os.chmod(filename, 0755)
 
 
 NAME = 'salt'
