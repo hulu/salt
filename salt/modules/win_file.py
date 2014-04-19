@@ -149,7 +149,7 @@ def _resolve_symlink(path, max_depth=64):
 
     If the path is not a symlink path, it is simply returned.
     '''
-    if sys.getwindowsversion().major < 6:
+    if sys.getwindowsversion().major < 6:  # pylint: disable=E1101
         raise SaltInvocationError('Symlinks are only supported on Windows Vista or later.')
 
     # make sure we don't get stuck in a symlink loop!
@@ -325,7 +325,7 @@ def get_pgid(path, follow_symlinks=True):
     # pointing to. This behaviour is *different* to *nix, therefore the symlink
     # is first resolved manually if necessary. Remember symlinks are only
     # supported on Windows Vista or later.
-    if follow_symlinks and sys.getwindowsversion().major >= 6:
+    if follow_symlinks and sys.getwindowsversion().major >= 6:  # pylint: disable=E1101
         path = _resolve_symlink(path)
 
     secdesc = win32security.GetFileSecurity(
@@ -513,7 +513,7 @@ def get_uid(path, follow_symlinks=True):
     # pointing to. This behaviour is *different* to *nix, therefore the symlink
     # is first resolved manually if necessary. Remember symlinks are only
     # supported on Windows Vista or later.
-    if follow_symlinks and sys.getwindowsversion().major >= 6:
+    if follow_symlinks and sys.getwindowsversion().major >= 6:  # pylint: disable=E1101
         path = _resolve_symlink(path)
 
     secdesc = win32security.GetFileSecurity(
@@ -657,7 +657,7 @@ def chown(path, user, group=None, pgroup=None, follow_symlinks=True):
     if err:
         return err
 
-    if follow_symlinks and sys.getwindowsversion().major >= 6:
+    if follow_symlinks and sys.getwindowsversion().major >= 6:  # pylint: disable=E1101
         path = _resolve_symlink(path)
 
     privilege_enabled = False
@@ -809,7 +809,7 @@ def stats(path, hash_type='md5', follow_symlinks=True):
     ret = {}
     if not os.path.exists(path):
         return ret
-    if follow_symlinks and sys.getwindowsversion().major >= 6:
+    if follow_symlinks and sys.getwindowsversion().major >= 6:  # pylint: disable=E1101
         path = _resolve_symlink(path)
     pstat = os.stat(path)
     ret['inode'] = pstat.st_ino

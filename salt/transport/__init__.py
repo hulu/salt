@@ -69,7 +69,7 @@ class RAETChannel(Channel):
         dst = ('master', None, 'remote_cmd')
         self.route = {'src': src, 'dst': dst}
 
-    def crypted_transfer_decode_dictentry(self, load, dictkey=None, tries=3, timeout=60):
+    def crypted_transfer_decode_dictentry(self, load, dictkey=None, tries=3, timeout=60):  # pylint: disable=W0613
         '''
         We don't need to do the crypted_transfer_decode_dictentry routine for
         raet, just wrap send.
