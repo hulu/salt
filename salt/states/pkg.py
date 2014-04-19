@@ -336,7 +336,6 @@ def installed(
         skip_verify=False,
         skip_suggestions=False,
         pkgs=None,
-        names=None,
         sources=None,
         **kwargs):
     '''
@@ -423,7 +422,15 @@ def installed(
         Update the repo database of available packages prior to installing the
         requested package.
 
-    Usage::
+    hold
+        Force the package to be held at the current installed version.
+        Currently works with YUM & APT based systems.
+
+        .. versionadded:: Helium
+
+    Example:
+
+    .. code-block:: yaml
 
         httpd:
           pkg.installed:
@@ -432,6 +439,7 @@ def installed(
             - skip_suggestions: True
             - version: 2.0.6~ubuntu3
             - refresh: True
+            - hold: False
 
     Multiple Package Installation Options: (not supported in Windows or pkgng)
 
@@ -439,7 +447,9 @@ def installed(
         A list of packages to install from a software repository. All packages
         listed under ``pkgs`` will be installed via a single command.
 
-    Usage::
+    Example:
+
+    .. code-block:: yaml
 
         mypkgs:
           pkg.installed:
@@ -447,12 +457,15 @@ def installed(
               - foo
               - bar
               - baz
+            - hold: True
 
     ``NOTE:`` For :mod:`apt <salt.modules.aptpkg>`,
     :mod:`ebuild <salt.modules.ebuild>`,
     :mod:`pacman <salt.modules.pacman>`, :mod:`yumpkg <salt.modules.yumpkg>`,
     and :mod:`zypper <salt.modules.zypper>`, version numbers can be specified
-    in the ``pkgs`` argument. Example::
+    in the ``pkgs`` argument. For example:
+
+    .. code-block:: yaml
 
         mypkgs:
           pkg.installed:
@@ -464,8 +477,10 @@ def installed(
     Additionally, :mod:`ebuild <salt.modules.ebuild>`,
     :mod:`pacman <salt.modules.pacman>` and
     :mod:`zypper <salt.modules.zypper>` support the ``<``, ``<=``, ``>=``, and
-    ``>`` operators for more control over what versions will be installed.
-    Example::
+    ``>`` operators for more control over what versions will be installed. For
+    example:
+
+    .. code-block:: yaml
 
         mypkgs:
           pkg.installed:
@@ -480,69 +495,29 @@ def installed(
     With :mod:`ebuild <salt.modules.ebuild>` is also possible to specify a use
     flag list and/or if the given packages should be in package.accept_keywords
     file and/or the overlay from which you want the package to be installed.
-    Example::
+    For example:
+
+    .. code-block:: yaml
 
         mypkgs:
-            pkg.installed:
-                - pkgs:
-                    - foo: '~'
-                    - bar: '~>=1.2:slot::overlay[use,-otheruse]'
-                    - baz
+          pkg.installed:
+            - pkgs:
+              - foo: '~'
+              - bar: '~>=1.2:slot::overlay[use,-otheruse]'
+              - baz
 
     names
         A list of packages to install from a software repository. Each package
         will be installed individually by the package manager.
 
-    Usage::
+        .. warning::
 
-        mypkgs:
-          pkg.installed:
-            - names:
-              - foo
-              - bar
-              - baz
-
-    ``NOTE:`` For :mod:`apt <salt.modules.aptpkg>`,
-    :mod:`ebuild <salt.modules.ebuild>`,
-    :mod:`pacman <salt.modules.pacman>`, :mod:`yumpkg <salt.modules.yumpkg>`,
-    and :mod:`zypper <salt.modules.zypper>`, version numbers can be specified
-    in the ``names`` argument. Example::
-
-        mypkgs:
-          pkg.installed:
-            - names:
-              - foo
-              - bar: 1.2.3-4
-              - baz
-
-    Additionally, :mod:`ebuild <salt.modules.ebuild>`,
-    :mod:`pacman <salt.modules.pacman>` and
-    :mod:`zypper <salt.modules.zypper>` support the ``<``, ``<=``, ``>=``, and
-    ``>`` operators for more control over what versions will be installed.
-    Example::
-
-        mypkgs:
-          pkg.installed:
-            - names:
-              - foo
-              - bar: '>=1.2.3-4'
-              - baz
-
-    ``NOTE:`` When using comparison operators, the expression must be enclosed
-    in quotes to avoid a YAML render error.
-
-    With :mod:`ebuild <salt.modules.ebuild>` is also possible to specify a use
-    flag list and/or if the given packages should be in package.accept_keywords
-    file and/or the overlay from which you want the package to be installed.
-    Example::
-
-        mypkgs:
-            pkg.installed:
-                - names:
-                    - foo: '~'
-                    - bar: '~>=1.2:slot::overlay[use,-otheruse]'
-                    - baz
-
+            Unlike ``pkgs``, the ``names`` parameter cannot specify a version.
+            In addition, it makes a separate call to the package management
+            frontend to install each package, whereas ``pkgs`` makes just a
+            single call. It is therefore recommended to use ``pkgs`` instead of
+            ``names`` to install multiple packages, both for the additional
+            features and the performance improvement that it brings.
 
     sources
         A list of packages to install, along with the source URI or local path
@@ -575,10 +550,40 @@ def installed(
                                    fromrepo=fromrepo,
                                    skip_suggestions=skip_suggestions,
                                    **kwargs)
+
     try:
         desired, targets, to_unpurge = result
     except ValueError:
         # _find_install_targets() found no targets or encountered an error
+
+        # check that the hold function is available
+        if 'pkg.hold' in __salt__:
+            if 'hold' in kwargs:
+                if kwargs['hold']:
+                    hold_ret = __salt__['pkg.hold'](name=name, pkgs=pkgs)
+                else:
+                    hold_ret = __salt__['pkg.unhold'](name=name, pkgs=pkgs)
+
+                modified_hold = [hold_ret[x] for x in hold_ret.keys() if hold_ret[x]['changes']]
+                not_modified_hold = [hold_ret[x] for x in hold_ret.keys() if not hold_ret[x]['changes'] and hold_ret[x]['result']]
+                failed_hold = [hold_ret[x] for x in hold_ret.keys() if not hold_ret[x]['result']]
+
+                if modified_hold:
+                    for i in modified_hold:
+                        result['comment'] += ' {0}'.format(i['comment'])
+                        result['result'] = i['result']
+                        change_name = i['name']
+                        result['changes'][change_name] = i['changes']
+
+                if not_modified_hold:
+                    for i in not_modified_hold:
+                        result['comment'] += ' {0}'.format(i['comment'])
+                        result['result'] = i['result']
+
+                if failed_hold:
+                    for i in failed_hold:
+                        result['comment'] += ' {0}'.format(i['comment'])
+                        result['result'] = i['result']
         return result
 
     if to_unpurge and 'lowpkg.unpurge' not in __salt__:
@@ -615,6 +620,9 @@ def installed(
                 'comment': ' '.join(comment)}
 
     changes = {'installed': {}}
+    modified_hold = None
+    not_modified_hold = None
+    failed_hold = None
     if targets:
         try:
             pkg_ret = __salt__['pkg.install'](name,
@@ -634,6 +642,17 @@ def installed(
                     'result': False,
                     'comment': 'An error was encountered while installing '
                             'package(s): {0}'.format(exc)}
+
+        if 'pkg.hold' in __salt__:
+            if 'hold' in kwargs:
+                if kwargs['hold']:
+                    hold_ret = __salt__['pkg.hold'](name=name, pkgs=pkgs)
+                else:
+                    hold_ret = __salt__['pkg.unhold'](name=name, pkgs=pkgs)
+
+                modified_hold = [hold_ret[x] for x in hold_ret.keys() if hold_ret[x]['changes']]
+                not_modified_hold = [hold_ret[x] for x in hold_ret.keys() if not hold_ret[x]['changes'] and hold_ret[x]['result']]
+                failed_hold = [hold_ret[x] for x in hold_ret.keys() if not hold_ret[x]['result']]
 
         if isinstance(pkg_ret, dict):
             changes['installed'].update(pkg_ret)
@@ -680,6 +699,17 @@ def installed(
                 )
             )
 
+    if modified_hold:
+        for i in modified_hold:
+            comment.append(i['comment'])
+            change_name = i['name']
+            if len(changes[change_name]['new']) > 0:
+                changes[change_name]['new'] += '\n'
+            changes[change_name]['new'] += '{0}'.format(i['changes']['new'])
+            if len(changes[change_name]['old']) > 0:
+                changes[change_name]['old'] += '\n'
+            changes[change_name]['old'] += '{0}'.format(i['changes']['old'])
+
     if not_modified:
         if sources:
             summary = ', '.join(not_modified)
@@ -698,6 +728,10 @@ def installed(
                 )
             )
 
+    if not_modified_hold:
+        for i in not_modified_hold:
+            comment.append(i['comment'])
+
     if failed:
         if sources:
             summary = ', '.join(failed)
@@ -706,6 +740,11 @@ def installed(
                                  for x in failed])
         comment.insert(0, 'The following packages failed to '
                           'install/update: {0}.'.format(summary))
+
+    if failed_hold:
+        for i in failed_hold:
+            comment.append(i['comment'])
+
         return {'name': name,
                 'changes': changes,
                 'result': False,

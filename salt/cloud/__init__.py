@@ -887,8 +887,16 @@ class Cloud(object):
             if not ret:
                 continue
 
+            vm_ = {
+                'name': name,
+                'profile': name,
+                'provider': ':'.join([alias, driver])
+            }
+            minion_dict = salt.config.get_cloud_config_value(
+                'minion', vm_, self.opts, default={}
+            )
             key_file = os.path.join(
-                self.opts['pki_dir'], 'minions', name
+                self.opts['pki_dir'], 'minions', minion_dict.get('id', name)
             )
             globbed_key_file = glob.glob('{0}.*'.format(key_file))
 
@@ -902,7 +910,7 @@ class Cloud(object):
 
             if os.path.isfile(key_file) and not globbed_key_file:
                 # Single key entry. Remove it!
-                salt.utils.cloud.remove_key(self.opts['pki_dir'], name)
+                salt.utils.cloud.remove_key(self.opts['pki_dir'], os.path.basename(key_file))
                 continue
 
             if not os.path.isfile(key_file) and globbed_key_file:

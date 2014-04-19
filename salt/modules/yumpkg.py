@@ -11,6 +11,7 @@ import re
 
 # Import salt libs
 import salt.utils
+import salt.utils.pkg
 from salt._compat import string_types
 from salt.exceptions import (
     CommandExecutionError, MinionError, SaltInvocationError
@@ -23,17 +24,22 @@ log = logging.getLogger(__name__)
 __QUERYFORMAT = '%{NAME}_|-%{VERSION}_|-%{RELEASE}_|-%{ARCH}_|-%{REPOID}'
 
 # These arches compiled from the rpmUtils.arch python module source
-__ARCHES = (
-    'x86_64', 'athlon', 'amd64', 'ia32e', 'ia64', 'geode',
-    'i386', 'i486', 'i586', 'i686',
-    'ppc', 'ppc64', 'ppc64iseries', 'ppc64pseries',
-    's390', 's390x',
-    'sparc', 'sparcv8', 'sparcv9', 'sparcv9v', 'sparc64', 'sparc64v',
-    'alpha', 'alphaev4', 'alphaev45', 'alphaev5', 'alphaev56',
-    'alphapca56', 'alphaev6', 'alphaev67', 'alphaev68', 'alphaev7',
-    'armv5tel', 'armv5tejl', 'armv6l', 'armv7l',
-    'sh3', 'sh4', 'sh4a',
+__ARCHES_64 = ('x86_64', 'athlon', 'amd64', 'ia32e', 'ia64', 'geode')
+__ARCHES_32 = ('i386', 'i486', 'i586', 'i686')
+__ARCHES_PPC = ('ppc', 'ppc64', 'ppc64iseries', 'ppc64pseries')
+__ARCHES_S390 = ('s390', 's390x')
+__ARCHES_SPARC = (
+    'sparc', 'sparcv8', 'sparcv9', 'sparcv9v', 'sparc64', 'sparc64v'
 )
+__ARCHES_ALPHA = (
+    'alpha', 'alphaev4', 'alphaev45', 'alphaev5', 'alphaev56',
+    'alphapca56', 'alphaev6', 'alphaev67', 'alphaev68', 'alphaev7'
+)
+__ARCHES_ARM = ('armv5tel', 'armv5tejl', 'armv6l', 'armv7l')
+__ARCHES_SH = ('sh3', 'sh4', 'sh4a')
+
+__ARCHES = __ARCHES_64 + __ARCHES_32 + __ARCHES_PPC + __ARCHES_S390 + \
+    __ARCHES_ALPHA + __ARCHES_ARM + __ARCHES_SH
 
 # Define the module's virtual name
 __virtualname__ = 'pkg'
@@ -79,8 +85,9 @@ def _parse_pkginfo(line):
     except ValueError:
         return None
 
-    if arch != 'noarch' and arch != __grains__['osarch']:
-        name += '.{0}'.format(arch)
+    if not _check_32(arch):
+        if arch not in (__grains__['osarch'], 'noarch'):
+            name += '.{0}'.format(arch)
     if release:
         pkg_version += '-{0}'.format(release)
 
@@ -156,10 +163,20 @@ def _get_excludes_option(**kwargs):
     return disable_excludes_arg
 
 
+def _check_32(arch):
+    '''
+    Returns True if both the OS arch and the passed arch are 32-bit
+    '''
+    return all(x in __ARCHES_32 for x in (__grains__['osarch'], arch))
+
+
 def normalize_name(name):
     '''
-    Strips the architecture from the specified package name, if necessary (in
-    other words, if the arch matches the OS arch, or is ``noarch``.
+    Strips the architecture from the specified package name, if necessary.
+    Circomstances where this would be done include:
+
+    * If the arch is 32 bit and the package name ends in a 32-bit arch.
+    * If the arch matches the OS arch, or is ``noarch``.
 
     CLI Example:
 
@@ -173,7 +190,7 @@ def normalize_name(name):
             return name
     except ValueError:
         return name
-    if arch in (__grains__['osarch'], 'noarch'):
+    if arch in (__grains__['osarch'], 'noarch') or _check_32(arch):
         return name[:-(len(arch) + 1)]
     return name
 
@@ -247,7 +264,8 @@ def latest_version(*names, **kwargs):
 
     for name in names:
         for pkg in (x for x in updates if x.name == name):
-            if pkg.arch == 'noarch' or pkg.arch == namearch_map[name]:
+            if pkg.arch == 'noarch' or pkg.arch == namearch_map[name] \
+                    or _check_32(pkg.arch):
                 ret[name] = pkg.version
                 # no need to check another match, if there was one
                 break
@@ -459,10 +477,7 @@ def check_db(*names, **kwargs):
                 name, arch = line.split('_|-')
             except ValueError:
                 continue
-            if arch in __ARCHES and arch != __grains__['osarch']:
-                avail.append('.'.join((name, arch)))
-            else:
-                avail.append(name)
+            avail.append(normalize_name('.'.join((name, arch))))
         __context__['pkg._avail'] = avail
 
     ret = {}
@@ -889,6 +904,171 @@ def purge(name=None, pkgs=None, **kwargs):  # pylint: disable=W0613
         salt '*' pkg.purge pkgs='["foo", "bar"]'
     '''
     return remove(name=name, pkgs=pkgs)
+
+
+def hold(name=None, pkgs=None, **kwargs):  # pylint: disable=W0613
+    '''
+    Hold packages with ``yum -q versionlock``.
+
+    name
+        The name of the package to be deleted.
+
+    Multiple Package Options:
+
+    pkgs
+        A list of packages to hold. Must be passed as a python list. The
+        ``name`` parameter will be ignored if this option is passed.
+
+    .. versionadded:: Helium
+
+
+    Returns a dict containing the changes.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' pkg.hold <package name>
+        salt '*' pkg.hold pkgs='["foo", "bar"]'
+    '''
+    if not name and not pkgs:
+        return 'Error: name or pkgs needs to be specified.'
+
+    if name and not pkgs:
+        pkgs = []
+        pkgs.append(name)
+
+    current_pkgs = list_pkgs()
+    if not 'yum-plugin-versionlock' in current_pkgs:
+        return 'Error: Package yum-plugin-versionlock needs to be installed.'
+
+    current_locks = get_locked_packages()
+    ret = {}
+    for pkg in pkgs:
+        if isinstance(pkg, dict):
+            pkg = pkg.keys()[0]
+
+        ret[pkg] = {'name': pkg, 'changes': {}, 'result': False, 'comment': ''}
+        if not pkg in current_locks:
+            if 'test' in kwargs and kwargs['test']:
+                ret[pkg].update(result=None)
+                ret[pkg]['comment'] = 'Package {0} is set to be held.'.format(pkg)
+            else:
+                cmd = 'yum -q versionlock {0}'.format(pkg)
+                out = __salt__['cmd.run_all'](cmd)
+
+                if out['retcode'] == 0:
+                    ret[pkg].update(result=True)
+                    ret[pkg]['comment'] = 'Package {0} is now being held.'.format(pkg)
+                    ret[pkg]['changes']['new'] = 'hold'
+                    ret[pkg]['changes']['old'] = ''
+                else:
+                    ret[pkg]['comment'] = 'Package {0} was unable to be held.'.format(pkg)
+        else:
+            ret[pkg].update(result=True)
+            ret[pkg]['comment'] = 'Package {0} is already set to be held.'.format(pkg)
+    return ret
+
+
+def unhold(name=None, pkgs=None, **kwargs):  # pylint: disable=W0613
+    '''
+    Hold packages with ``yum -q versionlock``.
+
+    name
+        The name of the package to be deleted.
+
+    Multiple Package Options:
+
+    pkgs
+        A list of packages to unhold. Must be passed as a python list. The
+        ``name`` parameter will be ignored if this option is passed.
+
+    .. versionadded:: Helium
+
+
+    Returns a dict containing the changes.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' pkg.unhold <package name>
+        salt '*' pkg.unhold pkgs='["foo", "bar"]'
+    '''
+    if not name and not pkgs:
+        return 'Error: name or pkgs needs to be specified.'
+
+    if name and not pkgs:
+        pkgs = []
+        pkgs.append(name)
+
+    current_pkgs = list_pkgs()
+    if not 'yum-plugin-versionlock' in current_pkgs:
+        return 'Error: Package yum-plugin-versionlock needs to be installed.'
+
+    current_locks = get_locked_packages(full=True)
+    ret = {}
+    for pkg in pkgs:
+        if isinstance(pkg, dict):
+            pkg = pkg.keys()[0]
+
+        ret[pkg] = {'name': pkg, 'changes': {}, 'result': False, 'comment': ''}
+
+        search_locks = [lock for lock in current_locks if lock.startswith(pkg)]
+        if search_locks:
+            if 'test' in kwargs and kwargs['test']:
+                ret[pkg].update(result=None)
+                ret[pkg]['comment'] = 'Package {0} is set to be unheld.'.format(pkg)
+            else:
+                _pkgs = ' '.join('"0:' + item + '"' for item in search_locks)
+                cmd = 'yum -q versionlock delete {0}'.format(_pkgs)
+                out = __salt__['cmd.run_all'](cmd)
+
+                if out['retcode'] == 0:
+                    ret[pkg].update(result=True)
+                    ret[pkg]['comment'] = 'Package {0} is no longer held.'.format(pkg)
+                    ret[pkg]['changes']['new'] = ''
+                    ret[pkg]['changes']['old'] = 'hold'
+                else:
+                    ret[pkg]['comment'] = 'Package {0} was unable to be unheld.'.format(pkg)
+        else:
+            ret[pkg].update(result=True)
+            ret[pkg]['comment'] = 'Package {0} is not being held.'.format(pkg)
+    return ret
+
+
+def get_locked_packages(pattern=None, full=False):
+    '''
+    Get packages that are currently locked
+    ``yum -q versionlock list``.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' pkg.get_locked_packages
+    '''
+    cmd = 'yum -q versionlock list'
+    ret = __salt__['cmd.run'](cmd).split('\n')
+
+    if pattern:
+        if full:
+            _pat = r'\d\:({0}\-\S+)'.format(pattern)
+        else:
+            _pat = r'\d\:({0})\-\S+'.format(pattern)
+    else:
+        if full:
+            _pat = r'\d\:(\w+\-\S+)'
+        else:
+            _pat = r'\d\:(\w+)\-\S+'
+    pat = re.compile(_pat)
+
+    current_locks = []
+    for item in ret:
+        match = pat.search(item)
+        if match:
+            current_locks.append(match.group(1))
+    return current_locks
 
 
 def verify(*names):
@@ -1348,3 +1528,20 @@ def expand_repo_def(repokwargs):
     '''
     # YUM doesn't need the data massaged.
     return repokwargs
+
+
+def owner(*paths):
+    '''
+    Return the name of the package that owns the specified file. Files may be
+    passed as a string (``path``) or as a list of strings (``paths``). If
+    ``path`` contains a comma, it will be converted to ``paths``. If a file
+    name legitimately contains a comma, pass it in via ``paths``.
+
+    CLI Example:
+
+        salt '*' pkg.owner /usr/bin/apachectl
+        salt '*' pkg.owner /usr/bin/apachectl /etc/httpd/conf/httpd.conf
+    '''
+    cmd = "rpm -qf --queryformat '%{{NAME}}' {0}"
+    return salt.utils.pkg.find_owner(
+        __salt__['cmd.run'], cmd, *paths)

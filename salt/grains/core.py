@@ -136,18 +136,14 @@ def _linux_gpu_data():
       - vendor: nvidia|amd|ati|...
         model: string
     '''
+    if __opts__.get('enable_gpu_grains', True) is False:
+        return {}
+
     lspci = salt.utils.which('lspci')
     if not lspci:
         log.info(
             'The `lspci` binary is not available on the system. GPU grains '
             'will not be available.'
-        )
-        return {}
-
-    elif __opts__.get('enable_gpu_grains', None) is False:
-        log.info(
-            'Skipping lspci call because enable_gpu_grains was set to False '
-            'in the config. GPU grains will not be available.'
         )
         return {}
 
@@ -969,7 +965,7 @@ def os_data():
                     grains['osrelease'] = ''
                 else:
                     if development is not None:
-                        osname = ''.join((osname, development))
+                        osname = ' '.join((osname, development))
                     grains['os'] = grains['osfullname'] = osname
                     grains['osrelease'] = osrelease
 
@@ -1252,8 +1248,11 @@ def zmqversion():
     '''
     # Provides:
     #   zmqversion
-    import zmq
-    return {'zmqversion': zmq.zmq_version()}
+    try:
+        import zmq
+        return {'zmqversion': zmq.zmq_version()}
+    except ImportError:
+        return {}
 
 
 def saltversioninfo():

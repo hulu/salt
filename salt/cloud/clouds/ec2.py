@@ -89,7 +89,6 @@ from salt._compat import ElementTree as ET
 # Import salt.cloud libs
 import salt.utils.cloud
 import salt.config as config
-from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
 from salt.cloud.exceptions import (
     SaltCloudException,
     SaltCloudSystemExit,
@@ -120,20 +119,18 @@ SIZE_MAP = {
 
 
 EC2_LOCATIONS = {
-    'ap-northeast-1': Provider.EC2_AP_NORTHEAST,
-    'ap-southeast-1': Provider.EC2_AP_SOUTHEAST,
-    'eu-west-1': Provider.EC2_EU_WEST,
-    'sa-east-1': Provider.EC2_SA_EAST,
-    'us-east-1': Provider.EC2_US_EAST,
-    'us-west-1': Provider.EC2_US_WEST,
-    'us-west-2': Provider.EC2_US_WEST_OREGON
+    'ap-northeast-1': 'ec2_ap_northeast',
+    'ap-southeast-1': 'ec2_ap_southeast',
+    'ap-southeast-2': 'ec2_ap_southeast_2',
+    'eu-west-1': 'ec2_eu_west',
+    'sa-east-1': 'ec2_sa_east',
+    'us-east-1': 'ec2_us_east',
+    'us-west-1': 'ec2_us_west',
+    'us-west-2': 'ec2_us_west_oregon',
 }
 DEFAULT_LOCATION = 'us-east-1'
 
 DEFAULT_EC2_API_VERSION = '2013-10-01'
-
-if hasattr(Provider, 'EC2_AP_SOUTHEAST2'):
-    EC2_LOCATIONS['ap-southeast-2'] = Provider.EC2_AP_SOUTHEAST2
 
 EC2_RETRY_CODES = [
     'RequestLimitExceeded',
@@ -324,6 +321,11 @@ def query(params=None, setname=None, requesturl=None, location=None,
                 'EC2 Response Status Code: {0}'.format(
                     #result.getcode()
                     result.status_code
+                )
+            )
+            log.trace(
+                'EC2 Response Text: {0}'.format(
+                    result.text
                 )
             )
             break
@@ -522,6 +524,36 @@ def avail_sizes(call=None):
                 'disk': '340 GiB (1 x 340 GiB)',
                 'ram': '1.7 GiB'
             },
+            'c3.large': {
+                'id': 'c3.large',
+                'cores': '2 (with 3.5 ECUs each)',
+                'disk': '32 GiB (2 x 16 GiB SSD)',
+                'ram': '3.75 GiB'
+            },
+            'c3.xlarge': {
+                'id': 'c3.xlarge',
+                'cores': '4 (with 3.5 ECUs each)',
+                'disk': '80 GiB (2 x 40 GiB SSD)',
+                'ram': '7.5 GiB'
+            },
+            'c3.2xlarge': {
+                'id': 'c3.2xlarge',
+                'cores': '8 (with 3.5 ECUs each)',
+                'disk': '160 GiB (2 x 80 GiB SSD)',
+                'ram': '15 GiB'
+            },
+            'c3.4xlarge': {
+                'id': 'c3.4xlarge',
+                'cores': '16 (with 3.5 ECUs each)',
+                'disk': '320 GiB (2 x 80 GiB SSD)',
+                'ram': '30 GiB'
+            },
+            'c3.8xlarge': {
+                'id': 'c3.8xlarge',
+                'cores': '32 (with 3.5 ECUs each)',
+                'disk': '320 GiB (2 x 160 GiB SSD)',
+                'ram': '60 GiB'
+            }
         },
         'High I/O': {
             'hi1.4xlarge': {
@@ -550,6 +582,36 @@ def avail_sizes(call=None):
                 'disk': '1680 GiB (2 x 840 GiB)',
                 'ram': '68.4 GiB'
             },
+            'r3.large': {
+                'id': 'r3.large',
+                'cores': '2 (with 3.25 ECUs each)',
+                'disk': '32 GiB (1 x 32 GiB SSD)',
+                'ram': '15 GiB'
+            },
+            'r3.xlarge': {
+                'id': 'r3.xlarge',
+                'cores': '4 (with 3.25 ECUs each)',
+                'disk': '80 GiB (1 x 80 GiB SSD)',
+                'ram': '30.5 GiB'
+            },
+            'r3.2xlarge': {
+                'id': 'r3.2xlarge',
+                'cores': '8 (with 3.25 ECUs each)',
+                'disk': '160 GiB (1 x 160 GiB SSD)',
+                'ram': '61 GiB'
+            },
+            'r3.4xlarge': {
+                'id': 'r3.4xlarge',
+                'cores': '16 (with 3.25 ECUs each)',
+                'disk': '320 GiB (1 x 320 GiB SSD)',
+                'ram': '122 GiB'
+            },
+            'r3.8xlarge': {
+                'id': 'r3.8xlarge',
+                'cores': '32 (with 3.25 ECUs each)',
+                'disk': '640 GiB (2 x 320 GiB SSD)',
+                'ram': '244 GiB'
+            }
         },
         'High-Memory Cluster': {
             'cr1.8xlarge': {
@@ -1840,26 +1902,55 @@ def start(name, call=None):
     return result
 
 
-def set_tags(name, tags, call=None, location=None, instance_id=None):
+def set_tags(name=None,
+             tags=None,
+             call=None,
+             location=None,
+             instance_id=None,
+             resource_id=None,
+             kwargs=None):  # pylint: disable=W0613
     '''
-    Set tags for a node
+    Set tags for a resource. Normally a VM name or instance_id is passed in,
+    but a resource_id may be passed instead. If both are passed in, the
+    instance_id will be used.
 
-    CLI Example::
+    CLI Examples::
 
         salt-cloud -a set_tags mymachine tag1=somestuff tag2='Other stuff'
+        salt-cloud -a set_tags resource_id=vol-3267ab32 tag=somestuff
     '''
-    if call != 'action':
-        raise SaltCloudSystemExit(
-            'The set_tags action must be called with -a or --action.'
-        )
+    if kwargs is None:
+        kwargs = {}
 
     if instance_id is None:
-        instance_id = _get_node(name, location)['instanceId']
+        if 'resource_id' in kwargs:
+            resource_id = kwargs['resource_id']
+            del kwargs['resource_id']
+
+        if 'instance_id' in kwargs:
+            instance_id = kwargs['instance_id']
+            del kwargs['instance_id']
+
+        if resource_id is None:
+            if instance_id is None:
+                instance_id = _get_node(name, location)['instanceId']
+        else:
+            instance_id = resource_id
+
+    # This second check is a safety, in case the above still failed to produce
+    # a usable ID
+    if instance_id is None:
+        return {
+            'Error': 'A valid instance_id or resource_id was not specified.'
+        }
 
     params = {'Action': 'CreateTags',
               'ResourceId.1': instance_id}
 
     log.debug('Tags to set for {0}: {1}'.format(name, tags))
+
+    if kwargs and not tags:
+        tags = kwargs
 
     for idx, (tag_k, tag_v) in enumerate(tags.iteritems()):
         params['Tag.{0}.Key'.format(idx)] = tag_k
@@ -1902,48 +1993,75 @@ def set_tags(name, tags, call=None, location=None, instance_id=None):
     )
 
 
-def get_tags(name=None, instance_id=None, call=None, location=None):
+def get_tags(name=None,
+             instance_id=None,
+             call=None,
+             location=None,
+             kwargs=None,
+             resource_id=None):  # pylint: disable=W0613
     '''
-    Retrieve tags for a node
+    Retrieve tags for a resource. Normally a VM name or instance_id is passed
+    in, but a resource_id may be passed instead. If both are passed in, the
+    instance_id will be used.
+
+    CLI Examples::
+
+        salt-cloud -a get_tags mymachine
+        salt-cloud -a get_tags resource_id=vol-3267ab32
     '''
-    if call != 'action':
-        raise SaltCloudSystemExit(
-            'The get_tags action must be called with -a or --action.'
-        )
+    if location is None:
+        location = get_location()
 
     if instance_id is None:
-        if location is None:
-            location = get_location()
-
-        instances = list_nodes_full(location)
-        if name in instances:
-            instance_id = instances[name]['instanceId']
+        if resource_id is None:
+            if name:
+                instances = list_nodes_full(location)
+                if name in instances:
+                    instance_id = instances[name]['instanceId']
+            elif 'instance_id' in kwargs:
+                instance_id = kwargs['instance_id']
+            elif 'resource_id' in kwargs:
+                instance_id = kwargs['resource_id']
+        else:
+            instance_id = resource_id
 
     params = {'Action': 'DescribeTags',
               'Filter.1.Name': 'resource-id',
               'Filter.1.Value': instance_id}
+
     return query(params, setname='tagSet', location=location)
 
 
-def del_tags(name, kwargs, call=None):
+def del_tags(name=None,
+             kwargs=None,
+             call=None,
+             instance_id=None,
+             resource_id=None):  # pylint: disable=W0613
     '''
-    Delete tags for a node
+    Delete tags for a resource. Normally a VM name or instance_id is passed in,
+    but a resource_id may be passed instead. If both are passed in, the
+    instance_id will be used.
 
-    CLI Example::
+    CLI Examples::
 
-        salt-cloud -a del_tags mymachine tag1,tag2,tag3
+        salt-cloud -a del_tags mymachine tags=tag1,tag2,tag3
+        salt-cloud -a del_tags resource_id=vol-3267ab32 tags=tag1,tag2,tag3
     '''
-    if call != 'action':
-        raise SaltCloudSystemExit(
-            'The del_tags action must be called with -a or --action.'
-        )
+    if kwargs is None:
+        kwargs = {}
 
     if not 'tags' in kwargs:
         raise SaltCloudSystemExit(
             'A tag or tags must be specified using tags=list,of,tags'
         )
 
-    instance_id = _get_node(name)['instanceId']
+    if not name and 'resource_id' in kwargs:
+        instance_id = kwargs['resource_id']
+        del kwargs['resource_id']
+
+    if not instance_id:
+        instance_id = _get_node(name)['instanceId']
+
     params = {'Action': 'DeleteTags',
               'ResourceId.1': instance_id}
 
@@ -1952,7 +2070,10 @@ def del_tags(name, kwargs, call=None):
 
     query(params, setname='tagSet')
 
-    return get_tags(name, call='action')
+    if resource_id:
+        return get_tags(resource_id=resource_id)
+    else:
+        return get_tags(instance_id=instance_id)
 
 
 def rename(name, kwargs, call=None):

@@ -2,15 +2,18 @@
 '''
 Encapsulate the different transports available to Salt.  Currently this is only ZeroMQ.
 '''
+import time
 
 # Import Salt Libs
 import salt.payload
 import salt.auth
 import salt.utils
 try:
-    from salt.transport.road.raet import stacking
-    from salt.transport.road.raet import yarding
-    from salt.transport.road.raet import raeting
+    from raet import raeting
+    from raet.road.stacking import RoadStack
+    from raet.lane.stacking import LaneStack
+    from raet.lane import yarding
+
 except ImportError:
     # Don't die on missing transport libs since only one transport is required
     pass
@@ -51,17 +54,18 @@ class RAETChannel(Channel):
         '''
         Prepare the stack objects
         '''
-        self.stack = stacking.StackUxd(
+        self.stack = LaneStack(
                 lanename=self.opts['id'],
                 yid=salt.utils.gen_jid(),
-                dirpath=self.opts['sock_dir'])
+                dirpath=self.opts['cachedir'],
+                sockdirpath=self.opts['sock_dir'])
         self.stack.Pk = raeting.packKinds.pack
         self.router_yard = yarding.RemoteYard(
                 yid=0,
                 prefix=self.opts['id'],
                 dirpath=self.opts['sock_dir'])
-        self.stack.addRemoteYard(self.router_yard)
-        src = (self.opts['id'], self.stack.yard.name, None)
+        self.stack.addRemote(self.router_yard)
+        src = (self.opts['id'], self.stack.local.name, None)
         dst = ('master', None, 'remote_cmd')
         self.route = {'src': src, 'dst': dst}
 
@@ -77,8 +81,9 @@ class RAETChannel(Channel):
         Send a message load and wait for a relative reply
         '''
         msg = {'route': self.route, 'load': load}
-        self.stack.transmit(msg, 'yard0')
+        self.stack.transmit(msg, self.stack.uids['yard0'])
         while True:
+            time.sleep(0.01)
             self.stack.serviceAll()
             if self.stack.rxMsgs:
                 for msg in self.stack.rxMsgs:

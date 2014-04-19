@@ -30,8 +30,8 @@ Available Functions
   .. code-block:: yaml
 
       corp/mysuperdocker_img:
-          docker.built:
-              - path: /path/to/dir/container/Dockerfile
+        docker.built:
+          - path: /path/to/dir/container/Dockerfile
 
 - pulled
 
@@ -45,52 +45,59 @@ Available Functions
   .. code-block:: yaml
 
       mysuperdocker-container:
-          docker.installed:
-              - name: mysuperdocker
-              - hostname: superdocker
-              - image: corp/mysuperdocker_img
+        docker.installed:
+          - name: mysuperdocker
+          - hostname: superdocker
+          - image: corp/mysuperdocker_img
 - running
 
   .. code-block:: yaml
 
       my_service:
-          docker.running:
-              - container: mysuperdocker
-              - port_bindings:
-                  "5000/tcp":
-                      HostIp: ""
-                      HostPort: "5000"
+        docker.running:
+          - container: mysuperdocker
+          - port_bindings:
+              "5000/tcp":
+                  HostIp: ""
+                  HostPort: "5000"
+
+  .. note::
+
+      The ``port_bindings`` argument above is a dictionary. Note the
+      double-indentation, this is required for PyYAML to load the data
+      structure properly as a dictionary. More information can be found
+      :ref:`here <nested-dict-indentation>`
 
 
 - absent
 
   .. code-block:: yaml
 
-       mys_old_uperdocker:
-          docker.absent
+      mys_old_uperdocker:
+        docker.absent
 
 - run
 
   .. code-block:: yaml
 
-       /finish-install.sh:
-           docker.run:
-               - container: mysuperdocker
-               - unless: grep -q something /var/log/foo
-               - docker_unless: grep -q done /install_log
+      /finish-install.sh:
+        docker.run:
+          - container: mysuperdocker
+          - unless: grep -q something /var/log/foo
+          - docker_unless: grep -q done /install_log
 
 .. note::
 
-    The docker modules are named `dockerio` because
+    The docker modules are named ``dockerio`` because
     the name 'docker' would conflict with the underlying docker-py library.
 
     We should add magic to all methods to also match containers by name
     now that the 'naming link' stuff has been merged in docker.
     This applies for example to:
 
-        - running
-        - absent
-        - run
+    - running
+    - absent
+    - run
 
 
 '''
@@ -447,14 +454,13 @@ def present(name):
 def run(name,
         cid=None,
         hostname=None,
-        stateful=False,
         onlyif=None,
         unless=None,
         docked_onlyif=None,
         docked_unless=None,
         *args, **kwargs):
-    '''Run a command in a specific container
-
+    '''
+    Run a command in a specific container
 
     You can match by either name or hostname
 
@@ -466,9 +472,6 @@ def run(name,
 
     state_id
         state_id
-
-    stateful
-        stateful mode
 
     onlyif
         Only execute cmd if statement on the host returns 0
@@ -484,9 +487,10 @@ def run(name,
 
     '''
     if hostname:
-        salt.utils.warn_until((0, 19),
-                              'The argument \'hostname\' argument'
-                              ' has been deprecated.')
+        salt.utils.warn_until(
+            'Helium',
+            'The \'hostname\' argument has been deprecated.'
+        )
     retcode = __salt__['docker.retcode']
     drun_all = __salt__['docker.run_all']
     valid = functools.partial(_valid, name=name)
@@ -559,7 +563,7 @@ def running(name, container=None, port_bindings=None, binds=None,
         .. code-block:: yaml
 
             - binds:
-                - /var/log/service: /var/log/service
+                /var/log/service: /var/log/service
 
     publish_all_ports
 
