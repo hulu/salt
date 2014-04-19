@@ -752,7 +752,7 @@ def chpgrp(path, group):
     return None
 
 
-def chgrp(path, group):
+def chgrp(path, group):  # pylint: disable=W0613
     '''
     Change the group of a file
 
