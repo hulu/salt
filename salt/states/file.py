@@ -2524,7 +2524,7 @@ def append(name,
 
     check_res, check_msg = _check_file(name)
     if not check_res:
-        touch(name, makedirs=True)
+        touch(name, makedirs=makedirs)
         retry_res, retry_msg = _check_file(name)
         if not retry_res:
             return _error(ret, check_msg)
@@ -2547,29 +2547,34 @@ def append(name,
 
     count = 0
 
-    for chunk in text:
+    try:
+        for chunk in text:
 
-        if __salt__['file.contains_regex_multiline'](
-                name, salt.utils.build_whitespace_split_regex(chunk)):
-            continue
+            if __salt__['file.contains_regex_multiline'](
+                    name, salt.utils.build_whitespace_split_regex(chunk)):
+                continue
 
-        try:
-            lines = chunk.splitlines()
-        except AttributeError:
-            log.debug(
-                'Error appending text to {0}; given object is: {1}'.format(
-                    name, type(chunk)
+            try:
+                lines = chunk.splitlines()
+            except AttributeError:
+                log.debug(
+                    'Error appending text to {0}; given object is: {1}'.format(
+                        name, type(chunk)
+                    )
                 )
-            )
-            return _error(ret, 'Given text is not a string')
+                return _error(ret, 'Given text is not a string')
 
-        for line in lines:
-            if __opts__['test']:
-                ret['comment'] = 'File {0} is set to be updated'.format(name)
-                ret['result'] = None
-                return ret
-            __salt__['file.append'](name, line)
-            count += 1
+            for line in lines:
+                if __opts__['test']:
+                    ret['comment'] = 'File {0} is set to be updated'.format(name)
+                    ret['result'] = None
+                    return ret
+                __salt__['file.append'](name, line)
+                count += 1
+    except TypeError:
+        ret['comment'] = 'No text found to append. Nothing appended'
+        ret['result'] = False
+        return ret
 
     with salt.utils.fopen(name, 'rb') as fp_:
         nlines = fp_.readlines()
@@ -3167,6 +3172,44 @@ def accumulated(name, filename, text, **kwargs):
     return ret
 
 
+def _merge_dict(obj, k, v):
+    changes = {}
+    if k in obj:
+        if type(obj[k]) is list:
+            if type(v) is list:
+                for a in v:
+                    if not a in obj[k]:
+                        changes[k] = a
+                        obj[k].append(a)
+            else:
+                if obj[k] != v:
+                    changes[k] = v
+                    obj[k] = v
+        elif type(obj[k]) is dict:
+            if type(v) is dict:
+                for a, b in v.iteritems():
+                    if (type(b) is dict) or (type(b) is list):
+                        updates = _merge_dict(obj[k], a, b)
+                        for x, y in updates.iteritems():
+                            changes[k + "." + x] = y
+                    else:
+                        if obj[k][a] != b:
+                            changes[k + "." + a] = b
+                            obj[k][a] = b
+            else:
+                if obj[k] != v:
+                    changes[k] = v
+                    obj[k] = v
+        else:
+            if obj[k] != v:
+                changes[k] = v
+                obj[k] = v
+    else:
+        changes[k] = v
+        obj[k] = v
+    return changes
+
+
 def serialize(name,
               dataset,
               user=None,
@@ -3177,6 +3220,7 @@ def serialize(name,
               makedirs=False,
               show_diff=True,
               create=True,
+              merge_if_exists=False,
               **kwargs):
     '''
     Serializes dataset and store it into managed file. Useful for sharing
@@ -3221,6 +3265,10 @@ def serialize(name,
         Default is True, if create is set to False then the file will only be
         managed if the file already exists on the system.
 
+    merge_if_exists
+        Default is False, if merge_if_exists is True then the existing file will
+        be parsed and the dataset passed in will be merged with the existing
+        content
 
     For example, this state::
 
@@ -3274,6 +3322,30 @@ def serialize(name,
             return ret
 
     formatter = kwargs.pop('formatter', 'yaml').lower()
+
+    if merge_if_exists:
+        if os.path.isfile(name):
+            if formatter == 'yaml':
+                existing_data = yaml.load(file(name, 'r'))
+            elif formatter == 'json':
+                existing_data = json.load(file(name, 'r'))
+            else:
+                return {'changes': {},
+                        'comment': '{0} format is not supported for merging'.format(
+                            formatter.capitalized()),
+                        'name': name,
+                        'result': False
+                        }
+
+            if not existing_data is None:
+                for k, v in dataset.iteritems():
+                    if k in existing_data:
+                        ret['changes'].update(_merge_dict(existing_data, k, v))
+                    else:
+                        ret['changes'][k] = v
+                        existing_data[k] = v
+                dataset = existing_data
+
     if formatter == 'yaml':
         contents = yaml.dump(
             dataset,
