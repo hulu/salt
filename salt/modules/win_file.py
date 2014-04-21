@@ -1080,7 +1080,7 @@ def is_link(path):
 
        salt '*' file.is_link /path/to/link
     '''
-    if sys.getwindowsversion().major < 6:
+    if sys.getwindowsversion().major < 6:  # pylint: disable=E1101
         return False
 
     try:
@@ -1170,7 +1170,7 @@ def readlink(path):
 
         salt '*' file.readlink /path/to/link
     '''
-    if sys.getwindowsversion().major < 6:
+    if sys.getwindowsversion().major < 6:  # pylint: disable=E1101
         raise SaltInvocationError('Symlinks are only supported on Windows Vista or later.')
 
     if not os.path.isabs(path):
