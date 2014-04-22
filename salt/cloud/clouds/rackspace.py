@@ -324,9 +324,9 @@ def create(vm_):
 
     log.debug('VM is now running')
     if ssh_interface(vm_) == 'private_ips':
-        ip_address = preferred_ip(vm_, data.private_ips)
+        ip_address = preferred_ip(vm_, data.private_ips)  # pylint: disable=E1103
     else:
-        ip_address = preferred_ip(vm_, data.public_ips)
+        ip_address = preferred_ip(vm_, data.public_ips)  # pylint: disable=E1103
     log.debug('Using IP address {0}'.format(ip_address))
 
     if not ip_address:
@@ -345,7 +345,7 @@ def create(vm_):
             'opts': __opts__,
             'host': ip_address,
             'username': ssh_username,
-            'password': data.extra['password'],
+            'password': data.extra['password'],  # pylint: disable=E1103
             'script': deploy_script.script,
             'name': vm_['name'],
             'tmp_dir': config.get_cloud_config_value(
@@ -444,8 +444,8 @@ def create(vm_):
 
     ret.update(data.__dict__)
 
-    if 'password' in data.extra:
-        del data.extra['password']
+    if 'password' in data.extra:  # pylint: disable=E1103
+        del data.extra['password']  # pylint: disable=E1103
 
     log.info('Created Cloud VM {0[name]!r}'.format(vm_))
     log.debug(
