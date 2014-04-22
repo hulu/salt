@@ -355,7 +355,7 @@ class MapMeta(type):
             setattr(cls, name, attrs[name])
 
 
-def need_salt(*a, **k):
+def need_salt(*a, **k):  # pylint: disable=W0613
     log.error("Map needs __salt__ set before it can be used!")
     return {}
 
