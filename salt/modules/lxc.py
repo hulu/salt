@@ -93,6 +93,51 @@ def _lxc_profile(profile):
     return __salt__['config.option']('lxc.profile', {}).get(profile, {})
 
 
+def _config_list(**kwargs):
+    '''
+    Return a list of dicts from the salt level configurations
+    '''
+    ret = []
+    memory = kwargs.pop('memory', None)
+    if memory:
+        memory = memory * 1024 * 1024
+    ret.append({'lxc.cgroup.memory.limit_in_bytes': memory})
+    cpuset = kwargs.pop('cpuset', None)
+    if cpuset:
+        ret.append({'lxc.cgroup.cpuset.cpus': cpuset})
+    cpushare = kwargs.pop('cpushare', None)
+    if cpushare:
+        ret.append({'lxc.cgroup.cpu.shares': cpushare})
+
+    nic = kwargs.pop('nic')
+    if nic:
+        nicp = __salt__['config.option']('lxc.nic', {}).get(
+                    nic, DEFAULT_NIC_PROFILE
+                )
+        nic_opts = kwargs.pop('nic_opts', None)
+
+        for dev, args in nicp.items():
+            ret.append({'lxc.network.type': args.pop('type', 'veth')})
+            ret.append({'lxc.network.name': dev})
+            ret.append({'lxc.network.flags': args.pop('flags', 'up')})
+            opts = nic_opts.get(dev) if nic_opts else None
+            if opts:
+                mac = opts.get('mac')
+                ipv4 = opts.get('ipv4')
+                ipv6 = opts.get('ipv6')
+            else:
+                ipv4, ipv6 = None, None
+                mac = salt.utils.gen_mac()
+            ret.append({'lxc.network.hwaddr': mac})
+            if ipv4:
+                ret.append({'lxc.network.ipv4': ipv4})
+            if ipv6:
+                ret.append({'lxc.network.ipv6': ipv6})
+            for k, v in args.items():
+                ret.append({'lxc.network.{0}'.format(k): v})
+    return ret
+
+
 class _LXCConfig(object):
     '''
     LXC configuration data
@@ -209,11 +254,19 @@ def get_base(**kwargs):
         name = '__base_{0}_{1}_{2}'.format(proto, img_name, hash_)
         if name not in cntrs:
             create(name, **kwargs)
+            if kwargs.get('vgname'):
+                rootfs = os.path.join('/dev', kwargs['vgname'], name)
+                lxc_info = info(name)
+                edit_conf(lxc_info['config'], **{'lxc.rootfs': rootfs})
         return name
     elif kwargs.get('template'):
         name = '__base_{0}'.format(kwargs['template'])
         if name not in cntrs:
             create(name, **kwargs)
+            if kwargs.get('vgname'):
+                rootfs = os.path.join('/dev', kwargs['vgname'], name)
+                lxc_info = info(name)
+                edit_conf(lxc_info['config'], **{'lxc.rootfs': rootfs})
         return name
     return ''
 
@@ -322,7 +375,12 @@ def init(name,
                                          profile=profile, **kwargs)
         if not ret.get('created', False):
             return ret
-    rootfs = info(name)['rootfs']
+        path = '/var/lib/lxc/{0}/config'.format(name)
+        for comp in _config_list(nic=nic, nic_opts=nic_opts, cpuset=cpuset, cpushare=cpushare, memory=memory):
+            edit_conf(path, **comp)
+    lxc_info = info(name)
+    rootfs = lxc_info['rootfs']
+    #lxc_config = lxc_info['config']
     if seed:
         ret['seeded'] = __salt__['lxc.bootstrap'](
             name, config=salt_config, approve_key=approve_key, install=install)
@@ -396,6 +454,8 @@ def create(name, config=None, profile=None, options=None, **kwargs):
     vgname = tvg if tvg else __salt__['config.option']('lxc.vgname')
     template = select('template')
     backing = select('backing')
+    if vgname and not backing:
+        backing = 'lvm'
     lvname = select('lvname')
     fstype = select('fstype')
     size = select('size', '1G')
@@ -442,7 +502,7 @@ def create(name, config=None, profile=None, options=None, **kwargs):
             __salt__['cmd.retcode'](cmd)
         log.warn('lxc-create failed to create container')
         return {'created': False, 'error':
-                'container could not be created: {0}'.format(ret['stderr'])}
+                'container could not be created with cmd "{0}": {1}'.format(cmd, ret['stderr'])}
 
 
 def clone(name,
@@ -529,7 +589,7 @@ def clone(name,
             __salt__['cmd.retcode'](cmd)
         log.warn('lxc-clone failed to create container')
         return {'cloned': False, 'error':
-                'container could not be created: {0}'.format(ret['stderr'])}
+                'container could not be created with cmd "{0}": {1}'.format(cmd, ret['stderr'])}
 
 
 def ls():
@@ -924,6 +984,7 @@ def info(name):
     ret['ipv4_ips'] = []
     ret['ipv6_ips'] = []
     ret['size'] = None
+    ret['config'] = f
 
     if ret['state'] == 'running':
         limit = int(get_parameter(name, 'memory.limit_in_bytes').get(
