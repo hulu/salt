@@ -2365,7 +2365,7 @@ def check_perms(name, ret, user, group, mode, follow_symlinks=False):
 
         salt '*' file.check_perms /etc/sudoers '{}' root root 400
 
-    .. versionchanged:: 2014.1.2
+    .. versionchanged:: 2014.1.3
         ``follow_symlinks`` option added
     '''
     if not ret:
@@ -2670,8 +2670,7 @@ def manage_file(name,
                 template=None,   # pylint: disable=W0613
                 show_diff=True,
                 contents=None,
-                dir_mode=None,
-                mkdirs=False):
+                dir_mode=None):
     '''
     Checks the destination against what was retrieved with get_managed and
     makes the appropriate modifications (if necessary).
@@ -2816,7 +2815,7 @@ def manage_file(name,
                     ret['result'] = False
                     return ret
             if not os.path.isdir(os.path.dirname(name)):
-                if makedirs and mkdirs:
+                if makedirs:
                     # check for existence of windows drive letter
                     if salt.utils.is_windows():
                         drive, _ = os.path.splitdrive(name)

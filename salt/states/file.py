@@ -1280,9 +1280,7 @@ def managed(name,
                 template,
                 show_diff,
                 contents,
-                dir_mode,
-                makedirs
-            )
+                dir_mode)
         except Exception as exc:
             ret['changes'] = {}
             log.debug(traceback.format_exc())
@@ -2021,11 +2019,12 @@ def replace(name,
 
     if changes:
         ret['changes'] = {'diff': changes}
-        ret['comment'] = 'Changes were made'
+        ret['comment'] = ('Changes were made'
+                if not __opts__['test'] else 'Changes would have been made')
     else:
         ret['comment'] = 'No changes were made'
 
-    ret['result'] = True
+    ret['result'] = True if not __opts__['test'] else None
     return ret
 
 
@@ -3271,7 +3270,7 @@ def serialize(name,
     makedirs
         Create parent directories for destination file.
 
-        .. versionadded:: 2014.1.2
+        .. versionadded:: 2014.1.3
 
     show_diff
         If set to False, the diff will not be shown.

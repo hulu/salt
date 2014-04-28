@@ -62,7 +62,7 @@ class RAETChannel(Channel):
         self.stack.Pk = raeting.packKinds.pack
         self.router_yard = yarding.RemoteYard(
                 yid=0,
-                prefix=self.opts['id'],
+                lanename=self.opts['id'],
                 dirpath=self.opts['sock_dir'])
         self.stack.addRemote(self.router_yard)
         src = (self.opts['id'], self.stack.local.name, None)
@@ -101,7 +101,7 @@ class ZeroMQChannel(Channel):
         self.ttype = 'zeromq'
 
         # crypt defaults to 'aes'
-        self.crypt = kwargs['crypt'] if 'crypt' in kwargs else 'aes'
+        self.crypt = kwargs.get('crypt', 'aes')
 
         self.serial = salt.payload.Serial(opts)
         if self.crypt != 'clear':

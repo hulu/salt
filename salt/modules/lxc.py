@@ -110,6 +110,7 @@ def _config_list(**kwargs):
         ret.append({'lxc.cgroup.cpu.shares': cpushare})
 
     nic = kwargs.pop('nic')
+
     if nic:
         nicp = __salt__['config.option']('lxc.nic', {}).get(
                     nic, DEFAULT_NIC_PROFILE
@@ -380,7 +381,7 @@ def init(name,
             edit_conf(path, **comp)
     lxc_info = info(name)
     rootfs = lxc_info['rootfs']
-    #lxc_config = lxc_info['config']
+    ret['name'] = name
     if seed:
         ret['seeded'] = __salt__['lxc.bootstrap'](
             name, config=salt_config, approve_key=approve_key, install=install)
@@ -1039,7 +1040,8 @@ def set_pass(name, users, password):
 
     .. code-block:: bash
 
-        salt '*' lxc.set_pass root foo
+        salt '*' lxc.set_pass container-name root foo
+
     '''
     ret = {'result': True, 'comment': ''}
     if not isinstance(users, list):
@@ -1170,8 +1172,9 @@ def update_lxc_conf(name, lxc_conf, lxc_conf_unset):
 
 
 def set_dns(name, dnsservers=None, searchdomains=None):
-    '''Update container DNS configuration
-    and possibly also resolvonf one.
+    '''
+    Update container DNS configuration
+    and possibly also resolv.conf one.
 
     CLI Example:
 
@@ -1258,23 +1261,26 @@ def bootstrap(name, config=None, approve_key=True, install=True):
 
     if needs_install:
         if install:
+            rstr = __salt__['test.rand_str']()
+            configdir = '/tmp/.c_{0}'.format(rstr)
+            run_cmd(name, 'install -m 0700 -d {0}'.format(configdir))
             bs_ = __salt__['config.gather_bootstrap_script']()
             cp(name, bs_, '/tmp/bootstrap.sh')
-            cp(name, cfg_files['config'], '/tmp/')
-            cp(name, cfg_files['privkey'], '/tmp/')
-            cp(name, cfg_files['pubkey'], '/tmp/')
+            cp(name, cfg_files['config'], os.path.join(configdir, 'minion'))
+            cp(name, cfg_files['privkey'], os.path.join(configdir, 'minion.pem'))
+            cp(name, cfg_files['pubkey'], os.path.join(configdir, 'minon.pub'))
 
-            cmd = 'sh /tmp/bootstrap.sh -c /tmp'
+            cmd = 'sh /tmp/bootstrap.sh -c {0}'.format(configdir)
             res = not __salt__['lxc.run_cmd'](name, cmd, stdout=False)
         else:
             res = False
     else:
         minion_config = salt.config.minion_config(cfg_files['config'])
-        pki_dir = os.path.join(minion_config['pki_dir'], 'minion')
+        pki_dir = minion_config['pki_dir']
         cp(name, cfg_files['config'], '/etc/salt/minion')
-        cp(name, cfg_files['privkey'], pki_dir)
-        cp(name, cfg_files['pubkey'], pki_dir)
-        run_cmd(name, 'salt-call --local service.start salt-minion',
+        cp(name, cfg_files['privkey'], os.path.join(pki_dir, 'minion.pem'))
+        cp(name, cfg_files['pubkey'], os.path.join(pki_dir, 'minion.pub'))
+        run_cmd(name, 'salt-call --local service.enable salt-minion',
                 stdout=False)
         res = True
 
@@ -1354,7 +1360,7 @@ def cp(name, src, dest):
 
     .. code-block:: bash
 
-        salt 'minion' lxc.cp /tmp/foo /root/
+        salt 'minion' lxc.cp /tmp/foo /root/foo
     '''
 
     if state(name) != 'running':

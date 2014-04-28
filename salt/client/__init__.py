@@ -21,7 +21,6 @@ The data structure needs to be:
 # Import python libs
 from __future__ import print_function
 import os
-import glob
 import time
 import copy
 import logging
@@ -31,6 +30,7 @@ from datetime import datetime
 import salt.config
 import salt.payload
 import salt.transport
+import salt.loader
 import salt.utils
 import salt.utils.args
 import salt.utils.event
@@ -117,7 +117,9 @@ class LocalClient(object):
                 self.opts['transport'],
                 listen=not self.opts.get('__worker', False))
 
-        self.mminion = salt.minion.MasterMinion(self.opts)
+        self.returner = salt.loader.returner(self.opts['master_job_cache'],
+                                             self.opts,
+                                             {})
 
     def __read_master_key(self):
         '''
@@ -148,19 +150,17 @@ class LocalClient(object):
         user = salt.utils.get_user()
         # if our user is root, look for other ways to figure out
         # who we are
-        if (user == 'root' or user == self.opts['user']) and 'SUDO_USER' in os.environ:
-            env_vars = ['SUDO_USER']
+        env_vars = ('SUDO_USER',)
+        if user == 'root' or user == self.opts['user']:
             for evar in env_vars:
                 if evar in os.environ:
                     return 'sudo_{0}'.format(os.environ[evar])
-            return user
-        # If the running user is just the specified user in the
-        # conf file, don't pass the user as it's implied.
-        elif user == self.opts['user']:
-            return user
         return user
 
     def _convert_range_to_list(self, tgt):
+        '''
+        convert a seco.range range into a list target
+        '''
         range_ = seco.range.Range(self.opts['range_server'])
         try:
             return range_.expand(tgt)
@@ -191,10 +191,9 @@ class LocalClient(object):
         log.debug('Checking whether jid %s is still running', jid)
         timeout = self.opts['gather_job_timeout']
 
-        arg = [jid]
         pub_data = self.run_job(tgt,
                                 'saltutil.find_job',
-                                arg=arg,
+                                arg=[jid],
                                 expr_form=tgt_type,
                                 timeout=timeout,
                                )
@@ -792,7 +791,7 @@ class LocalClient(object):
         timeout_at = start + timeout
         found = set()
         # Check to see if the jid is real, if not return the empty dict
-        if not self.mminion.returners['{0}.get_load'.format(self.opts['master_job_cache'])](jid) != {}:
+        if not self.returner['get_load'](jid) != {}:
             log.warning("jid does not exist")
             yield {}
             # stop the iteration, since the jid is invalid
@@ -895,7 +894,7 @@ class LocalClient(object):
         found = set()
         ret = {}
         # Check to see if the jid is real, if not return the empty dict
-        if not self.mminion.returners['{0}.get_load'.format(self.opts['master_job_cache'])](jid) != {}:
+        if not self.returner['get_load'](jid) != {}:
             log.warning("jid does not exist")
             return ret
 
@@ -936,7 +935,7 @@ class LocalClient(object):
         # create the iterator-- since we want to get anyone in the middle
         event_iter = self.get_event_iter_returns(jid, minions, timeout=timeout)
 
-        data = self.mminion.returners['{0}.get_jid'.format(self.opts['master_job_cache'])](jid)
+        data = self.returner['get_jid'](jid)
         for minion in data:
             m_data = {}
             if u'return' in data[minion]:
@@ -979,7 +978,7 @@ class LocalClient(object):
         '''
         ret = {}
 
-        data = self.mminion.returners['{0}.get_jid'.format(self.opts['master_job_cache'])](jid)
+        data = self.returner['get_jid'](jid)
         for minion in data:
             m_data = {}
             if u'return' in data[minion]:
@@ -1024,7 +1023,7 @@ class LocalClient(object):
         found = set()
         ret = {}
         # Check to see if the jid is real, if not return the empty dict
-        if not self.mminion.returners['{0}.get_load'.format(self.opts['master_job_cache'])](jid) != {}:
+        if not self.returner['get_load'](jid) != {}:
             log.warning("jid does not exist")
             return ret
         # Wait for the hosts to check in
@@ -1101,7 +1100,7 @@ class LocalClient(object):
         timeout_at = start + timeout
         found = set()
         # Check to see if the jid is real, if not return the empty dict
-        if not self.mminion.returners['{0}.get_load'.format(self.opts['master_job_cache'])](jid) != {}:
+        if not self.returner['get_load'](jid) != {}:
             log.warning("jid does not exist")
             yield {}
             # stop the iteration, since the jid is invalid
@@ -1199,7 +1198,7 @@ class LocalClient(object):
 
         found = set()
         # Check to see if the jid is real, if not return the empty dict
-        if not self.mminion.returners['{0}.get_load'.format(self.opts['master_job_cache'])](jid) != {}:
+        if not self.returner['get_load'](jid) != {}:
             log.warning("jid does not exist")
             yield {}
             # stop the iteration, since the jid is invalid
@@ -1330,11 +1329,6 @@ class LocalClient(object):
                 timeout,
                 **kwargs)
 
-        # sreq = salt.payload.SREQ(
-        #     #'tcp://{0[interface]}:{0[ret_port]}'.format(self.opts),
-        #     'tcp://' + salt.utils.ip_bracket(self.opts['interface']) +
-        #     ':' + str(self.opts['ret_port']),
-        # )
         master_uri = 'tcp://' + salt.utils.ip_bracket(self.opts['interface']) + \
                      ':' + str(self.opts['ret_port'])
         sreq = salt.transport.Channel.factory(self.opts, crypt='clear', master_uri=master_uri)
