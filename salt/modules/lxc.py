@@ -1333,8 +1333,12 @@ def run_cmd(name, cmd, no_start=False, preserve_state=True,
     prior_state = _ensure_running(name, no_start=no_start)
     if not prior_state:
         return prior_state
-    res = __salt__['cmd.run_all'](
-            'lxc-attach -n \'{0}\' -- {1}'.format(name, cmd))
+    if attachable(name):
+        res = __salt__['cmd.run_all'](
+                'lxc-attach -n \'{0}\' -- {1}'.format(name, cmd))
+    else:
+        rootfs = info(name).get('rootfs')
+        res = __salt__['cmd.run_chroot'](rootfs, cmd)
 
     if preserve_state:
         if prior_state == 'stopped':
@@ -1382,6 +1386,26 @@ def cp(name, src, dest):
     log.info(cmd)
     ret = __salt__['cmd.run_all'](cmd)
     return ret
+
+
+def attachable(name):
+    '''
+    Return True if the named container can be attached to via the lxc-attach
+    command
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt 'minion' lxc.attachable ubuntu
+    '''
+    cmd = 'lxc-attach -n {0} -- /usr/bin/env'
+    data = __salt__['cmd.run_all'](cmd)
+    if not data['retcode']:
+        return True
+    if data['stderr'].startwith('lxc-attach: failed to get the init pid'):
+        return False
+    return False
 
 
 def read_conf(conf_file, out_format='simple'):
