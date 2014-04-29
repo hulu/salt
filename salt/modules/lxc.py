@@ -996,10 +996,10 @@ def info(name):
         ret['memory_limit'] = limit
         ret['memory_free'] = free
         ret['size'] = __salt__['cmd.run'](
-            ('lxc-attach -n \'{0}\' -- '
+            ('lxc-attach -n \'{0}\' -- env -i '
              'df /|tail -n1|awk \'{{print $2}}\'').format(name))
         ipaddr = __salt__['cmd.run'](
-            'lxc-attach -n \'{0}\' -- ip addr show'.format(name))
+            'lxc-attach -n \'{0}\' -- env -i ip addr show'.format(name))
         for line in ipaddr.splitlines():
             if 'inet' in line:
                 line = line.split()
@@ -1270,7 +1270,7 @@ def bootstrap(name, config=None, approve_key=True, install=True):
             cp(name, cfg_files['privkey'], os.path.join(configdir, 'minion.pem'))
             cp(name, cfg_files['pubkey'], os.path.join(configdir, 'minon.pub'))
 
-            cmd = 'sh /tmp/bootstrap.sh -c {0}'.format(configdir)
+            cmd = 'PATH=$PATH:/bin:/sbin:/usr/sbin sh /tmp/bootstrap.sh -c {0}'.format(configdir)
             res = not __salt__['lxc.run_cmd'](name, cmd, stdout=False)
         else:
             res = False
@@ -1335,7 +1335,7 @@ def run_cmd(name, cmd, no_start=False, preserve_state=True,
         return prior_state
     if attachable(name):
         res = __salt__['cmd.run_all'](
-                'lxc-attach -n \'{0}\' -- {1}'.format(name, cmd))
+                'lxc-attach -n \'{0}\' -- env -i {1}'.format(name, cmd))
     else:
         rootfs = info(name).get('rootfs')
         res = __salt__['cmd.run_chroot'](rootfs, cmd)
@@ -1381,7 +1381,7 @@ def cp(name, src, dest):
     if not dest_name:
         dest_name = src_name
 
-    cmd = 'cat {0} | lxc-attach -n {1} -- tee {2} > /dev/null'.format(
+    cmd = 'cat {0} | lxc-attach -n {1} -- env -i tee {2} > /dev/null'.format(
             src, name, os.path.join(dest_dir, dest_name))
     log.info(cmd)
     ret = __salt__['cmd.run_all'](cmd)
@@ -1399,11 +1399,11 @@ def attachable(name):
 
         salt 'minion' lxc.attachable ubuntu
     '''
-    cmd = 'lxc-attach -n {0} -- /usr/bin/env'
+    cmd = 'lxc-attach -n {0} -- /usr/bin/env'.format(name)
     data = __salt__['cmd.run_all'](cmd)
     if not data['retcode']:
         return True
-    if data['stderr'].startwith('lxc-attach: failed to get the init pid'):
+    if data['stderr'].startswith('lxc-attach: failed to get the init pid'):
         return False
     return False
 
