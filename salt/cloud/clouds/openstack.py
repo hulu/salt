@@ -708,11 +708,11 @@ def create(vm_):
     log.debug('VM is now running')
 
     if ssh_interface(vm_) == 'private_ips':
-        ip_address = preferred_ip(vm_, data.private_ips)
+        ip_address = preferred_ip(vm_, data.private_ips)  # pylint: disable=E1103
     elif rackconnect(vm_) is True and ssh_interface(vm_) != 'private_ips':
-        ip_address = data.public_ips
+        ip_address = data.public_ips  # pylint: disable=E1103
     else:
-        ip_address = preferred_ip(vm_, data.public_ips)
+        ip_address = preferred_ip(vm_, data.public_ips)  # pylint: disable=E1103
     log.debug('Using IP address {0}'.format(ip_address))
 
     if not ip_address:
@@ -769,8 +769,8 @@ def create(vm_):
         log.debug(
             'Using {0} as SSH key file'.format(key_filename)
         )
-    elif hasattr(data, 'extra') and 'password' in data.extra:
-        deploy_kwargs['password'] = data.extra['password']
+    elif hasattr(data, 'extra') and 'password' in data.extra:  # pylint: disable=E1103
+        deploy_kwargs['password'] = data.extra['password']  # pylint: disable=E1103
         log.debug('Logging into SSH using password')
 
     ret = {}
@@ -849,8 +849,8 @@ def create(vm_):
 
     ret.update(data.__dict__)
 
-    if hasattr(data, 'extra') and 'password' in data.extra:
-        del data.extra['password']
+    if hasattr(data, 'extra') and 'password' in data.extra:  # pylint: disable=E1103
+        del data.extra['password']  # pylint: disable=E1103
 
     log.info('Created Cloud VM {0[name]!r}'.format(vm_))
     log.debug(
