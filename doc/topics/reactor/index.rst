@@ -1,8 +1,7 @@
 .. _reactor:
 
-.. index:: Reactor
-    single: Reactor; events
-    see: events; Reactor
+.. index:: ! Reactor, Salt Reactor
+    seealso: Event; Reactor
 
 ==============
 Reactor System
@@ -120,7 +119,7 @@ Example usage:
 
 .. code-block:: bash
 
-    wget https://raw.github.com/saltstack/salt/develop/tests/eventlisten.py
+    wget https://raw.githubusercontent.com/saltstack/salt/develop/tests/eventlisten.py
     python eventlisten.py
 
     # OR
