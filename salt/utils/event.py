@@ -203,14 +203,14 @@ class SaltEvent(object):
         )
         return puburi, pulluri
 
-    def subscribe(self, tag=None):
+    def subscribe(self, tag=None):  # pylint: disable=W0613
         '''
         Subscribe to events matching the passed tag.
         '''
         if not self.cpub:
             self.connect_pub()
 
-    def unsubscribe(self, tag=None):
+    def unsubscribe(self, tag=None):  # pylint: disable=W0613
         '''
         Un-subscribe to events matching the passed tag.
         '''
