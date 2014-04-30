@@ -381,6 +381,7 @@ def get_containers(all=True,  # pylint: disable=W0622
                    since=None,
                    before=None,
                    limit=-1,
+                   host=False,
                    *args,
                    **kwargs):
     '''
@@ -392,6 +393,9 @@ def get_containers(all=True,  # pylint: disable=W0622
     trunc
         Set it to True to have the short ID
 
+    host
+        Include the Docker host's ipv4 and ipv6 address in return
+
     Returns a mapping of something which looks like
     container
 
@@ -400,9 +404,14 @@ def get_containers(all=True,  # pylint: disable=W0622
     .. code-block:: bash
 
         salt '*' docker.get_containers
+        salt '*' docker.get_containers host=True
     '''
     client = _get_client()
     status = base_status.copy()
+    if host:
+        status['host'] = {}
+        status['host']['ipv4'] = __salt__['network.ip_addrs']()
+        status['host']['ipv6'] = __salt__['network.ip_addrs6']()
     ret = client.containers(all=all,
                             trunc=trunc,
                             since=since,
@@ -651,9 +660,11 @@ def create_container(image,
             'info': _get_container_infos(container),
             'out': container_info
         }
+        __salt__['mine.send']('docker.get_containers', host=True)
         return callback(status, id=container, comment=comment, out=out)
     except Exception:
         invalid(status, id=image, out=traceback.format_exc())
+    __salt__['mine.send']('docker.get_containers', host=True)
     return status
 
 
@@ -779,6 +790,7 @@ def stop(container, timeout=10, *args, **kwargs):
                 comment=(
                     'An exception occurred while stopping '
                     'your container {0}').format(container))
+    __salt__['mine.send']('docker.get_containers', host=True)
     return status
 
 
@@ -831,6 +843,7 @@ def kill(container, *args, **kwargs):
                 comment=(
                     'An exception occurred while killing '
                     'your container {0}').format(container))
+    __salt__['mine.send']('docker.get_containers', host=True)
     return status
 
 
@@ -874,6 +887,7 @@ def restart(container, timeout=10, *args, **kwargs):
                 comment=(
                     'An exception occurred while restarting '
                     'your container {0}').format(container))
+    __salt__['mine.send']('docker.get_containers', host=True)
     return status
 
 
@@ -956,6 +970,7 @@ def start(container, binds=None, port_bindings=None,
                 comment=(
                     'An exception occurred while starting '
                     'your container {0}').format(container))
+    __salt__['mine.send']('docker.get_containers', host=True)
     return status
 
 
@@ -998,6 +1013,7 @@ def wait(container, *args, **kwargs):
                 comment=(
                     'An exception occurred while waiting '
                     'your container {0}').format(container))
+    __salt__['mine.send']('docker.get_containers', host=True)
     return status
 
 
@@ -1079,6 +1095,7 @@ def remove_container(container=None, force=False, v=False, *args, **kwargs):
                         comment=(
                             'Container {0} is running, '
                             'won\'t remove it').format(container))
+                __salt__['mine.send']('docker.get_containers', host=True)
                 return status
             else:
                 kill(dcontainer)
@@ -1092,6 +1109,7 @@ def remove_container(container=None, force=False, v=False, *args, **kwargs):
             status['comment'] = 'Container {0} was removed'.format(container)
     except Exception:
         invalid(status, id=container, out=traceback.format_exc())
+    __salt__['mine.send']('docker.get_containers', host=True)
     return status
 
 
