@@ -173,7 +173,7 @@ def _linux_gpu_data():
                 cur_dev[key.strip()] = val.strip()
             else:
                 error = True
-                log.debug('Unexpected lspci output: \'{0}\''.format(line))
+                log.debug('Unexpected lspci output: {0!r}'.format(line))
 
         if error:
             log.warn(
@@ -424,7 +424,7 @@ def _virtual(osdata):
         if not cmd:
             continue
 
-        cmd = '%s %s' % (command, ' '.join(args))
+        cmd = '{0} {1}'.format(command, ' '.join(args))
 
         ret = __salt__['cmd.run_all'](cmd)
 
@@ -433,7 +433,7 @@ def _virtual(osdata):
                 if salt.utils.is_windows():
                     continue
                 log.warn(
-                    'Although \'{0}\' was found in path, the current user '
+                    'Although {0!r} was found in path, the current user '
                     'cannot execute it. Grains output might not be '
                     'accurate.'.format(command)
                 )
@@ -521,6 +521,16 @@ def _virtual(osdata):
                 grains['virtual'] = 'openvzhn'
             elif os.path.isfile('/proc/vz/veinfo'):
                 grains['virtual'] = 'openvzve'
+        # Provide additional detection for OpenVZ
+        if os.path.isfile('/proc/self/status'):
+            with salt.utils.fopen('/proc/self/status') as status_file:
+                for line in status_file:
+                    vz_re = re.compile(r'^envID:\s+(\d+)$')
+                    vz_match = vz_re.match(line.rstrip('\n'))
+                    if vz_match and int(vz_match.groups()[0]) != 0:
+                        grains['virtual'] = 'openvzve'
+                    elif vz_match and int(vz_match.groups()[0]) == 0:
+                        grains['virtual'] = 'openvzhn'
         elif isdir('/proc/sys/xen') or \
                 isdir('/sys/bus/xen') or isdir('/proc/xen'):
             if os.path.isfile('/proc/xen/xsd_kva'):

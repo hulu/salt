@@ -411,7 +411,7 @@ def queues(opts):
     load = _create_loader(
         opts, 'queues', 'queue', ext_type_dirs='queue_dirs'
     )
-    return load.gen_functions()
+    return LazyLoader(load)
 
 
 def clouds(opts):
@@ -1272,7 +1272,11 @@ class LazyLoader(MutableMapping):
                                            )
         # if you loaded nothing, then we don't have it
         if mod_funcs is None:
-            raise KeyError
+            # if we couldn't find it, then it could be a virtual or we don't have it
+            # until we have a better way, we have to load them all to know
+            # TODO: maybe do a load until, with some glob match first?
+            self.load_all()
+            return self._dict[key]
         self._dict.update(mod_funcs)
 
     def load_all(self):
@@ -1339,7 +1343,11 @@ class LazyFilterLoader(LazyLoader):
                                            )
         # if you loaded nothing, then we don't have it
         if mod_funcs is None:
-            raise KeyError
+            # if we couldn't find it, then it could be a virtual or we don't have it
+            # until we have a better way, we have to load them all to know
+            # TODO: maybe do a load until, with some glob match first?
+            self.load_all()
+            return self._dict[key]
 
         # if we got one, now lets check if we have the function name we want
         for mod_key, mod_fun in mod_funcs.iteritems():
