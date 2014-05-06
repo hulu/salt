@@ -521,7 +521,7 @@ def boot_time(time_format=None):
         # Load epoch timestamp as a datetime.datetime object
         b_time = datetime.datetime.fromtimestamp(b_time)
         try:
-            return b_time.strftime(time_format)
+            return b_time.strftime(time_format)  # pylint: disable=E1103
         except TypeError as exc:
             raise SaltInvocationError('Invalid format string: {0}'.format(exc))
     return b_time
