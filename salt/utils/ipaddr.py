@@ -16,7 +16,7 @@
 # implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-# pylint: disable=W1321,E1321
+# pylint: disable=E1101,W0613,C0330
 
 """A fast, lightweight IPv4/IPv6 manipulation library in Python.
 
