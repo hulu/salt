@@ -390,7 +390,7 @@ def checkout(cwd, rev, force=False, opts=None, user=None):
     return _git_run(cmd, cwd=cwd, runas=user)
 
 
-def merge(cwd, branch='@{upstream}', opts=None, user=None):
+def merge(cwd, branch='@{upstream}', opts=None, user=None):  # pylint: disable=W0621
     '''
     Merge a given branch
 
@@ -598,7 +598,7 @@ def commit(cwd, message, user=None, opts=None):
     return _git_run(cmd, cwd=cwd, runas=user)
 
 
-def push(cwd, remote_name, branch='master', user=None, opts=None,
+def push(cwd, remote_name, branch='master', user=None, opts=None,  # pylint: disable=W0621
          identity=None):
     '''
     Push to remote
@@ -858,7 +858,7 @@ def config_get(cwd, setting_name, user=None):
     return _git_run('git config {0}'.format(setting_name), cwd=cwd, runas=user)
 
 
-def ls_remote(cwd, repository="origin", branch="master", user=None, identity=None):
+def ls_remote(cwd, repository="origin", branch="master", user=None, identity=None):  # pylint=W0621
     '''
     Returns the upstream hash for any given URL and branch.
 
