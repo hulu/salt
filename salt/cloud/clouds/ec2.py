@@ -2755,7 +2755,7 @@ def _toggle_delvol(name=None, instance_id=None, device=None, volume_id=None,
     return query(requesturl=requesturl)
 
 
-def create_volume(kwargs=None, call=None):
+def create_volume(kwargs=None, call=None, wait_to_finish=False):
     '''
     Create a volume
     '''
@@ -2791,12 +2791,19 @@ def create_volume(kwargs=None, call=None):
     log.debug(params)
 
     data = query(params, return_root=True)
+    r_data = {}
+    for d in data:
+        for k, v in d.items():
+            r_data[k] = v
+    volume_id = r_data['volumeId']
 
-    # Wait a few seconds to make sure the volume
-    # has had a chance to shift to available state
-    # TODO: Should probably create a util method to
-    # wait for available status and fail on others
-    time.sleep(5)
+    # Waits till volume is available
+    if wait_to_finish:
+        salt.utils.cloud.run_func_until_ret_arg(fun=describe_volumes,
+                                                kwargs={'volume_id': volume_id},
+                                                fun_call=call,
+                                                argument_being_watched='status',
+                                                required_argument_response='available')
 
     return data
 
@@ -2843,22 +2850,16 @@ def attach_volume(name=None, kwargs=None, instance_id=None, call=None):
     return data
 
 
-def show_volume(name=None, kwargs=None, instance_id=None, call=None):  # pylint: disable=W0613
+def show_volume(kwargs=None, call=None):
     '''
-    Show volume details
+    Wrapper around describe_volumes.
+    Here just to keep functionality.
+    Might be depreciated later.
     '''
     if not kwargs:
         kwargs = {}
 
-    if 'volume_id' not in kwargs:
-        log.error('A volume_id is required.')
-        return False
-
-    params = {'Action': 'DescribeVolumes',
-              'VolumeId.1': kwargs['volume_id']}
-
-    data = query(params, return_root=True)
-    return data
+    return describe_volumes(kwargs, call)
 
 
 def detach_volume(name=None, kwargs=None, instance_id=None, call=None):  # pylint: disable=W0613
@@ -2897,6 +2898,38 @@ def delete_volume(name=None, kwargs=None, instance_id=None, call=None):  # pylin
 
     params = {'Action': 'DeleteVolume',
               'VolumeId': kwargs['volume_id']}
+
+    data = query(params, return_root=True)
+    return data
+
+
+def describe_volumes(kwargs=None, call=None):
+    '''
+    Describe a volume (or volumes)
+
+    volume_id
+        One or more volume IDs. Multiple IDs must be separated by ",".
+
+    TODO: Add all of the filters.
+    '''
+    if call != 'function':
+        log.error(
+            'The describe_volumes function must be called with -f '
+            'or --function.'
+        )
+        return False
+
+    if not kwargs:
+        kwargs = {}
+
+    params = {'Action': 'DescribeVolumes'}
+
+    if 'volume_id' in kwargs:
+        volume_id = kwargs['volume_id'].split(',')
+        for volume_index, volume_id in enumerate(volume_id):
+            params['VolumeId.{0}'.format(volume_index)] = volume_id
+
+    log.debug(params)
 
     data = query(params, return_root=True)
     return data
@@ -2974,7 +3007,7 @@ def delete_keypair(kwargs=None, call=None):
     return data
 
 
-def create_snapshot(kwargs=None, call=None):
+def create_snapshot(kwargs=None, call=None, wait_to_finish=False):
     '''
     Create a snapshot
     '''
@@ -2990,7 +3023,7 @@ def create_snapshot(kwargs=None, call=None):
         return False
 
     if 'description' not in kwargs:
-        kwargs['description'] = 'pew'
+        kwargs['description'] = ''
 
     params = {'Action': 'CreateSnapshot'}
 
@@ -3003,6 +3036,20 @@ def create_snapshot(kwargs=None, call=None):
     log.debug(params)
 
     data = query(params, return_root=True)
+    r_data = {}
+    for d in data:
+        for k, v in d.items():
+            r_data[k] = v
+    snapshot_id = r_data['snapshotId']
+
+    # Waits till volume is available
+    if wait_to_finish:
+        salt.utils.cloud.run_func_until_ret_arg(fun=describe_snapshots,
+                                                kwargs={'snapshot_id': snapshot_id},
+                                                fun_call=call,
+                                                argument_being_watched='status',
+                                                required_argument_response='completed')
+
     return data
 
 
@@ -3097,8 +3144,12 @@ def describe_snapshots(kwargs=None, call=None):
 
     params = {'Action': 'DescribeSnapshots'}
 
+    # The AWS correct way is to use non-plurals like snapshot_id INSTEAD of snapshot_ids.
     if 'snapshot_ids' in kwargs:
-        snapshot_ids = kwargs['snapshot_ids'].split(',')
+        kwargs['snapshot_id'] = kwargs['snapshot_ids']
+
+    if 'snapshot_id' in kwargs:
+        snapshot_ids = kwargs['snapshot_id'].split(',')
         for snapshot_index, snapshot_id in enumerate(snapshot_ids):
             params['SnapshotId.{0}'.format(snapshot_index)] = snapshot_id
 

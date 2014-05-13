@@ -176,6 +176,7 @@ def list_available(*names):
             if not pkginfo:
                 continue
             versions[name] = pkginfo.keys() if pkginfo else []
+    versions = sorted(versions, cmp=_reverse_cmp_pkg_versions)
     return versions
 
 
@@ -376,7 +377,10 @@ def _get_reg_software():
                     "DisplayVersion")
                 if name not in ignore_list:
                     if prd_name != 'Not Found':
-                        reg_software[prd_name] = prd_ver
+                        # some MS Office updates don't register a product name which means
+                        # their information is useless
+                        if prd_name != '':
+                            reg_software[prd_name] = prd_ver
     return reg_software
 
 

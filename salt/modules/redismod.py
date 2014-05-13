@@ -47,21 +47,35 @@ def _connect(host=None, port=None, db=None, password=None):
     return redis.StrictRedis(host, port, db, password)
 
 
-def info(host=None, port=None, db=None, password=None):
+def bgrewriteaof(host=None, port=None, db=None, password=None):
     '''
-    Get information and statistics about the server
+    Asynchronously rewrite the append-only file
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt '*' redis_exec.info
+        salt '*' redis.bgrewriteaof
     '''
     server = _connect(host, port, db, password)
-    return server.info()
+    return server.bgrewriteaof()
 
 
-def config_get(pattern, host=None, port=None, db=None, password=None):
+def bgsave(host=None, port=None, db=None, password=None):
+    '''
+    Asynchronously save the dataset to disk
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.bgsave
+    '''
+    server = _connect(host, port, db, password)
+    return server.bgsave()
+
+
+def config_get(pattern='*', host=None, port=None, db=None, password=None):
     '''
     Get redis server configuration values
 
@@ -69,8 +83,8 @@ def config_get(pattern, host=None, port=None, db=None, password=None):
 
     .. code-block:: bash
 
-        salt '*' redis_exec.config_get '*'
-        salt '*' redis_exec.config_get port
+        salt '*' redis.config_get
+        salt '*' redis.config_get port
     '''
     server = _connect(host, port, db, password)
     return server.config_get(pattern)
@@ -84,7 +98,273 @@ def config_set(name, value, host=None, port=None, db=None, password=None):
 
     .. code-block:: bash
 
-        salt '*' redis_exec.config_set masterauth luv_kittens
+        salt '*' redis.config_set masterauth luv_kittens
     '''
     server = _connect(host, port, db, password)
     return server.config_set(name, value)
+
+
+def dbsize(host=None, port=None, db=None, password=None):
+    '''
+    Return the number of keys in the selected database
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.dbsize
+    '''
+    server = _connect(host, port, db, password)
+    return server.dbsize()
+
+
+def delete(*keys, **connection_args):
+    '''
+    Deletes the keys from redis, returns number of keys deleted
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.delete foo
+    '''
+    # Get connection args from keywords if set
+    conn_args = {}
+    for arg in ['host', 'port', 'db', 'password']:
+        if arg in connection_args:
+            conn_args[arg] = connection_args[arg]
+
+    server = _connect(**conn_args)
+    return server.delete(*keys)
+
+
+def exists(key, host=None, port=None, db=None, password=None):
+    '''
+    Return true if the key exists in redis
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.exists foo
+    '''
+    server = _connect(host, port, db, password)
+    return server.exists(key)
+
+
+def expire(key, seconds, host=None, port=None, db=None, password=None):
+    '''
+    Set a keys time to live in seconds
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.expire foo 300
+    '''
+    server = _connect(host, port, db, password)
+    return server.expire(key, seconds)
+
+
+def expireat(key, timestamp, host=None, port=None, db=None, password=None):
+    '''
+    Set a keys expire at given UNIX time
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.expireat foo 1400000000
+    '''
+    server = _connect(host, port, db, password)
+    return server.expireat(key, timestamp)
+
+
+def flushall(host=None, port=None, db=None, password=None):
+    '''
+    Remove all keys from all databases
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.flushall
+    '''
+    server = _connect(host, port, db, password)
+    return server.flushall()
+
+
+def flushdb(host=None, port=None, db=None, password=None):
+    '''
+    Remove all keys from the selected database
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.flushdb
+    '''
+    server = _connect(host, port, db, password)
+    return server.flushdb()
+
+
+def get_key(key, host=None, port=None, db=None, password=None):
+    '''
+    Get redis key value
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.get_key foo
+    '''
+    server = _connect(host, port, db, password)
+    return server.get(key)
+
+
+def info(host=None, port=None, db=None, password=None):
+    '''
+    Get information and statistics about the server
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.info
+    '''
+    server = _connect(host, port, db, password)
+    return server.info()
+
+
+def keys(pattern='*', host=None, port=None, db=None, password=None):
+    '''
+    Get redis keys, supports glob style patterns
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.keys
+        salt '*' redis.keys test*
+    '''
+    server = _connect(host, port, db, password)
+    return server.keys(pattern)
+
+
+def lastsave(host=None, port=None, db=None, password=None):
+    '''
+    Get the UNIX time in seconds of the last successful save to disk
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.lastsave
+    '''
+    server = _connect(host, port, db, password)
+    return int(server.lastsave().strftime("%s"))
+
+
+def ping(host=None, port=None, db=None, password=None):
+    '''
+    Ping the server, returns False on connection errors
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.ping
+    '''
+    server = _connect(host, port, db, password)
+    try:
+        return server.ping()
+    except redis.ConnectionError:
+        return False
+
+
+def save(host=None, port=None, db=None, password=None):
+    '''
+    Synchronously save the dataset to disk
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.save
+    '''
+    server = _connect(host, port, db, password)
+    return server.save()
+
+
+def set_key(key, value, host=None, port=None, db=None, password=None):
+    '''
+    Set redis key value
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.set_key foo bar
+    '''
+    server = _connect(host, port, db, password)
+    return server.set(key, value)
+
+
+def shutdown(host=None, port=None, db=None, password=None):
+    '''
+    Synchronously save the dataset to disk and then shut down the server
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.shutdown
+    '''
+    server = _connect(host, port, db, password)
+    try:
+        # Return false if unable to ping server
+        server.ping()
+    except redis.ConnectionError:
+        return False
+
+    server.shutdown()
+    try:
+        # This should fail now if the server is shutdown, which we want
+        server.ping()
+    except redis.ConnectionError:
+        return True
+    return False
+
+
+def slaveof(master_host=None, master_port=None, host=None, port=None, db=None,
+            password=None):
+    '''
+    Make the server a slave of another instance, or promote it as master
+
+    CLI Example:
+
+    .. code-block:: bash
+        # Become slave of redis-n01.example.com:6379
+        salt '*' redis.slaveof redis-n01.example.com 6379
+        salt '*' redis.slaveof redis-n01.example.com
+        # Become master
+        salt '*' redis.slaveof
+    '''
+    if master_host and not master_port:
+        master_port = 6379
+    server = _connect(host, port, db, password)
+    return server.slaveof(master_host, master_port)
+
+
+def time(host=None, port=None, db=None, password=None):
+    '''
+    Return the current server UNIX time in seconds
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' redis.time
+    '''
+    server = _connect(host, port, db, password)
+    return server.time()[0]
