@@ -118,7 +118,7 @@ def dbsize(host=None, port=None, db=None, password=None):
     return server.dbsize()
 
 
-def delete(*keys, **connection_args):
+def delete(*keys, **connection_args):  # pylint: disable=W0621
     '''
     Deletes the keys from redis, returns number of keys deleted
 
