@@ -808,7 +808,7 @@ def os_data():
     # ('Linux', 'MINIONNAME', '2.6.32-38-server',
     # '#83-Ubuntu SMP Wed Jan 4 11:26:59 UTC 2012', 'x86_64', '')
     (grains['kernel'], grains['nodename'],
-     grains['kernelrelease'], version, grains['cpuarch'], _) = platform.uname()
+     grains['kernelrelease'], version, grains['cpuarch'], _) = platform.uname()  # pylint: disable=W0633
 
     if salt.utils.is_windows():
         grains['osrelease'] = grains['kernelrelease']
