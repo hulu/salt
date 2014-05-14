@@ -2,7 +2,7 @@
 '''
 The core behaviors used by minion and master
 '''
-# pylint: disable=W0232
+# pylint: disable=W0232,E1101,W0613
 
 # Import python libs
 import os
