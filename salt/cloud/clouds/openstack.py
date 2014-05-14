@@ -146,6 +146,7 @@ import salt.utils
 
 # Import salt.cloud libs
 import salt.utils.cloud
+import salt.utils.pycrypto as sup
 import salt.config as config
 from salt.utils import namespaced_function
 from salt.cloud.exceptions import (
@@ -544,14 +545,12 @@ def request_instance(vm_=None, call=None):
         data = conn.create_node(**kwargs)
         return data, vm_
     except Exception as exc:
-        log.error(
+        raise SaltCloudSystemExit(
             'Error creating {0} on OpenStack\n\n'
             'The following exception was thrown by libcloud when trying to '
             'run the initial deployment: {1}\n'.format(
                 vm_['name'], exc
-            ),
-            # Show the traceback if the debug logging level is enabled
-            exc_info=log.isEnabledFor(logging.DEBUG)
+            )
         )
         return False, vm_
 
@@ -609,6 +608,9 @@ def create(vm_):
                     __opts__
                 )
             )
+        if vm_['key_filename'] is None and 'change_password' in __opts__ and __opts__['change_password'] is True:
+            vm_['password'] = sup.secure_password()
+            conn.root_password(vm_['instance_id'], vm_['password'])
     else:
         # Put together all of the information required to request the instance,
         # and then fire off the request for it
