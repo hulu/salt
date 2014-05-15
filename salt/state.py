@@ -1038,15 +1038,12 @@ class State(object):
                         name = id_
                     else:
                         errors.append(
-                            'Cannot extend ID {0} in \'{1}:{2}\'. It is not '
-                            'part of the high state.\n\n'
-                            'This means that when we were compiling the '
-                            'state tree, we encountered a requsite '
-                            'that could not be resolved.\n\nCheck to make '
-                            'sure that you have created a state with an '
-                            'ID of \'{0}\'and that it is present in the '
-                            'environment \'{1}\' in order for the state '
-                            '\'{2}\' to run correctly.'.format(
+                            'Cannot extend ID \'{0}\' in \'{1}:{2}\'. It is not '
+                            'part of the high state.\n'
+                            'This is likely due to a missing include statement '
+                            'or an incorrectly typed ID.\nEnsure that a '
+                            'state with an ID of \'{0}\' is available\nin '
+                            'environment \'{1}\' and to SLS \'{2}\''.format(
                                 name,
                                 body.get('__env__', 'base'),
                                 body.get('__sls__', 'base'))
