@@ -293,7 +293,7 @@ class Pillar(object):
         sorted_top = collections.defaultdict(OrderedDict)
         for saltenv, targets in top.items():
             sorted_targets = sorted(targets.keys(),
-                    key=lambda target: orders[saltenv][target])
+                    key=lambda target: orders[saltenv][target])  # pylint: disable=W0640
             for target in sorted_targets:
                 sorted_top[saltenv][target] = targets[target]
         return sorted_top
