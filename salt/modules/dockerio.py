@@ -1317,7 +1317,7 @@ def import_image(src, repo, tag=None):
     return status
 
 
-def tag(image, repository, tag=None, force=False):
+def tag(image, repository, tag=None, force=False):  # pylint: disable=W0621
     '''
     Tag an image into a repository
 
