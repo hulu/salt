@@ -216,7 +216,7 @@ def state(
                 fail.add(minion)
             failures[minion] = m_ret and m_ret or 'Minion did not respond'
             continue
-        for state_item in m_ret.itervalues():
+        for state_item in m_ret.itervalues():  # pylint: disable=E1103
             if state_item['changes']:
                 changes[minion] = m_ret
                 break
