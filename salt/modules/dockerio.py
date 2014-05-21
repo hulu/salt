@@ -1617,7 +1617,7 @@ def _pull_assemble_error_status(status, ret, logs):  # pylint: disable=W0621
     return status
 
 
-def pull(repo, tag=None):
+def pull(repo, tag=None):  # pylint: disable=W0621
     '''
     Pulls an image from any registry. See above documentation for
     how to configure authenticated access.
