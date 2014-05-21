@@ -1362,7 +1362,7 @@ def tag(image, repository, tag=None, force=False):
     return status
 
 
-def get_images(name=None, quiet=False, all=True):
+def get_images(name=None, quiet=False, all=True):  # pylint: disable=W0622
     '''
     List docker images
 
