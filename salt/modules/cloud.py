@@ -37,7 +37,8 @@ def _get_client():
     Return a cloud client
     '''
     client = salt.cloud.CloudClient(
-        os.path.join(os.path.dirname(__opts__['conf_file']), 'cloud')
+        os.path.join(os.path.dirname(__opts__['conf_file']), 'cloud'),
+        pillars=copy.deepcopy(__pillar__.get('cloud', {}))
     )
     return client
 
