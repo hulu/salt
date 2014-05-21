@@ -1278,7 +1278,7 @@ def _create_image_assemble_error_status(status, ret, logs):
     return status
 
 
-def import_image(src, repo, tag=None):
+def import_image(src, repo, tag=None):  # pylint: disable=W0621
     '''
     Import content from a local tarball or a URL to a docker image
 
