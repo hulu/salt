@@ -116,7 +116,7 @@ class SaltCacheLoader(BaseLoader):
 
                     def uptodate():
                         try:
-                            return path.getmtime(filepath) == mtime
+                            return path.getmtime(filepath) == mtime  # pylint: disable=W0640
                         except OSError:
                             return False
                     return contents, filepath, uptodate
