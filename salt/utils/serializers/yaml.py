@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=E1101
 '''
     salt.utils.serializers.yaml
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
