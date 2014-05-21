@@ -44,7 +44,7 @@ def disabled(name):
     return ret
 
 
-def add_rule(name, localport, protocol="tcp", action="allow", dir="in"):
+def add_rule(name, localport, protocol="tcp", action="allow", dir="in"):  # pylint: disable=W0622
     '''
     Add a new firewall rule (Windows only)
     '''
