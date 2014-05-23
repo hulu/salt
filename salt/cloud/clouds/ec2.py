@@ -945,6 +945,15 @@ def securitygroupid(vm_):
     )
 
 
+def get_placementgroup(vm_):
+    '''
+    Returns the PlacementGroup to use
+    '''
+    return config.get_cloud_config_value(
+        'placementgroup', vm_, __opts__, search_global=False
+    )
+
+
 def get_spot_config(vm_):
     '''
     Returns the spot instance configuration for the provided vm
@@ -1249,6 +1258,10 @@ def request_instance(vm_=None, call=None):
                 params[
                     spot_prefix + 'SecurityGroupId.{0}'.format(counter)
                 ] = sg_
+
+    placementgroup_ = get_placementgroup(vm_)
+    if placementgroup_ is not None:
+        params[spot_prefix + 'Placement.GroupName'] = placementgroup_
 
     ex_blockdevicemappings = block_device_mappings(vm_)
     if ex_blockdevicemappings:
