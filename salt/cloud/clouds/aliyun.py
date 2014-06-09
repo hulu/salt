@@ -122,7 +122,7 @@ def avail_images(kwargs=None, call=None):
         kwargs = {}
 
     provider = get_configured_provider()
-    location = provider.get('location', DEFAULT_LOCATION)
+    location = provider.get('location', DEFAULT_LOCATION)  # pylint: disable=E1103
 
     if 'location' in kwargs:
         location = kwargs['location']
