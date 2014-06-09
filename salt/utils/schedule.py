@@ -191,6 +191,10 @@ class Schedule(object):
         return self.opts.get(opt, {})
 
     def delete_job(self, name):
+        '''
+        Deletes a job from the scheduler.
+        '''
+
         # ensure job exists, then delete it
         if name in self.opts['schedule']:
             del self.opts['schedule'][name]
@@ -254,6 +258,16 @@ class Schedule(object):
         '''
         self.opts['schedule']['enabled'] = False
 
+    def reload(self, schedule):
+        '''
+        Reload the schedule from saved schedule file.
+        '''
+
+        if 'schedule' in self.opts:
+            self.opts['schedule'].update(schedule['schedule'])
+        else:
+            self.opts['schedule'] = schedule
+
     def handle_func(self, func, data):
         '''
         Execute this method in a multiprocess or thread
@@ -280,8 +294,8 @@ class Schedule(object):
         if 'jid_include' not in data or data['jid_include']:
             jobcount = 0
             for basefilename in os.listdir(salt.minion.get_proc_dir(self.opts['cachedir'])):
-                fn = os.path.join(salt.minion.get_proc_dir(self.opts['cachedir']), basefilename)
-                with salt.utils.fopen(fn, 'r') as fp_:
+                fn_ = os.path.join(salt.minion.get_proc_dir(self.opts['cachedir']), basefilename)
+                with salt.utils.fopen(fn_, 'r') as fp_:
                     job = salt.payload.Serial(self.opts).load(fp_)
                     if 'schedule' in job:
                         log.debug('schedule.handle_func: Checking job against '
@@ -291,7 +305,7 @@ class Schedule(object):
                             log.debug(
                                 'schedule.handle_func: Incrementing jobcount, now '
                                 '{0}, maxrunning is {1}'.format(
-                                          jobcount, data['maxrunning']))
+                                    jobcount, data['maxrunning']))
                             if jobcount >= data['maxrunning']:
                                 log.debug(
                                     'schedule.handle_func: The scheduled job {0} '
@@ -349,7 +363,7 @@ class Schedule(object):
                     else:
                         log.info(
                             'Job {0} using invalid returner: {1} Ignoring.'.format(
-                            func, returner
+                                func, returner
                             )
                         )
         except Exception:
@@ -360,13 +374,13 @@ class Schedule(object):
         finally:
             try:
                 os.unlink(proc_fn)
-            except OSError as e:
-                if e.errno == errno.EEXIST:
+            except OSError as exc:
+                if exc.errno == errno.EEXIST:
                     # EEXIST is OK because the file is gone and that's what
                     # we wanted
                     pass
                 else:
-                    log.error("Failed to delete '{0}': {1}".format(proc_fn, e.errno))
+                    log.error("Failed to delete '{0}': {1}".format(proc_fn, exc.errno))
                     # Otherwise, failing to delete this file is not something
                     # we can cleanly handle.
                     raise
@@ -562,10 +576,12 @@ class Schedule(object):
                                     else:
                                         run = False
                             else:
-                                log.info('schedule.handle_func: Invalid range, end must be larger than start. Ignoring job {0}.'.format(job))
+                                log.info('schedule.handle_func: Invalid range, end must be larger than start. \
+                                         Ignoring job {0}.'.format(job))
                                 continue
                         else:
-                            log.info('schedule.handle_func: Invalid, range must be specified as a dictionary. Ignoring job {0}.'.format(job))
+                            log.info('schedule.handle_func: Invalid, range must be specified as a dictionary. \
+                                     Ignoring job {-1}.'.format(job))
                             continue
 
             if not run:
@@ -579,7 +595,8 @@ class Schedule(object):
                             if data['splay']['end'] > data['splay']['start']:
                                 splay = random.randint(data['splay']['start'], data['splay']['end'])
                             else:
-                                log.info('schedule.handle_func: Invalid Splay, end must be larger than start. Ignoring splay.')
+                                log.info('schedule.handle_func: Invalid Splay, end must be larger than start. \
+                                         Ignoring splay.')
                                 splay = None
                         else:
                             splay = random.randint(0, data['splay'])
@@ -600,7 +617,7 @@ class Schedule(object):
                               'number of {0}'.format(data['maxrunning']))
                 else:
                     log.info('schedule: maxrunning parameter was not specified for '
-                              'job {0}, defaulting to 1.'.format(job))
+                             'job {0}, defaulting to 1.'.format(job))
                     data['maxrunning'] = 1
 
             try:
@@ -624,9 +641,17 @@ def clean_proc_dir(opts):
     '''
 
     for basefilename in os.listdir(salt.minion.get_proc_dir(opts['cachedir'])):
-        fn = os.path.join(salt.minion.get_proc_dir(opts['cachedir']), basefilename)
-        with salt.utils.fopen(fn, 'r') as fp_:
-            job = salt.payload.Serial(opts).load(fp_)
+        fn_ = os.path.join(salt.minion.get_proc_dir(opts['cachedir']), basefilename)
+        with salt.utils.fopen(fn_, 'r') as fp_:
+            job = None
+            try:
+                job = salt.payload.Serial(opts).load(fp_)
+            except Exception:  # It's corrupted
+                try:
+                    os.unlink(fn_)
+                    continue
+                except OSError:
+                    continue
             log.debug('schedule.clean_proc_dir: checking job {0} for process '
                       'existence'.format(job))
             if job is not None and 'pid' in job:
@@ -639,6 +664,6 @@ def clean_proc_dir(opts):
                         fp_.close()
                     # Maybe the file is already gone
                     try:
-                        os.unlink(fn)
+                        os.unlink(fn_)
                     except OSError:
                         pass

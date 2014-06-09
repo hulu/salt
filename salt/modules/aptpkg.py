@@ -546,7 +546,7 @@ def purge(name=None, pkgs=None, **kwargs):
     return _uninstall(action='purge', name=name, pkgs=pkgs, **kwargs)
 
 
-def upgrade(refresh=True, **kwargs):
+def upgrade(refresh=True, dist_upgrade=True, **kwargs):
     '''
     Upgrades all packages via ``apt-get dist-upgrade``
 
@@ -554,6 +554,12 @@ def upgrade(refresh=True, **kwargs):
 
         {'<package>':  {'old': '<old-version>',
                         'new': '<new-version>'}}
+
+    dist_upgrade
+        Whether to perform the upgrade using dist-upgrade vs upgrade.  Default
+        is to use dist-upgrade.
+
+    .. versionadded:: Helium
 
     CLI Example:
 
@@ -565,15 +571,19 @@ def upgrade(refresh=True, **kwargs):
         refresh_db()
 
     old = list_pkgs()
-    cmd = ['apt-get', '-q', '-y', '-o', 'DPkg::Options::=--force-confold',
-           '-o', 'DPkg::Options::=--force-confdef', 'dist-upgrade']
+    if dist_upgrade:
+        cmd = ['apt-get', '-q', '-y', '-o', 'DPkg::Options::=--force-confold',
+               '-o', 'DPkg::Options::=--force-confdef', 'dist-upgrade']
+    else:
+        cmd = ['apt-get', '-q', '-y', '-o', 'DPkg::Options::=--force-confold',
+               '-o', 'DPkg::Options::=--force-confdef', 'upgrade']
     __salt__['cmd.run'](cmd, python_shell=False, output_loglevel='trace')
     __context__.pop('pkg.list_pkgs', None)
     new = list_pkgs()
     return salt.utils.compare_dicts(old, new)
 
 
-def hold(name=None, pkgs=None, **kwargs):
+def hold(name=None, pkgs=None, sources=None, *kwargs):
     '''
     Set package in 'hold' state, meaning it will not be upgraded.
 
@@ -599,16 +609,18 @@ def hold(name=None, pkgs=None, **kwargs):
 
     '''
 
-    if not name and not pkgs:
-        return 'Error: name or pkgs needs to be specified.'
+    if not name and not pkgs and not sources:
+        return 'Error: name, pkgs or sources needs to be specified.'
 
+    pkgs = []
     if name and not pkgs:
-        pkgs = []
         pkgs.append(name)
+    elif name and sources:
+        for source in sources:
+            pkgs += source.keys()
 
     ret = {}
     for pkg in pkgs:
-
         if isinstance(pkg, dict):
             pkg = pkg.keys()[0]
 
@@ -632,7 +644,7 @@ def hold(name=None, pkgs=None, **kwargs):
     return ret
 
 
-def unhold(name=None, pkgs=None, **kwargs):
+def unhold(name=None, pkgs=None, sources=None, **kwargs):
     '''
     Set package current in 'hold' state to install state,
     meaning it will be upgraded.
@@ -659,17 +671,18 @@ def unhold(name=None, pkgs=None, **kwargs):
 
     '''
 
-    log.debug('calling unhold {0}')
-    if not name and not pkgs:
-        return 'Error: name or pkgs needs to be specified.'
+    if not name and not pkgs and not sources:
+        return 'Error: name, pkgs or sources needs to be specified.'
 
+    pkgs = []
     if name and not pkgs:
-        pkgs = []
         pkgs.append(name)
+    elif name and sources:
+        for source in sources:
+            pkgs += source.keys()
 
     ret = {}
     for pkg in pkgs:
-
         if isinstance(pkg, dict):
             pkg = pkg.keys()[0]
 

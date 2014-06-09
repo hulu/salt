@@ -506,7 +506,7 @@ class MultiMinion(MinionBase):
         while True:
             for minion in minions.values():
                 if isinstance(minion, dict):
-                    continue
+                    minion = minion['minion']
                 if not hasattr(minion, 'schedule'):
                     continue
                 loop_interval = self.process_schedule(minion, loop_interval)
@@ -745,13 +745,9 @@ class Minion(MinionBase):
         channel = salt.transport.Channel.factory(self.opts)
         try:
             result = channel.send(load)
-            try:
-                data = self.crypticle.loads(result)
-            except AuthenticationError:
-                log.info("AES key changed, re-authenticating")
-                # We can't decode the master's response to our event,
-                # so we will need to re-authenticate.
-                self.authenticate()
+        except AuthenticationError:
+            log.info("AES key changed, re-authenticating")
+            self.authenticate()
         except SaltReqTimeoutError:
             log.info("Master failed to respond. Preforming re-authenticating")
             self.authenticate()
@@ -1331,6 +1327,9 @@ class Minion(MinionBase):
         elif func == 'disable_job':
             job = data.get('job', None)
             self.schedule.disable_job(job)
+        elif func == 'reload':
+            schedule = data.get('schedule', None)
+            self.schedule.reload(schedule)
 
     def environ_setenv(self, package):
         '''
