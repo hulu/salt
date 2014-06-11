@@ -188,7 +188,7 @@ def minion_config(opts, vm_):
     '''
 
     # Let's get a copy of the salt minion default options
-    minion = salt.config.DEFAULT_MINION_OPTS.copy()
+    minion = copy.deepcopy(salt.config.DEFAULT_MINION_OPTS)
     # Some default options are Null, let's set a reasonable default
     minion.update(
         log_level='info',
@@ -233,7 +233,7 @@ def master_config(opts, vm_):
     Return a master's configuration for the provided options and VM
     '''
     # Let's get a copy of the salt master default options
-    master = salt.config.DEFAULT_MASTER_OPTS.copy()
+    master = copy.deepcopy(salt.config.DEFAULT_MASTER_OPTS)
     # Some default options are Null, let's set a reasonable default
     master.update(
         log_level='info',
@@ -1335,11 +1335,9 @@ def fire_event(key, msg, tag, args=None, sock_dir=None, transport='zeromq'):
 
 
 def _exec_ssh_cmd(cmd,
-                  error_msg='Failed to execute command {0!r}: {1}\n{2}',
+                  error_msg='A wrong password has been issued while establishing ssh session',
                   **kwargs):
     password_retries = kwargs.get('password_retries', 3)
-    error_msg = (
-        'A wrong password has been issued while establishing ssh session')
     try:
         stdout, stderr = None, None
         proc = vt.Terminal(

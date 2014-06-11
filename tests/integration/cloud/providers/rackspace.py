@@ -25,20 +25,20 @@ except ImportError:
 
 
 @skipIf(HAS_LIBCLOUD is False, 'salt-cloud requires >= libcloud 0.13.2')
-class LinodeTest(integration.ShellCase):
+class RackspaceTest(integration.ShellCase):
     '''
-    Integration tests for the Linode cloud provider in Salt-Cloud
+    Integration tests for the Rackspace cloud provider using the Openstack driver
     '''
 
     def setUp(self):
         '''
         Sets up the test requirements
         '''
-        super(LinodeTest, self).setUp()
+        super(RackspaceTest, self).setUp()
 
         # check if appropriate cloud provider and profile files are present
-        profile_str = 'linode-config:'
-        provider = 'linode'
+        profile_str = 'rackspace-config:'
+        provider = 'rackspace'
         providers = self.run_cloud('--list-providers')
         if profile_str not in providers:
             self.skipTest(
@@ -47,45 +47,45 @@ class LinodeTest(integration.ShellCase):
                 .format(provider)
             )
 
-        # check if apikey and password are present
+        # check if api key, user, and tenant are present
         path = os.path.join(integration.FILES,
                             'conf',
                             'cloud.providers.d',
                             provider + '.conf')
         config = cloud_providers_config(path)
-        api = config['linode-config']['linode']['apikey']
-        password = config['linode-config']['linode']['password']
-        if api == '' or password == '':
+        user = config['rackspace-config']['openstack']['user']
+        tenant = config['rackspace-config']['openstack']['tenant']
+        api = config['rackspace-config']['openstack']['apikey']
+        if api == '' or tenant == '' or user == '':
             self.skipTest(
-                'An api key and password must be provided to run these tests. Check '
-                'tests/integration/files/conf/cloud.providers.d/{0}.conf'.format(
-                    provider
-                )
+                'A user, tenant, and an api key must be provided to run these '
+                'tests. Check tests/integration/files/conf/cloud.providers.d/{0}.conf'
+                .format(provider)
             )
 
     @expensiveTest
     def test_instance(self):
         '''
-        Test creating an instance on Linode
+        Test creating an instance on rackspace with the openstack driver
         '''
-        name = 'linode-testing'
+        name = 'rackspace-testing'
 
         # create the instance
-        instance = self.run_cloud('-p linode-test {0}'.format(name))
-        ret_str = '        {0}'.format(name)
+        instance = self.run_cloud('-p rackspace-test {0}'.format(name))
+        ret = '        {0}'.format(name)
 
-        # check if instance with salt installed returned
+        # check if instance with salt installed returned successfully
         try:
-            self.assertIn(ret_str, instance)
+            self.assertIn(ret, instance)
         except AssertionError:
             self.run_cloud('-d {0} --assume-yes'.format(name))
             raise
 
         # delete the instance
         delete = self.run_cloud('-d {0} --assume-yes'.format(name))
-        ret_str = '            True'
+        ret = '            True'
         try:
-            self.assertIn(ret_str, delete)
+            self.assertIn(ret, delete)
         except AssertionError:
             raise
 
@@ -93,15 +93,15 @@ class LinodeTest(integration.ShellCase):
         '''
         Clean up after tests
         '''
-        name = 'linode-testing'
+        name = 'rackspace-testing'
         query = self.run_cloud('--query')
-        ret_str = '        {0}:'.format(name)
+        ret = '        {0}:'.format(name)
 
         # if test instance is still present, delete it
-        if ret_str in query:
+        if ret in query:
             self.run_cloud('-d {0} --assume-yes'.format(name))
 
 
 if __name__ == '__main__':
     from integration import run_tests
-    run_tests(LinodeTest)
+    run_tests(RackspaceTest)
