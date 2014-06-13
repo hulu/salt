@@ -858,7 +858,7 @@ def config_get(cwd, setting_name, user=None):
     return _git_run('git config {0}'.format(setting_name), cwd=cwd, runas=user)
 
 
-def ls_remote(cwd, repository="origin", branch="master", user=None, identity=None):  # pylint=W0621
+def ls_remote(cwd, repository="origin", branch="master", user=None, identity=None):  # pylint: disable=W0621
     '''
     Returns the upstream hash for any given URL and branch.
 
