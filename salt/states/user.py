@@ -55,7 +55,7 @@ def _changes(name,
              createhome=True,
              password=None,
              enforce_password=True,
-             empty_password=False,
+             empty_password=False,  # pylint: disable=W0613
              shell=None,
              fullname='',
              roomnumber='',
