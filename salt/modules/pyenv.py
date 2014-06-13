@@ -206,7 +206,7 @@ def versions(runas=None):
         salt '*' pyenv.versions
     '''
     ret = _pyenv_exec('versions', '--bare', runas=runas)
-    return [] if ret is False else ret.splitlines()
+    return [] if ret is False else ret.splitlines()  # pylint: disable=E1103
 
 
 def default(python=None, runas=None):
@@ -230,7 +230,7 @@ def default(python=None, runas=None):
         return True
     else:
         ret = _pyenv_exec('global', runas=runas)
-        return '' if ret is False else ret.strip()
+        return '' if ret is False else ret.strip()  # pylint: disable=E1103
 
 
 def list_(runas=None):
@@ -246,7 +246,7 @@ def list_(runas=None):
     ret = []
     output = _pyenv_exec('install', '--list', runas=runas)
     if output:
-        for line in output.splitlines():
+        for line in output.splitlines():  # pylint: disable=E1103
             if line == 'Available versions:':
                 continue
             ret.append(line.strip())
