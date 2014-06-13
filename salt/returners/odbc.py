@@ -96,7 +96,6 @@ correctly.  Replace with equivalent SQL for other ODBC-compliant servers::
 
 '''
 # Let's not allow PyLint complain about string substitution
-# pylint: disable=W1321,E1321
 
 # Import python libs
 import json
