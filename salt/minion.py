@@ -717,7 +717,7 @@ class Minion(MinionBase):
             mod_opts[key] = val
         return mod_opts
 
-    def _load_modules(self):
+    def _load_modules(self, force_refresh=False):
         '''
         Return the functions and the returners loaded up from the loader
         module
@@ -739,7 +739,7 @@ class Minion(MinionBase):
             if not HAS_RESOURCE:
                 log.error('Unable to enforce modules_max_memory because resource is missing')
 
-        self.opts['grains'] = salt.loader.grains(self.opts)
+        self.opts['grains'] = salt.loader.grains(self.opts, force_refresh)
         functions = salt.loader.minion_mods(self.opts)
         returners = salt.loader.returners(self.opts, functions)
 
@@ -1301,15 +1301,15 @@ class Minion(MinionBase):
             self.publish_port = creds['publish_port']
         self.crypticle = salt.crypt.Crypticle(self.opts, self.aes)
 
-    def module_refresh(self):
+    def module_refresh(self, force_refresh=False):
         '''
         Refresh the functions and returners.
         '''
-        self.functions, self.returners = self._load_modules()
+        self.functions, self.returners = self._load_modules(force_refresh)
         self.schedule.functions = self.functions
         self.schedule.returners = self.returners
 
-    def pillar_refresh(self):
+    def pillar_refresh(self, force_refresh=False):
         '''
         Refresh the pillar
         '''
@@ -1319,7 +1319,7 @@ class Minion(MinionBase):
             self.opts['id'],
             self.opts['environment'],
         ).compile_pillar()
-        self.module_refresh()
+        self.module_refresh(force_refresh)
 
     def manage_schedule(self, package):
         '''
@@ -1338,17 +1338,20 @@ class Minion(MinionBase):
         elif func == 'modify':
             name = data.get('name', None)
             schedule = data.get('schedule', None)
-            self.schedule.modify_job(name, schedule)
+            where = data.get('where', None)
+            self.schedule.modify_job(name, schedule, where)
         elif func == 'enable':
             self.schedule.enable_schedule()
         elif func == 'disable':
             self.schedule.disable_schedule()
         elif func == 'enable_job':
             job = data.get('job', None)
-            self.schedule.enable_job(job)
+            where = data.get('where', None)
+            self.schedule.enable_job(job, where)
         elif func == 'disable_job':
             job = data.get('job', None)
-            self.schedule.disable_job(job)
+            where = data.get('where', None)
+            self.schedule.disable_job(job, where)
         elif func == 'reload':
             schedule = data.get('schedule', None)
             self.schedule.reload(schedule)
@@ -1438,6 +1441,7 @@ class Minion(MinionBase):
         self.poller.register(self.epull_sock, zmq.POLLIN)
 
         self._fire_master_minion_start()
+        log.info('Minion is ready to receive requests!')
 
         # Make sure to gracefully handle SIGUSR1
         enable_sigusr1_handler()
@@ -1447,7 +1451,10 @@ class Minion(MinionBase):
 
         # On first startup execute a state run if configured to do so
         self._state_run()
-        time.sleep(.5)
+        if self.opts['startup_states']:
+            startup_sleep_length = 0.5
+            log.debug('Sleeping for {0}s before running startup states'.format(startup_sleep_length))
+            time.sleep(startup_sleep_length)
 
         loop_interval = int(self.opts['loop_interval'])
 
@@ -1503,7 +1510,7 @@ class Minion(MinionBase):
                             self.manage_schedule(package)
                         elif package.startswith('grains_refresh'):
                             if self.grains_cache != self.opts['grains']:
-                                self.pillar_refresh()
+                                self.pillar_refresh(force_refresh=True)
                                 self.grains_cache = self.opts['grains']
                         elif package.startswith('environ_setenv'):
                             self.environ_setenv(package)
@@ -2124,9 +2131,9 @@ class ProxyMinion(Minion):
         '''
         return super(ProxyMinion, self)._prep_mod_opts()
 
-    def _load_modules(self):
+    def _load_modules(self, force_refresh=False):
         '''
         Return the functions and the returners loaded up from the loader
         module
         '''
-        return super(ProxyMinion, self)._load_modules()
+        return super(ProxyMinion, self)._load_modules(force_refresh=force_refresh)
