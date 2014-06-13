@@ -189,7 +189,7 @@ def configurable_test_state(name, changes=True, result=True, comment=''):
                     'new': 'Something pretended to change'
                 }
             }
-    elif changes == True:  # pylint: disable=E8712
+    elif changes == True:
         # If changes is True we place our dummy change dictionary into it.
         # Following the docs as written here
         # http://docs.saltstack.com/ref/states/writing.html#return-data
@@ -199,7 +199,7 @@ def configurable_test_state(name, changes=True, result=True, comment=''):
                 'new': 'Something pretended to change'
             }
         }
-    elif changes == False:  # pylint: disable=E8712
+    elif changes == False:
         ret['changes'] = {}
     else:
         err = ('You have specified the state option \'Changes\' with'
@@ -210,9 +210,9 @@ def configurable_test_state(name, changes=True, result=True, comment=''):
     if result == 'Random':
         # since result is a boolean, if its random we just set it here,
         ret['result'] = random.choice([True, False])
-    elif result == True:  # pylint: disable=E8712
+    elif result == True:
         ret['result'] = True
-    elif result == False:  # pylint: disable=E8712
+    elif result == False:
         ret['result'] = False
     else:
         raise SaltInvocationError('You have specified the state option '
