@@ -52,7 +52,8 @@ class SaltStackVersion(object):
         # latest release so we can map deprecation warnings to versions.
 
 
-        # ----- Please refrain from fixing PEP-8 E203 --------------------------------------------------------------->
+        # pylint: disable=E8203,E8265
+        # ----- Please refrain from fixing PEP-8 E203 and E265------------------------------------------------------->
         # The idea is keep this readable
         # ------------------------------------------------------------------------------------------------------------
         'Hydrogen': (2014, 1, 0, 0),
@@ -164,7 +165,8 @@ class SaltStackVersion(object):
         #'Bohrium'      : (sys.maxint - 2  , 0, 0, 0),
         #'Hassium'      : (sys.maxint - 1  , 0, 0, 0),
         #'Meitnerium'   : (sys.maxint - 0  , 0, 0, 0),
-        # <---- Please refrain from fixing PEP-8 E203 ----------------------------------------------------------------
+        # <---- Please refrain from fixing PEP-8 E203 and E265 -------------------------------------------------------
+        # pylint: enable=E8203,E8265
     }
 
     LNAMES = dict((k.lower(), v) for (k, v) in NAMES.iteritems())
@@ -472,8 +474,11 @@ def versions_information(include_salt_cloud=False):
         ('msgpack-python', 'msgpack', 'version'),
         ('msgpack-pure', 'msgpack_pure', 'version'),
         ('pycrypto', 'Crypto', '__version__'),
+        ('libnacl', 'libnacl', '__version__'),
         ('PyYAML', 'yaml', '__version__'),
+        ('ioflo', 'ioflo', '__version__'),
         ('PyZMQ', 'zmq', '__version__'),
+        ('RAET', 'raet', '__version__'),
         ('ZMQ', 'zmq', 'zmq_version')
     ]
 
