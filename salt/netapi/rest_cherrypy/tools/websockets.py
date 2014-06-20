@@ -5,7 +5,7 @@ from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
 from ws4py.websocket import WebSocket
 
 cherrypy.tools.websocket = WebSocketTool()
-WebSocketPlugin(cherrypy.engine).subscribe()
+WebSocketPlugin(cherrypy.engine).subscribe()  # pylint: disable=E1101
 
 
 class SynchronizingWebsocket(WebSocket):
