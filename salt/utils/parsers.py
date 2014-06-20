@@ -376,6 +376,20 @@ class SaltfileMixIn(object):
                             cli_config[option.dest])
 
 
+class HardCrashMixin(object):
+    __metaclass__ = MixInMeta
+    _mixin_prio_ = 40
+    _config_filename_ = None
+
+    def _mixin_setup(self):
+        hc = os.environ.get('SALT_HARD_CRASH', False)
+        self.add_option(
+            '--hard-crash', action='store_true', default=hc,
+            help=('Raise any original exception rather than exiting gracefully'
+                  ' Default: %default')
+        )
+
+
 class ConfigDirMixIn(object):
     __metaclass__ = MixInMeta
     _mixin_prio_ = -10
@@ -1444,19 +1458,17 @@ class CloudCredentialsMixIn(object):
                   ' PROVIDER can be specified with or without a driver, for example:'
                   ' "--set-password bob rackspace"'
                   ' or more specific'
-                  ' "--set-password bob rackspace:openstack"')
+                  ' "--set-password bob rackspace:openstack"'
+                  ' DEPRECATED!')
         )
         self.add_option_group(group)
 
     def process_set_password(self):
         if self.options.set_password:
-            self.credential_username, self.credential_provider = self.options.set_password
-            if self.credential_provider.startswith('-') or \
-                    '=' in self.credential_provider:
-                self.error(
-                    '--set-password expects two arguments: <username> '
-                    '<provider>'
-                )
+            raise RuntimeError(
+                    'This functionality is not supported; '
+                    'please see the keyring module at http://docs.saltstack.com/en/latest/topics/sdb/'
+            )
 
 
 class MasterOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
@@ -1518,7 +1530,7 @@ class SyndicOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
 
 class SaltCMDOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
                           TimeoutMixIn, ExtendedTargetOptionsMixIn,
-                          OutputOptionsMixIn, LogLevelMixIn):
+                          OutputOptionsMixIn, LogLevelMixIn, HardCrashMixin):
 
     __metaclass__ = OptionParserMeta
 
@@ -1724,7 +1736,8 @@ class SaltCMDOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
 
 
 class SaltCPOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
-                         TimeoutMixIn, TargetOptionsMixIn, LogLevelMixIn):
+                         TimeoutMixIn, TargetOptionsMixIn, LogLevelMixIn,
+                         HardCrashMixin):
     __metaclass__ = OptionParserMeta
 
     description = (
@@ -1766,7 +1779,8 @@ class SaltCPOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
 
 
 class SaltKeyOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
-                          LogLevelMixIn, OutputOptionsMixIn, RunUserMixin):
+                          LogLevelMixIn, OutputOptionsMixIn, RunUserMixin,
+                          HardCrashMixin):
 
     __metaclass__ = OptionParserMeta
 
@@ -1979,7 +1993,7 @@ class SaltKeyOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
 
 
 class SaltCallOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
-                           LogLevelMixIn, OutputOptionsMixIn):
+                           LogLevelMixIn, OutputOptionsMixIn, HardCrashMixin):
     __metaclass__ = OptionParserMeta
 
     description = ('Salt call is used to execute module functions locally '
@@ -2110,7 +2124,7 @@ class SaltCallOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
 
 
 class SaltRunOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
-                          TimeoutMixIn, LogLevelMixIn):
+                          TimeoutMixIn, LogLevelMixIn, HardCrashMixin):
     __metaclass__ = OptionParserMeta
 
     default_timeout = 1
@@ -2172,7 +2186,7 @@ class SaltRunOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
 
 class SaltSSHOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
                           LogLevelMixIn, TargetOptionsMixIn,
-                          OutputOptionsMixIn, SaltfileMixIn):
+                          OutputOptionsMixIn, SaltfileMixIn, HardCrashMixin):
     __metaclass__ = OptionParserMeta
 
     usage = '%prog [options]'
@@ -2313,7 +2327,8 @@ class SaltCloudParser(OptionParser,
                       CloudQueriesMixIn,
                       ExecutionOptionsMixIn,
                       CloudProvidersListsMixIn,
-                  CloudCredentialsMixIn):
+                      CloudCredentialsMixIn,
+                      HardCrashMixin):
 
     __metaclass__ = OptionParserMeta
 
