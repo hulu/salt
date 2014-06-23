@@ -34,7 +34,7 @@ class NetapiClient(object):
         if 'client' not in low:
             raise SaltException('No client specified')
 
-        if 'token' not in low or 'eauth' not in low:
+        if not ('token' in low or 'eauth' in low):
             raise EauthAuthenticationError(
                     'No authentication credentials given')
 
@@ -46,7 +46,7 @@ class NetapiClient(object):
 
     def local_async(self, *args, **kwargs):
         '''
-        Run :ref:`execution modules <all-salt.modules>` asyncronously
+        Run :ref:`execution modules <all-salt.modules>` asynchronously
 
         Wraps :py:meth:`salt.client.LocalClient.run_job`.
 
@@ -57,7 +57,7 @@ class NetapiClient(object):
 
     def local(self, *args, **kwargs):
         '''
-        Run :ref:`execution modules <all-salt.modules>` syncronously
+        Run :ref:`execution modules <all-salt.modules>` synchronously
 
         Wraps :py:meth:`salt.client.LocalClient.cmd`.
 
