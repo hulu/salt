@@ -70,9 +70,9 @@ def _do_names(names, fun):
                     timeout=60))
     for cmd in cmds:
         data = next(cmd)
-        data = data.get(host, {}).get('ret', None)
+        data = data.get(host, {}).get('ret', None)  # pylint: disable=W0631
         if data:
-            ret.update({host: data})
+            ret.update({host: data})  # pylint: disable=W0631
     return ret
 
 
