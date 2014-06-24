@@ -296,8 +296,8 @@ class BaseSaltAPIHandler(tornado.web.RequestHandler, SaltClientsMixIn):
         if not found:
             self.send_error(406)
 
-        self.content_type = content_type
-        self.dumper = dumper
+        self.content_type = content_type  # pylint: disable=W0631
+        self.dumper = dumper  # pylint: disable=W0631
 
         # do the common parts
         self.start = time.time()
