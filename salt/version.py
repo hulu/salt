@@ -52,7 +52,6 @@ class SaltStackVersion(object):
         # latest release so we can map deprecation warnings to versions.
 
 
-        # pylint: disable=E8203,E8265
         # ----- Please refrain from fixing PEP-8 E203 and E265------------------------------------------------------->
         # The idea is keep this readable
         # ------------------------------------------------------------------------------------------------------------
@@ -166,7 +165,6 @@ class SaltStackVersion(object):
         #'Hassium'      : (sys.maxint - 1  , 0, 0, 0),
         #'Meitnerium'   : (sys.maxint - 0  , 0, 0, 0),
         # <---- Please refrain from fixing PEP-8 E203 and E265 -------------------------------------------------------
-        # pylint: enable=E8203,E8265
     }
 
     LNAMES = dict((k.lower(), v) for (k, v) in NAMES.iteritems())
