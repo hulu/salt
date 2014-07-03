@@ -5,6 +5,7 @@ The core behaviors used by minion and master
 # pylint: disable=W0232
 
 # Import python libs
+import time
 import os
 import multiprocessing
 
@@ -35,6 +36,7 @@ class WorkerFork(ioflo.base.deeding.Deed):
         Spin up a process for each worker thread
         '''
         for ind in range(int(self.opts.value['worker_threads'])):
+            time.sleep(0.01)
             proc = multiprocessing.Process(
                     target=self._worker, kwargs={'yid': ind + 1}
                     )
@@ -42,7 +44,7 @@ class WorkerFork(ioflo.base.deeding.Deed):
 
     def _worker(self, yid):
         '''
-        Spin up a worker, do this in s multiprocess
+        Spin up a worker, do this in  multiprocess
         '''
         self.opts.value['__worker'] = True
         behaviors = ['salt.daemons.flo']
@@ -50,6 +52,13 @@ class WorkerFork(ioflo.base.deeding.Deed):
         preloads.append(('.salt.yid', dict(value=yid)))
         preloads.append(
                 ('.salt.access_keys', dict(value=self.access_keys.value)))
+
+        console_logdir = self.opts.value.get('ioflo_console_logdir', '')
+        if console_logdir:
+            consolepath = os.path.join(console_logdir, "worker_{0}.log".format(yid))
+        else:  # empty means log to std out
+            consolepath = ''
+
         ioflo.app.run.start(
                 name='worker{0}'.format(yid),
                 period=float(self.opts.value['ioflo_period']),
@@ -64,6 +73,7 @@ class WorkerFork(ioflo.base.deeding.Deed):
                 metas=None,
                 preloads=preloads,
                 verbose=int(self.opts.value['ioflo_verbose']),
+                consolepath=consolepath,
                 )
 
     def action(self):
@@ -108,7 +118,6 @@ class WorkerSetup(ioflo.base.deeding.Deed):
 
         self.stack.value = LaneStack(
                                      name=name,
-                                     #localname=localname,
                                      basedirpath=basedirpath,
                                      lanename=lanename,
                                      yid=self.yid.value,
@@ -134,8 +143,7 @@ class WorkerSetup(ioflo.base.deeding.Deed):
 
     def __del__(self):
         self.stack.server.close()
-        self.stack.clearLocal()
-        self.stack.clearRemoteKeeps()
+        self.stack.clearAllDir()
 
 
 class WorkerRouter(ioflo.base.deeding.Deed):

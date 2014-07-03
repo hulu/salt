@@ -170,7 +170,7 @@ def ex_mod_init(low):  # pylint: disable=W0613
     .. versionadded:: 0.17.0
        Initial automatic enforcement added when pkg is used on a Gentoo system.
 
-    .. versionchanged:: 2014.1.0-Hydrogen
+    .. versionchanged:: 2014.1.0
        Configure option added to make this behaviour optional, defaulting to
        off.
 
@@ -716,7 +716,7 @@ def remove(name=None, slot=None, fromrepo=None, pkgs=None, **kwargs):
 
     if not targets:
         return {}
-    cmd = 'emerge --unmerge --quiet --quiet-unmerge-warn --ask n' \
+    cmd = 'emerge --unmerge --quiet --quiet-unmerge-warn --ask n ' \
           '{0}'.format(' '.join(targets))
     __salt__['cmd.run_all'](cmd, output_loglevel='trace')
     __context__.pop('pkg.list_pkgs', None)

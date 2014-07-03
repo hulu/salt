@@ -64,7 +64,7 @@ help:
 
 clean:
 	rm -rf $(BUILDDIR)/*
-	find locale/ -name *.mo -exec rm {} \;
+	test -d 'locale' && find locale/ -name *.mo -exec rm {} \;
 
 html: translations
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -142,7 +142,7 @@ latexpdfja: translations
 xetexpdf: translations
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo "Running LaTeX files through xelatex..."
-	cd $(BUILDDIR)/latex; xelatex *.tex && xelatex *.tex; cd -
+	cd $(BUILDDIR)/latex; xelatex *.tex && xelatex *.tex && xelatex *.tex; cd -
 	@echo "xelatex finished; the PDF files are in $(BUILDDIR)/latex."
 
 text: translations

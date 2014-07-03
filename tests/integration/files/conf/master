@@ -28,8 +28,11 @@ config_opt:
 yaml_utf8: True
 
 external_auth:
-  auto:
+  pam:
     saltdev:
       - '@wheel'
       - '@runner'
       - test.*
+
+master_tops:
+  master_tops_test: True

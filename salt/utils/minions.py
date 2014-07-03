@@ -65,8 +65,10 @@ def nodegroup_comp(group, nodegroups, skip=None):
     '''
     Take the nodegroup and the nodegroups and fill in nodegroup refs
     '''
+    k = 1
     if skip is None:
         skip = set([group])
+        k = 0
     if group not in nodegroups:
         return ''
     gstr = nodegroups[group]
@@ -80,7 +82,10 @@ def nodegroup_comp(group, nodegroups, skip=None):
             continue
         skip.add(ngroup)
         ret += nodegroup_comp(ngroup, nodegroups, skip)
-    return ret
+    if k == 1:
+        return ret
+    else:
+        return ret[:-3]
 
 
 class CkMinions(object):
@@ -90,7 +95,6 @@ class CkMinions(object):
     def __init__(self, opts):
         self.opts = opts
         self.serial = salt.payload.Serial(opts)
-        self.ip_addrs = salt.utils.network.ip_addrs()
         if self.opts['transport'] == 'zeromq':
             self.acc = 'minions'
         else:
@@ -406,8 +410,6 @@ class CkMinions(object):
             if not os.path.isdir(cdir):
                 return minions
             addrs = salt.utils.network.local_port_tcp(int(self.opts['publish_port']))
-            if '127.0.0.1' in addrs:
-                addrs.update(self.ip_addrs)
             if subset:
                 search = subset
             else:
@@ -418,7 +420,7 @@ class CkMinions(object):
                     continue
                 grains = self.serial.load(
                     salt.utils.fopen(datap, 'rb')
-                ).get('grains')
+                ).get('grains', {})
                 for ipv4 in grains.get('ipv4', []):
                     if ipv4 == '127.0.0.1' or ipv4 == '0.0.0.0':
                         continue

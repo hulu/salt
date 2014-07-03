@@ -1410,6 +1410,8 @@ def directory(name,
               require=None,
               exclude_pat=None,
               follow_symlinks=False,
+              force=False,
+              backupname=None,
               **kwargs):
     '''
     Ensure that a named directory is present and has the right perms
@@ -1427,7 +1429,9 @@ def directory(name,
 
     recurse
         Enforce user/group ownership and mode of directory recursively. Accepts
-        a list of strings representing what you would like to recurse.
+        a list of strings representing what you would like to recurse.  If
+        'mode' is defined, will recurse on both 'file_mode' and 'dir_mode' if
+        they are defined.
         Example:
 
         .. code-block:: yaml
@@ -1448,7 +1452,7 @@ def directory(name,
         Windows
 
     file_mode
-        The permissions mode to set any files created if 'mode' is ran in
+        The permissions mode to set any files created if 'mode' is run in
         'recurse'. This defaults to dir_mode. Not supported on Windows
 
     makedirs
@@ -1475,6 +1479,24 @@ def directory(name,
         permissions of the directory/file to which the symlink points.
 
         .. versionadded:: 2014.1.4
+
+    force
+        If the name of the directory exists and is not a direcotry and
+        force is set to False, the state will fail. If force is set to
+        True, the file in the way of the directory will be deleted to
+        make room for the directory, unless backupname is set,
+        then it will be renamed.
+
+        .. versionadded:: Helium
+
+    backupname
+        If the name of the directory exists and is not a directory, it will be
+        renamed to the backupname. If the backupname already
+        exists and force is False, the state will fail. Otherwise, the
+        backupname will be removed first.
+
+        .. versionadded:: Helium
+
     '''
     # Remove trailing slash, if present
     if name[-1] == '/':
@@ -1511,8 +1533,33 @@ def directory(name,
         return _error(
             ret, 'Specified file {0} is not an absolute path'.format(name))
     if os.path.isfile(name):
-        return _error(
-            ret, 'Specified location {0} exists and is a file'.format(name))
+        if backupname is not None:
+            # Make a backup first
+            if os.path.lexists(backupname):
+                if not force:
+                    return _error(ret, ((
+                        'File exists where the backup target {0} should go'
+                    ).format(backupname)))
+                elif os.path.isfile(backupname):
+                    os.remove(backupname)
+                elif os.path.isdir(backupname):
+                    shutil.rmtree(backupname)
+                else:
+                    return _error(ret, ((
+                        'Something exists where the backup target {0}'
+                        'should go'
+                    ).format(backupname)))
+            os.rename(name, backupname)
+        elif force:
+            # Remove whatever is in the way
+            if os.path.isfile(name):
+                os.remove(name)
+                ret['changes']['forced'] = 'File was forcibly replaced'
+            else:
+                shutil.rmtree(name)
+        else:
+            return _error(
+                ret, 'Specified location {0} exists and is a file'.format(name))
     if __opts__['test']:
         ret['result'], ret['comment'] = _check_directory(
             name,
@@ -1785,13 +1832,6 @@ def recurse(name,
         'comment': {}  # { path: [comment, ...] }
     }
 
-    try:
-        source = source.rstrip('/')
-    except AttributeError:
-        ret['result'] = False
-        ret['comment'] = '\'source\' parameter must be a string'
-        return ret
-
     if 'mode' in kwargs:
         ret['result'] = False
         ret['comment'] = (
@@ -1842,12 +1882,33 @@ def recurse(name,
                               .format(precheck))
             return ret
 
+    if isinstance(source, list):
+        sources = source
+    else:
+        sources = [source]
+
+    try:
+        for idx, val in enumerate(sources):
+            sources[idx] = val.rstrip('/')
+    except AttributeError:
+        ret['result'] = False
+        ret['comment'] = '\'source\' parameter(s) must be a string'
+        return ret
+
     # If source is a list, find which in the list actually exists
     try:
-        source, source_hash = __salt__['file.source_list'](source, '', __env__)
+        source, source_hash = __salt__['file.source_list'](sources, '', __env__)
     except CommandExecutionError as exc:
         ret['result'] = False
         ret['comment'] = 'Recurse failed: {0}'.format(exc)
+        return ret
+
+    try:
+        for idx, val in enumerate(sources):
+            sources[idx] = val.rstrip('/')
+    except AttributeError:
+        ret['result'] = False
+        ret['comment'] = '\'source\' parameter must be a string'
         return ret
 
     # Check source path relative to fileserver root, make sure it is a

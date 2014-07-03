@@ -241,6 +241,8 @@ VALID_OPTS = {
     'ping_interval': int,
     'cli_summary': bool,
     'max_minions': int,
+    'username': str,
+    'password': str,
 }
 
 # default configurations
@@ -333,7 +335,7 @@ DEFAULT_MINION_OPTS = {
     'update_url': False,
     'update_restart_services': [],
     'retry_dns': 30,
-    'recon_max': 59000,
+    'recon_max': 10000,
     'recon_default': 1000,
     'recon_randomize': True,
     'random_reauth_delay': 60,
@@ -360,6 +362,8 @@ DEFAULT_MINION_OPTS = {
     'raet_port': 4510,
     'restart_on_error': False,
     'ping_interval': 0,
+    'username': None,
+    'password': None,
 }
 
 DEFAULT_MASTER_OPTS = {
@@ -503,7 +507,7 @@ DEFAULT_MASTER_OPTS = {
     'ssh_user': 'root',
     'master_floscript': os.path.join(FLO_DIR, 'master.flo'),
     'worker_floscript': os.path.join(FLO_DIR, 'worker.flo'),
-    'maintinance_floscript': os.path.join(FLO_DIR, 'maint.flo'),
+    'maintenance_floscript': os.path.join(FLO_DIR, 'maint.flo'),
     'ioflo_verbose': 0,
     'ioflo_period': 0.01,
     'ioflo_realtime': True,
@@ -1988,6 +1992,8 @@ def master_config(path, env_var='SALT_MASTER_CONFIG', defaults=None):
     # out or not present.
     if opts.get('nodegroups') is None:
         opts['nodegroups'] = DEFAULT_MASTER_OPTS.get('nodegroups', {})
+    if opts.get('transport') == 'raet':
+        opts.pop('aes')
     return opts
 
 
