@@ -22,7 +22,7 @@ def __virtual__():
     return __virtualname__
 
 
-def hash(value, algorithm='sha512'):
+def hash(value, algorithm='sha512'):  # pylint: disable=W0622
     '''
     .. versionadded:: Helium
 
