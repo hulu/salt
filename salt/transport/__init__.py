@@ -18,7 +18,6 @@ log = logging.getLogger(__name__)
 
 try:
     from raet import raeting, nacling
-    from raet.road.stacking import RoadStack
     from raet.lane.stacking import LaneStack
     from raet.lane import yarding
 
@@ -70,17 +69,16 @@ class RAETChannel(Channel):
         mid = self.opts.get('id', 'master')
         yid = nacling.uuid(size=18)
         stackname = 'raet' + yid
-        dirpath = os.path.join(self.opts['cachedir'], 'raet')
         self.stack = LaneStack(
                 name=stackname,
                 lanename=mid,
                 yid=yid,
-                basedirpath=dirpath,
                 sockdirpath=self.opts['sock_dir'])
         self.stack.Pk = raeting.packKinds.pack
         self.router_yard = yarding.RemoteYard(
                 stack=self.stack,
                 yid=0,
+                name='manor',
                 lanename=mid,
                 dirpath=self.opts['sock_dir'])
         self.stack.addRemote(self.router_yard)
@@ -100,19 +98,19 @@ class RAETChannel(Channel):
         Send a message load and wait for a relative reply
         '''
         msg = {'route': self.route, 'load': load}
-        self.stack.transmit(msg, self.stack.uids['yard0'])
+        self.stack.transmit(msg, self.stack.uids['manor'])
         tried = 1
         start = time.time()
         while True:
             time.sleep(0.01)
             self.stack.serviceAll()
-            if self.stack.rxMsgs:
-                for msg in self.stack.rxMsgs:
-                    return msg.get('return', {})
+            while self.stack.rxMsgs:
+                msg, sender = self.stack.rxMsgs.popleft()
+                return msg.get('return', {})
             if time.time() - start > timeout:
                 if tried >= tries:
                     raise ValueError
-                self.stack.transmit(msg, self.stack.uids['yard0'])
+                self.stack.transmit(msg, self.stack.uids['manor'])
                 tried += 1
 
     def __del__(self):
@@ -120,7 +118,6 @@ class RAETChannel(Channel):
         Clean up the stack when finished
         '''
         self.stack.server.close()
-        self.stack.clearAllDir()
 
 
 class ZeroMQChannel(Channel):

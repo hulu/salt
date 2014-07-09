@@ -2470,3 +2470,8 @@ def chugid_and_umask(runas, umask):
         chugid(runas)
     if umask is not None:
         os.umask(umask)
+
+
+def rand_string(size=32):
+    key = os.urandom(size)
+    return key.encode('base64').replace('\n', '')
