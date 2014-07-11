@@ -194,7 +194,7 @@ def _is_boolean_parameter(this, state_stack):
     return state_stack[-1] == 3 and isinstance(this, bool)
 
 
-def _build_statement(id, parent, this, indent, buffer, state_stack):
+def _build_statement(id, parent, this, indent, buffer, state_stack):  # pylint: disable=W0622
     '''
     Builds a configuration snippet which represents a statement, like log,
     junction, etc.
@@ -220,7 +220,7 @@ def _build_statement(id, parent, this, indent, buffer, state_stack):
     print("{0}".format(indent) + "};", file=buffer, end="")
 
 
-def _build_complex_parameter(id, this, indent, state_stack):
+def _build_complex_parameter(id, this, indent, state_stack):  # pylint: disable=W0622
     '''
     Builds the configuration of a complex parameter (contains more than one item).
     '''
@@ -248,7 +248,7 @@ def _build_simple_parameter(this, indent):
             return '{0}{1}'.format(indent, this)
 
 
-def _build_parameters(id, parent, this, buffer, state_stack):
+def _build_parameters(id, parent, this, buffer, state_stack):  # pylint: disable=W0622
     '''
     Iterates over the list of parameters and builds the configuration.
     '''
@@ -258,7 +258,7 @@ def _build_parameters(id, parent, this, buffer, state_stack):
     state_stack.pop()
 
 
-def _build_options(id, parent, this, indent, buffer, state_stack):
+def _build_options(id, parent, this, indent, buffer, state_stack):  # pylint: disable=W0622
     '''
     Builds the options' configuration inside of a statement.
     '''
