@@ -521,8 +521,8 @@ def started(name=None,
             persist_file=None,
             control=None,
             worker_threads=None,
-            *args,
-            **kwargs):
+            *args,  # pylint: disable=W0613
+            **kwargs):  # pylint: disable=W0613
     '''
     Ensures, that syslog-ng is started via the given parameters.
 
