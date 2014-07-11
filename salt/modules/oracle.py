@@ -55,7 +55,7 @@ def _cx_oracle_req():
     return 'Need "cx_Oracle" and Oracle Client installed for this functin exist'
 
 
-def _unicode_output(cursor, name, default_type, size, precision, scale):
+def _unicode_output(cursor, name, default_type, size, precision, scale):  # pylint: disable=W0613
     '''
     Return strings values as python unicode string
 
