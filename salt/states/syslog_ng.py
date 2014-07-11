@@ -353,7 +353,7 @@ def _format_state_result(name, result, changes=None, comment=""):
 
 
 def config(name,
-           config,
+           config,  # pylint: disable=W0621
            write=True):
     '''
     Builds syslog-ng configuration.
@@ -404,7 +404,7 @@ def get_config_file():
     return __SYSLOG_NG_CONFIG_FILE
 
 
-def write_config(name, config, newlines=2):
+def write_config(name, config, newlines=2):  # pylint: disable=W0621
     '''
     Writes the given parameter config into the config file.
     '''
@@ -412,7 +412,7 @@ def write_config(name, config, newlines=2):
     return _format_state_result("name", result=succ)
 
 
-def _write_config(config, newlines=2):
+def _write_config(config, newlines=2):  # pylint: disable=W0621
     '''
     Writes the given parameter config into the config file.
     '''
