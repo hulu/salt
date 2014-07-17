@@ -51,4 +51,4 @@ class SynchronizingWebsocket(WebSocket):
         '''
         if message.data == 'websocket client ready':
             self.pipe.send(message)
-        self.send('server received message', False)
+        self.send('server received message', False)  # pylint: disable=E1101
