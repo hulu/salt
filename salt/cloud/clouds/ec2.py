@@ -285,7 +285,7 @@ def query(params=None, setname=None, requesturl=None, location=None,
             location = get_location()
 
         if not requesturl:
-            endpoint = provider.get(
+            endpoint = provider.get(  # pylint: disable=E1103
                 'endpoint',
                 'ec2.{0}.{1}'.format(location, service_url)
             )
@@ -305,7 +305,7 @@ def query(params=None, setname=None, requesturl=None, location=None,
         log.debug('Using EC2 endpoint: {0}'.format(endpoint))
         method = 'GET'
 
-        ec2_api_version = provider.get(
+        ec2_api_version = provider.get(  # pylint: disable=E1103
             'ec2_api_version',
             DEFAULT_EC2_API_VERSION
         )
