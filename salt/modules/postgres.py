@@ -21,7 +21,6 @@ Module to provide Postgres compatibility to salt.
     security audits.
 '''
 # This pylint error is popping up where there are no colons?
-# pylint: disable=E8203
 
 # Import python libs
 import datetime
