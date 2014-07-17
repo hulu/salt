@@ -119,7 +119,7 @@ def cloud_init_interface(name, vm_=None, **kwargs):
         bridge^for the primary nic (lxcbr0)
     gateway
         network gateway for the container
-    unconditionnal_install
+    unconditional_install
         given to lxc.bootstrap (see relative doc)
     force_install
         given to lxc.bootstrap (see relative doc)
@@ -132,7 +132,7 @@ def cloud_init_interface(name, vm_=None, **kwargs):
     password
         administrative password for the container
     users
-        administrative users for the contrainer
+        administrative users for the container
         default: [root] and [root, ubuntu] on ubuntu
     '''
     if vm_ is None:
@@ -181,7 +181,7 @@ def cloud_init_interface(name, vm_=None, **kwargs):
     netmask = vm_.get('netmask', '24')
     bridge = vm_.get('bridge', 'lxcbr0')
     gateway = vm_.get('gateway', 'auto')
-    unconditionnal_install = vm_.get('unconditionnal_install', False)
+    unconditional_install = vm_.get('unconditional_install', False)
     force_install = vm_.get('force_install', True)
     config = vm_.get('config', {})
     if not config:
@@ -234,8 +234,8 @@ def cloud_init_interface(name, vm_=None, **kwargs):
     lxc_init_interface['size'] = size
     lxc_init_interface['lvname'] = lvname
     lxc_init_interface['force_install'] = force_install
-    lxc_init_interface['unconditionnal_install'] = (
-        unconditionnal_install
+    lxc_init_interface['unconditional_install'] = (
+        unconditional_install
     )
     lxc_init_interface['bootstrap_url'] = script
     lxc_init_interface['bootstrap_args'] = script_args
@@ -355,7 +355,7 @@ def _get_network_conf(conf_tuples=None, **kwargs):
         )
         nic_opts = kwargs.pop('nic_opts', None)
         for dev, args in nicp.items():
-            ret.append({'lxc.network.type': args.pop('type', 'veth')})
+            ret.append({'lxc.network.type': args.pop('type', '')})
             ret.append({'lxc.network.name': dev})
             ret.append({'lxc.network.flags': args.pop('flags', 'up')})
             opts = nic_opts.get(dev) if nic_opts else {}
@@ -391,6 +391,16 @@ def _get_network_conf(conf_tuples=None, **kwargs):
             odata = old[iface]
             omac = odata.get('lxc.network.hwaddr', '')
             nmac = ndata.get('lxc.network.hwaddr', '')
+            otype = odata.get('lxc.network.type', '')
+            ntype = ndata.get('lxc.network.type', '')
+            # default for network type is setted here
+            # attention not to change the network type
+            # without a good and explicit reason to.
+            if otype and not ntype:
+                ntype = otype
+            if not ntype:
+                ntype = 'veth'
+            new[iface]['lxc.network.type'] = ntype
             if omac and not nmac:
                 new[iface]['lxc.network.hwaddr'] = omac
     ret = []
@@ -400,17 +410,38 @@ def _get_network_conf(conf_tuples=None, **kwargs):
     return ret
 
 
+def _get_memory(memory):
+    '''
+    Handle the saltcloud driver and lxc runner memory restriction
+    differences.
+    Runner limits to 1024MB by default
+    SaltCloud does not restrict memory usage by default
+    '''
+    if memory is None:
+        memory = 1024
+    if memory:
+        memory = memory * 1024 * 1024
+    return memory
+
+
+def _get_autostart(autostart):
+    if autostart is None:
+        autostart = True
+    if autostart:
+        autostart = '1'
+    else:
+        autostart = '0'
+    return autostart
+
+
 def _get_lxc_default_data(**kwargs):
     kwargs = copy.deepcopy(kwargs)
     ret = {}
-
-    autostart = kwargs.pop('autostart', True)
-    ret['lxc.start.auto'] = '1' if autostart else '0'
-
-    memory = kwargs.pop('memory', None) or 1024
-    memory = memory * 1024 * 1024
-    ret['lxc.cgroup.memory.limit_in_bytes'] = memory
-
+    autostart = _get_autostart(kwargs.pop('autostart', None))
+    ret['lxc.start.auto'] = autostart
+    memory = _get_memory(kwargs.pop('memory', None))
+    if memory:
+        ret['lxc.cgroup.memory.limit_in_bytes'] = memory
     cpuset = kwargs.pop('cpuset', None)
     if cpuset:
         ret['lxc.cgroup.cpuset.cpus'] = cpuset
@@ -420,6 +451,22 @@ def _get_lxc_default_data(**kwargs):
         ret['lxc.cgroup.cpu.shares'] = cpushare
     if cpu and not cpuset:
         ret['lxc.cgroup.cpuset.cpus'] = _rand_cpu_str(cpu)
+    return ret
+
+
+def _config_list(conf_tuples=None, **kwargs):
+    '''
+    Return a list of dicts from the salt level configurations
+    '''
+    if not conf_tuples:
+        conf_tuples = []
+    kwargs = copy.deepcopy(kwargs)
+    ret = []
+    default_data = _get_lxc_default_data(**kwargs)
+    for k, val in default_data.items():
+        ret.append({k: val})
+    net_datas = _get_network_conf(conf_tuples=conf_tuples, **kwargs)
+    ret.extend(net_datas)
     return ret
 
 
@@ -588,7 +635,7 @@ def init(name,
          pub_key=None,
          priv_key=None,
          force_install=False,
-         unconditionnal_install=False,
+         unconditional_install=False,
          bootstrap_args=None,
          bootstrap_shell=None,
          bootstrap_url=None,
@@ -596,10 +643,10 @@ def init(name,
     '''
     Initialize a new container.
 
-    This is a partial indempotent function as if it is already
-    provisionned, we will reset a bit the lxc configuration
+    This is a partial idempotent function as if it is already
+    provisioned, we will reset a bit the lxc configuration
     file but much of the hard work will be escaped as
-    markers will prevent re-execution of harmfull tasks.
+    markers will prevent re-execution of harmful tasks.
 
     CLI Example:
 
@@ -615,7 +662,7 @@ def init(name,
                 [priv_key=/path_or_content] [pub_key=/path_or_content] \\
                 [bridge=lxcbr0] [gateway=10.0.3.1] \\
                 [dnsservers[dns1,dns2]] \\
-                [users=[foo]] [password='secret']
+                [users=[foo]] password='secret'
 
     name
         Name of the container.
@@ -650,12 +697,12 @@ def init(name,
 
     users
         Sysadmins users to set the administrative password to
-        eg [root, ubuntu, sysadmin], default [root] and [root, ubuntu]
+        e.g. [root, ubuntu, sysadmin], default [root] and [root, ubuntu]
         on ubuntu
 
     password
         Set the initial password for default sysadmin users, at least root
-        but also can be used for sudoers, eg [root, ubuntu, sysadmin]
+        but also can be used for sudoers, e.g. [root, ubuntu, sysadmin]
 
     profile
         A LXC profile (defined in config or pillar).
@@ -688,11 +735,11 @@ def init(name,
         the name of the container.
 
     pub_key
-        Explicit public key to preseed the minion with (optionnal).
+        Explicit public key to preseed the minion with (optional).
         This can be either a filepath or a string representing the key
 
     priv_key
-        Explicit private key to preseed the minion with (optionnal).
+        Explicit private key to preseed the minion with (optional).
         This can be either a filepath or a string representing the key
 
     approve_key
@@ -717,7 +764,7 @@ def init(name,
         this is the way to run vendor bootstrap scripts even
         if a salt minion is already present in the container
 
-    unconditionnal_install
+    unconditional_install
         Run the script even if the container seems seeded
     '''
     kwargs = copy.deepcopy(kwargs)
@@ -742,8 +789,7 @@ def init(name,
     def select(k, default=None):
         kw = kwargs.pop(k, _marker)
         p = profile.pop(k, default)
-
-        # let kwargs be the preferred choice
+        # let kwargs be really be the preferred choice
         if kw is _marker:
             kw = p
         return kw
@@ -798,11 +844,40 @@ def init(name,
                                        profile=profile, **kwargs))
         if not ret.get('created', False):
             return ret
+        path = '/var/lib/lxc/{0}/config'.format(name)
+        old_chunks = []
+        if os.path.exists(path):
+            old_chunks = __salt__['lxc.read_conf'](path)
+        for comp in _config_list(conf_tuples=old_chunks,
+                                 cpu=cpu,
+                                 nic=nic, nic_opts=nic_opts, bridge=bridge,
+                                 cpuset=cpuset, cpushare=cpushare,
+                                 memory=memory):
+            edit_conf(path, **comp)
+        chunks = __salt__['lxc.read_conf'](path)
+        if old_chunks != chunks:
+            to_reboot = True
     if remove_seed_marker:
         lxcret = __salt__['lxc.run_cmd'](
             name, 'rm -f \"{0}\"'.format(SEED_MARKER),
             stdout=False, stderr=False)
 
+    # last time to be sure any of our property is correctly applied
+    cfg = _LXCConfig(name=name, nic=nic, nic_opts=nic_opts,
+                     bridge=bridge, gateway=gateway,
+                     autostart=autostart,
+                     cpuset=cpuset, cpushare=cpushare, memory=memory)
+    old_chunks = []
+    if os.path.exists(cfg.path):
+        old_chunks = __salt__['lxc.read_conf'](cfg.path)
+    cfg.write()
+    chunks = __salt__['lxc.read_conf'](cfg.path)
+    if old_chunks != chunks:
+        comment += 'Container configuration updated\n'
+        to_reboot = True
+    else:
+        if not to_reboot:
+            comment += 'Container already correct\n'
     if to_reboot:
         __salt__['lxc.stop'](name)
     if clone_from:
@@ -903,7 +978,7 @@ def init(name,
                 pub_key=pub_key, priv_key=priv_key,
                 install=install,
                 force_install=force_install,
-                unconditionnal_install=unconditionnal_install,
+                unconditional_install=unconditional_install,
                 bootstrap_url=bootstrap_url,
                 bootstrap_shell=bootstrap_shell,
                 bootstrap_args=bootstrap_args)
@@ -1023,11 +1098,11 @@ def create(name, config=None, profile=None, options=None, **kwargs):
     fstype = select('fstype')
     size = select('size', '1G')
     image = select('image')
-    if backing in ['dir', 'overlayfs', 'btrfs']:
+    if backing in ['dir', 'overlayfs']:
         fstype = None
         size = None
     # some backends wont support some parameters
-    if backing in ['aufs', 'dir', 'overlayfs', 'btrfs']:
+    if backing in ['aufs', 'dir', 'overlayfs']:
         lvname = vgname = None
 
     if image:
@@ -1050,7 +1125,7 @@ def create(name, config=None, profile=None, options=None, **kwargs):
                 cmd += ' --lvname {0}'.format(vgname)
             if vgname:
                 cmd += ' --vgname {0}'.format(vgname)
-        if backing not in ['dir', 'overlayfs', 'btrfs']:
+        if backing not in ['dir', 'overlayfs']:
             if fstype:
                 cmd += ' --fstype {0}'.format(fstype)
             if size:
@@ -1208,9 +1283,6 @@ def list_(extra=False):
         salt '*' lxc.list
         salt '*' lxc.list extra=True
     '''
-
-    # TODO: This can be sped up by using `lxc-ls --fancy` thus skipping
-    # the need to call lxc-info on each container to get running state.
     ctnrs = __salt__['cmd.run']('lxc-ls | sort -u').splitlines()
 
     if extra:
@@ -1813,7 +1885,7 @@ def bootstrap(name, config=None, approve_key=True,
               pub_key=None, priv_key=None,
               bootstrap_url=None,
               force_install=False,
-              unconditionnal_install=False,
+              unconditional_install=False,
               bootstrap_args=None,
               bootstrap_shell=None):
     '''
@@ -1835,11 +1907,11 @@ def bootstrap(name, config=None, approve_key=True,
 
 
     pub_key
-        Explicit public key to pressed the minion with (optionnal).
+        Explicit public key to pressed the minion with (optional).
         This can be either a filepath or a string representing the key
 
     priv_key
-        Explicit private key to pressed the minion with (optionnal).
+        Explicit private key to pressed the minion with (optional).
         This can be either a filepath or a string representing the key
 
     bootstrap_url
@@ -1859,7 +1931,7 @@ def bootstrap(name, config=None, approve_key=True,
         this is the way to run vendor bootstrap scripts even
         if a salt minion is already present in the container
 
-    unconditionnal_install
+    unconditional_install
         Run the script even if the container seems seeded
 
     CLI Example:
@@ -1872,7 +1944,7 @@ def bootstrap(name, config=None, approve_key=True,
     infos = __salt__['lxc.info'](name)
     if not infos:
         return None
-    # default setted here as we cant set them
+    # default set here as we cannot set them
     # in def as it can come from a chain of procedures.
     if not bootstrap_args:
         bootstrap_args = '-c {0}'
@@ -1894,14 +1966,14 @@ def bootstrap(name, config=None, approve_key=True,
     seeded = not __salt__['lxc.run_cmd'](
         name, 'test -e \"{0}\"'.format(SEED_MARKER), stdout=False, stderr=False)
     tmp = tempfile.mkdtemp()
-    if seeded and not unconditionnal_install:
+    if seeded and not unconditional_install:
         res = True
     else:
         res = False
         cfg_files = __salt__['seed.mkconfig'](
             config, tmp=tmp, id_=name, approve_key=approve_key,
             priv_key=priv_key, pub_key=pub_key)
-        if needs_install or force_install or unconditionnal_install:
+        if needs_install or force_install or unconditional_install:
             if install:
                 rstr = __salt__['test.rand_str']()
                 configdir = '/tmp/.c_{0}'.format(rstr)
@@ -1969,7 +2041,8 @@ def attachable(name):
 
 
 def run_cmd(name, cmd, no_start=False, preserve_state=True,
-            stdout=True, stderr=False, use_vt=False):
+            stdout=True, stderr=False, use_vt=False,
+            keep_env='http_proxy,https_proxy'):
     '''
     Run a command inside the container.
 
@@ -2003,6 +2076,10 @@ def run_cmd(name, cmd, no_start=False, preserve_state=True,
     use_vt
         use saltstack utils.vt to stream output to console
 
+    keep_env
+        A list of env vars to preserve. May be passed as commma-delimited list.
+        Defaults to http_proxy,https_proxy.
+
     .. note::
 
         If stderr and stdout are both ``False``, the return code is returned.
@@ -2013,12 +2090,18 @@ def run_cmd(name, cmd, no_start=False, preserve_state=True,
     if not prior_state:
         return prior_state
     if attachable(name):
+        if isinstance(keep_env, basestring):
+            keep_env = keep_env.split(',')
+        if keep_env:
+            env = ' '.join('{0}=${0}'.format(x) for x in keep_env)
+        else:
+            env = ''
+
+        cmd = 'lxc-attach -n \'{0}\' -- env -i {1} {2}'.format(name, env, cmd)
         if not use_vt:
-            cmd = 'lxc-attach -n \'{0}\' -- env -i {1}'.format(name, cmd)
             res = __salt__['cmd.run_all'](cmd)
         else:
             stdout, stderr = '', ''
-            cmd = 'lxc-attach -n \'{0}\' -- env -i {1}'.format(name, cmd)
             try:
                 proc = vt.Terminal(cmd,
                                    shell=True,

@@ -683,7 +683,7 @@ def sed(path,
     options : ``-r -e``
         Options to pass to sed
     flags : ``g``
-        Flags to modify the sed search; e.g., ``i`` for case-insensitve pattern
+        Flags to modify the sed search; e.g., ``i`` for case-insensitive pattern
         matching
     negate_match : False
         Negate the search command (``!``)
@@ -1218,13 +1218,13 @@ def blockreplace(path,
     marker_start
         The line content identifying a line as the start of the content block.
         Note that the whole line containing this marker will be considered, so
-        whitespaces or extra content before or after the marker is included in
+        whitespace or extra content before or after the marker is included in
         final output
 
     marker_end
         The line content identifying a line as the end of the content block.
         Note that the whole line containing this marker will be considered, so
-        whitespaces or extra content before or after the marker is included in
+        whitespace or extra content before or after the marker is included in
         final output
 
     content
@@ -1759,7 +1759,7 @@ def seek_write(path, data, offset):
     Seek to a position on a file and write to it
 
     path
-        path to fil
+        path to file
 
     data
         data to write to file
@@ -2426,6 +2426,10 @@ def get_managed(
         sfn = __salt__['cp.cache_file'](source, saltenv)
         if not os.path.exists(sfn):
             return sfn, {}, 'Source file {0} not found'.format(source)
+        if sfn == name:
+            raise SaltInvocationError(
+                'Source file cannot be the same as destination'
+            )
         if template in salt.utils.templates.TEMPLATE_REGISTRY:
             context_dict = defaults if defaults else {}
             if context:

@@ -175,7 +175,7 @@ class OptionParser(optparse.OptionParser):
                     self.config['conf_file']
                 )
             )
-        # Retain the standard behaviour of optparse to return options and args
+        # Retain the standard behavior of optparse to return options and args
         return options, args
 
     def _populate_option_list(self, option_list, add_help=True):
@@ -1949,9 +1949,49 @@ class SaltKeyOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
                   '; default=%default')
         )
 
+        key_options_group.add_option(
+            '--gen-signature',
+            default=False,
+            action='store_true',
+            help=('Create a signature file of the masters public-key named '
+                  'master_pubkey_signature. The signature can be send to a '
+                  'minion in the masters auth-reply and enables the minion '
+                  'to verify the masters public-key cryptographically. '
+                  'This requires a new signing-key-pair which can be auto-created '
+                  'with the --auto-create parameter')
+        )
+
+        key_options_group.add_option(
+            '--priv',
+            default='',
+            type=str,
+            help=('The private-key file to create a signature with')
+        )
+
+        key_options_group.add_option(
+            '--signature-path',
+            default='',
+            type=str,
+            help=('The path where the signature file should be written')
+        )
+
+        key_options_group.add_option(
+            '--pub',
+            default='',
+            type=str,
+            help=('The public-key file to create a signature for')
+        )
+
+        key_options_group.add_option(
+            '--auto-create',
+            default=False,
+            action='store_true',
+            help=('Auto-create a signing key-pair if it does not yet exist')
+        )
+
     def process_config_dir(self):
         if self.options.gen_keys:
-            # We're generating keys, override the default behaviour of this
+            # We're generating keys, override the default behavior of this
             # function if we don't have any access to the configuration
             # directory.
             if not os.access(self.options.config_dir, os.R_OK):

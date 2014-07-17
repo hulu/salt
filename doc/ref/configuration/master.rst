@@ -13,7 +13,9 @@ of the Salt system each have a respective configuration file. The
     :ref:`example master configuration file <configuration-examples-master>`
 
 The configuration file for the salt-master is located at
-:file:`/etc/salt/master`. The available options are as follows:
+:file:`/etc/salt/master` by default.  A notable exception is FreeBSD, where the
+configuration file is located at :file:`/usr/local/etc/salt`.  The available
+options are as follows:
 
 Primary Master Configuration
 ============================
@@ -78,28 +80,32 @@ The user to run the Salt processes
 ``max_open_files``
 ------------------
 
-Default: ``max_open_files``
+Default: ``100000``
 
 Each minion connecting to the master uses AT LEAST one file descriptor, the
 master subscription connection. If enough minions connect you might start
-seeing on the console(and then salt-master crashes)::
+seeing on the console(and then salt-master crashes):
 
-  Too many open files (tcp_listener.cpp:335)
-  Aborted (core dumped)
+.. code-block:: bash
 
-By default this value will be the one of `ulimit -Hn`, i.e., the hard limit for
-max open files.
-
-If you wish to set a different value than the default one, uncomment and
-configure this setting. Remember that this value CANNOT be higher than the
-hard limit. Raising the hard limit depends on your OS and/or distribution,
-a good way to find the limit is to search the internet for(for example)::
-
-  raise max open files hard limit debian
+    Too many open files (tcp_listener.cpp:335)
+    Aborted (core dumped)
 
 .. code-block:: yaml
 
     max_open_files: 100000
+
+By default this value will be the one of `ulimit -Hn`, i.e., the hard limit for
+max open files.
+
+To set a different value than the default one, uncomment and configure this
+setting. Remember that this value CANNOT be higher than the hard limit. Raising
+the hard limit depends on the OS and/or distribution, a good way to find the
+limit is to search the internet for something like this:
+
+.. code-block:: text
+
+    raise max open files hard limit debian
 
 .. conf_master:: worker_threads
 
@@ -236,7 +242,7 @@ Set the number of hours to keep old job information
 
 Default: ``5``
 
-Set the default timeout for the salt command and api. 
+Set the default timeout for the salt command and api.
 
 .. conf_master:: loop_interval
 
@@ -363,7 +369,7 @@ only the cache for the mine system.
 
 Default: 0
 
-The number of minions the master should allow to connect. Use this to accomodate
+The number of minions the master should allow to connect. Use this to accommodate
 the number of minions per master if you have different types of hardware serving
 your minions. The default of ``0`` means unlimited connections. Please note, that
 this can slow down the authentication process a bit in large setups.
@@ -377,8 +383,8 @@ this can slow down the authentication process a bit in large setups.
 
 Default: False
 
-When enabled the master regularly sends events of currently connected, lost 
-and newly connected minions on the eventbus. 
+When enabled the master regularly sends events of currently connected, lost
+and newly connected minions on the eventbus.
 
 .. code-block:: yaml
 
@@ -548,7 +554,63 @@ security purposes.
 
 .. code-block:: yaml
 
-    file_recv: False 
+    file_recv: False
+
+.. conf_master:: master_sign_pubkey
+
+``master_sign_pubkey``
+----------------------
+
+Default: ``False``
+
+Sign the master auth-replies with a cryptographical signature of the masters
+public key. Please see the tutorial how to use these settings in the
+`Multimaster-PKI with Failover Tutorial <http://docs.saltstack.com/en/latest/topics/tutorials/multimaster_pki.html>`_
+
+.. code-block:: yaml
+
+    master_sign_pubkey: True
+
+.. conf_master:: master_sign_key_name
+
+``master_sign_key_name``
+-----------------------
+
+Default: ``master_sign``
+
+The customizable name of the signing-key-pair without suffix.
+
+.. code-block:: yaml
+
+    master_sign_key_name: <filename_without_suffix>
+
+.. conf_master:: master_pubkey_signature
+
+``master_pubkey_signature``
+---------------------------
+
+Default: ``master_pubkey_signature``
+
+The name of the file in the masters pki-directory that holds the pre-calculated
+signature of the masters public-key.
+
+.. code-block:: yaml
+
+    master_pubkey_signature: <filename>
+
+.. conf_master:: master_use_pubkey_signature
+
+``master_use_pubkey_signature``
+-------------------------------
+
+Default: ``False``
+
+Instead of computing the signature for each auth-reply, use a pre-calculated
+signature. The :conf_master:`master_pubkey_signature` must also be set for this.
+
+.. code-block:: yaml
+
+    master_use_pubkey_signature: True
 
 
 Master Module Management
@@ -691,7 +753,7 @@ If set to 'changes', the output will be full unless the state didn't change.
 
     state_output: full
 
-.. conf_master:: yaml_utf8 
+.. conf_master:: yaml_utf8
 
 ``yaml_utf8``
 -------------
@@ -809,7 +871,7 @@ to file_ignore_regex above, but works on globs instead of regex. By default
 nothing is ignored.
 
 .. code-block:: yaml
-   
+
     file_ignore_glob:
       - '\*.pyc'
       - '\*/somefolder/\*.bak'
@@ -1609,11 +1671,11 @@ There are additional details at :ref:`salt-pillars`
 Default: ``smart``
 
 The pillar_source_merging_strategy option allows to configure merging strategy
-between differents sources. It accepts 3 values:
+between different sources. It accepts 3 values:
 
 * recurse:
 
-  it will merge recursivelly mapping of data. For example, theses 2 sources:
+  it will merge recursively mapping of data. For example, theses 2 sources:
 
   .. code-block:: yaml
 
