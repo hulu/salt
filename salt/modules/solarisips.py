@@ -96,7 +96,7 @@ def upgrade_available(name):
 
         salt '*' pkg.upgrade_available apache-22
     '''
-    version = None
+    version = None  # pylint: disable=W0621
     cmd = 'pkg list -Huv {0}'.format(name)
     lines = __salt__['cmd.run_stdout'](cmd).splitlines()
     if not lines:
@@ -190,7 +190,7 @@ def list_pkgs(versions_as_list=False, **kwargs):
     # column 1 is full FMRI name in form pkg://publisher/class/name@version
     for line in lines:
         name = _ips_get_pkgname(line)
-        version = _ips_get_pkgversion(line)
+        version = _ips_get_pkgversion(line)  # pylint: disable=W0621
         __salt__['pkg_resource.add_pkg'](ret, name, version)
 
     if not versions_as_list:
@@ -332,7 +332,7 @@ def search(name, versions_as_list=False, **kwargs):
     # column 1 is full FMRI name in form pkg://publisher/pkg/name@version
     for line in out['stdout'].splitlines():
         name = _ips_get_pkgname(line)
-        version = _ips_get_pkgversion(line)
+        version = _ips_get_pkgversion(line)  # pylint: disable=W0621
         __salt__['pkg_resource.add_pkg'](ret, name, version)
 
     if not versions_as_list:
@@ -340,7 +340,7 @@ def search(name, versions_as_list=False, **kwargs):
     return ret
 
 
-def install(name=None, refresh=False, pkgs=None, version=None, test=False, **kwargs):
+def install(name=None, refresh=False, pkgs=None, version=None, test=False, **kwargs):  # pylint: disable=W0621
     '''
     Install the named package using the IPS pkg command.
     Accepts full or partial FMRI.
