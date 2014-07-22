@@ -1021,7 +1021,7 @@ def _request_eip(interface):
     return None
 
 
-def _create_eni(interface, eip=None):
+def _create_eni(interface):
     '''
     Create and return an Elastic Interface
     '''
