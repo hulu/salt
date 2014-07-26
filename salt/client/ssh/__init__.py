@@ -112,7 +112,7 @@ fi
 
 SUDO=""
 if [ -n "{{SUDO}}" ]; then
-    SUDO="sudo root -c"
+    SUDO="sudo "
 fi
 
 EX_PYTHON_OLD={EX_THIN_PYTHON_OLD}    # Python interpreter is too old and incompatible
@@ -602,8 +602,15 @@ class Single(object):
             passed_time = (time.time() - os.stat(datap).st_mtime) / 60
             if passed_time > self.opts.get('cache_life', 60):
                 refresh = True
+
         if self.opts.get('refresh_cache'):
             refresh = True
+
+        conf_grains = {}
+        #Save conf file grains before they get clobbered
+        if 'ssh_grains' in self.opts:
+            conf_grains = self.opts['ssh_grains']
+
         if refresh:
             # Make the datap
             # TODO: Auto expire the datap
@@ -616,12 +623,19 @@ class Single(object):
             opts_pkg['pillar_roots'] = self.opts['pillar_roots']
             # Use the ID defined in the roster file
             opts_pkg['id'] = self.id
+
+            if '_error' in opts_pkg:
+                #Refresh failed
+                ret = json.dumps({'local': opts_pkg['_error']})
+                return ret
+
             pillar = salt.pillar.Pillar(
                     opts_pkg,
                     opts_pkg['grains'],
                     opts_pkg['id'],
                     opts_pkg.get('environment', 'base')
                     )
+
             pillar_data = pillar.compile_pillar()
 
             # TODO: cache minion opts in datap in master.py
@@ -637,6 +651,15 @@ class Single(object):
             data = self.serial.load(fp_)
         opts = data.get('opts', {})
         opts['grains'] = data.get('grains')
+
+        #Restore master grains
+        for grain in conf_grains:
+            opts['grains'][grain] = conf_grains[grain]
+        #Enable roster grains support
+        if 'grains' in self.target:
+            for grain in self.target['grains']:
+                opts['grains'][grain] = self.target['grains'][grain]
+
         opts['pillar'] = data.get('pillar')
         wrapper = salt.client.ssh.wrapper.FunctionWrapper(
             opts,
@@ -647,8 +670,10 @@ class Single(object):
         result = self.wfuncs[self.fun](*self.args, **self.kwargs)
         # Mimic the json data-structure that "salt-call --local" will
         # emit (as seen in ssh_py_shim.py)
-        ret = json.dumps({'local': result})
-        return ret
+        if 'local' in result:
+            return json.dumps(result)
+        else:
+            return json.dumps({'local': result})
 
     def _cmd_str(self):
         '''
