@@ -223,7 +223,7 @@ def _xml_to_dict(xmltree):
             else:
                 xmldict[name] = item.text
         else:
-            if type(xmldict[name]) is not list:
+            if not isinstance(xmldict[name], list):
                 tempvar = xmldict[name]
                 xmldict[name] = []
                 xmldict[name].append(tempvar)
@@ -703,7 +703,7 @@ def avail_images(kwargs=None, call=None):
             '-f or --function, or with the --list-images option'
         )
 
-    if type(kwargs) is not dict:
+    if not isinstance(kwargs, dict):
         kwargs = {}
 
     if 'owner' in kwargs:
@@ -1459,7 +1459,7 @@ def request_instance(vm_=None, call=None):
         if rd_data[0]['blockDeviceMapping'] is None:
             # Some ami instances do not have a root volume. Ignore such cases
             rd_name = None
-        elif type(rd_data[0]['blockDeviceMapping']['item']) is list:
+        elif isinstance(rd_data[0]['blockDeviceMapping']['item'], list):
             rd_name = rd_data[0]['blockDeviceMapping']['item'][0]['deviceName']
         else:
             rd_name = rd_data[0]['blockDeviceMapping']['item']['deviceName']
@@ -2103,7 +2103,7 @@ def create_attach_volumes(name, kwargs, call=None):
     if 'instance_id' not in kwargs:
         kwargs['instance_id'] = _get_node(name)['instanceId']
 
-    if type(kwargs['volumes']) is str:
+    if isinstance(kwargs['volumes'], str):
         volumes = yaml.safe_load(kwargs['volumes'])
     else:
         volumes = kwargs['volumes']
@@ -2629,7 +2629,7 @@ def _vm_provider_driver(vm_):
 def _extract_name_tag(item):
     if 'tagSet' in item:
         tagset = item['tagSet']
-        if type(tagset['item']) is list:
+        if isinstance(tagset['item'], list):
             for tag in tagset['item']:
                 if tag['key'] == 'Name':
                     return tag['value']
@@ -2901,7 +2901,7 @@ def show_delvol_on_destroy(name, kwargs=None, call=None):
 
     blockmap = data[0]['instancesSet']['item']['blockDeviceMapping']
 
-    if type(blockmap['item']) != list:
+    if not isinstance(blockmap['item'], list):
         blockmap['item'] = [blockmap['item']]
 
     items = []
@@ -2996,7 +2996,7 @@ def _toggle_delvol(name=None, instance_id=None, device=None, volume_id=None,
     params = {'Action': 'ModifyInstanceAttribute',
               'InstanceId': instance_id}
 
-    if type(blockmap['item']) != list:
+    if not isinstance(blockmap['item'], list):
         blockmap['item'] = [blockmap['item']]
 
     for idx, item in enumerate(blockmap['item']):
