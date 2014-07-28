@@ -276,7 +276,7 @@ def _gen_xml(name,
         log.error('Could not load template {0}'.format(fn_))
         return ''
 
-    return template.render(**context)
+    return template.render(**context)  # pylint: disable=E1103
 
 
 def _gen_vol_xml(vmname,
@@ -303,7 +303,7 @@ def _gen_vol_xml(vmname,
     except jinja2.exceptions.TemplateNotFound:
         log.error('Could not load template {0}'.format(fn_))
         return ''
-    return template.render(**context)
+    return template.render(**context)  # pylint: disable=E1103
 
 
 def _qemu_image_info(path):
