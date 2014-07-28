@@ -117,7 +117,7 @@ def present(name, timespec, tag=None, runas=None, user=None, job=None):
     return ret
 
 
-def absent(name, jobid=None, **kwargs):
+def absent(name, jobid=None, **kwargs):  # pylint: disable=W0613
     '''
     Remove a job from queue
     The 'kwargs' can include hour. minute. day. month. year
