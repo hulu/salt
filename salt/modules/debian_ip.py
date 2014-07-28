@@ -1378,7 +1378,7 @@ def _read_temp_ifaces(iface, data):
         log.error('Could not load template debian_eth.jinja')
         return ''
 
-    ifcfg = template.render({'name': iface, 'data': data})
+    ifcfg = template.render({'name': iface, 'data': data})  # pylint: disable=E1103
     # Return as a array so the difflib works
     return [item + '\n' for item in ifcfg.split('\n')]
 
@@ -1406,7 +1406,7 @@ def _write_file_ifaces(iface, data):
             adapters[adapter]['data']['inet']['addrfam'] = 'inet'
             adapters[adapter]['data']['inet']['proto'] = 'manual'
 
-        tmp = template.render({'name': adapter, 'data': adapters[adapter]})
+        tmp = template.render({'name': adapter, 'data': adapters[adapter]})  # pylint: disable=E1103
         ifcfg = tmp + ifcfg
         if adapter == iface:
             saved_ifcfg = tmp
@@ -1438,7 +1438,7 @@ def _write_file_ppp_ifaces(iface, data):
     adapters[iface] = data
 
     ifcfg = ''
-    tmp = template.render({'data': adapters[iface]})
+    tmp = template.render({'data': adapters[iface]})  # pylint: disable=E1103
     ifcfg = tmp + ifcfg
 
     filename = _DEB_PPP_DIR + '/' + adapters[iface]['data']['inet']['provider']
@@ -1474,7 +1474,7 @@ def build_bond(iface, **settings):
     except jinja2.exceptions.TemplateNotFound:
         log.error('Could not load template conf.jinja')
         return ''
-    data = template.render({'name': iface, 'bonding': opts})
+    data = template.render({'name': iface, 'bonding': opts})  # pylint: disable=E1103
 
     if settings['test']:
         return _read_temp(data)
@@ -1578,9 +1578,9 @@ def build_routes(iface, **settings):
         log.error('Could not load template route_eth.jinja')
         return ''
 
-    add_routecfg = template.render(route_type='add', routes=opts['routes'], iface=iface)
+    add_routecfg = template.render(route_type='add', routes=opts['routes'], iface=iface)  # pylint: disable=E1103
 
-    del_routecfg = template.render(route_type='del', routes=opts['routes'], iface=iface)
+    del_routecfg = template.render(route_type='del', routes=opts['routes'], iface=iface)  # pylint: disable=E1103
 
     if 'test' in settings and settings['test']:
         return _read_temp(add_routecfg + del_routecfg)
@@ -1643,7 +1643,7 @@ def get_interface(iface):
             log.error('Could not load template debian_eth.jinja')
             return ''
 
-        ifcfg = template.render({'name': iface, 'data': adapters[iface]})
+        ifcfg = template.render({'name': iface, 'data': adapters[iface]})  # pylint: disable=E1103
 
         # ensure lines in list end with newline, so difflib works
         return [item + '\n' for item in ifcfg.split('\n')]
@@ -1692,7 +1692,7 @@ def get_network_settings():
             log.error('Could not load template network.jinja')
             return ''
 
-        network = template.render(settings)
+        network = template.render(settings)  # pylint: disable=E1103
         return _read_temp(network)
 
 
@@ -1780,7 +1780,7 @@ def build_network_settings(**settings):
         except jinja2.exceptions.TemplateNotFound:
             log.error('Could not load template network.jinja')
             return ''
-        network = template.render(opts)
+        network = template.render(opts)  # pylint: disable=E1103
 
         if settings['test']:
             return _read_temp(network)
@@ -1825,7 +1825,7 @@ def build_network_settings(**settings):
         return ''
 
     if not skip_etc_default_networking:
-        network = template.render(opts)
+        network = template.render(opts)  # pylint: disable=E1103
         return _read_temp(network)
     else:
         return ''  # TODO
