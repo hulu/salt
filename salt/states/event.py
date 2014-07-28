@@ -43,7 +43,7 @@ def fire_master(name, data):
     return ret
 
 
-def wait(name, sfun=None):
+def wait(name, sfun=None):  # pylint: disable=W0613
     '''
     Fire an event on the Salt master event bus if called from a watch statement
 
