@@ -826,7 +826,7 @@ def build_bond(iface, **settings):
     except jinja2.exceptions.TemplateNotFound:
         log.error('Could not load template conf.jinja')
         return ''
-    data = template.render({'name': iface, 'bonding': opts})
+    data = template.render({'name': iface, 'bonding': opts})  # pylint: disable=E1103
     _write_file_iface(iface, data, _RH_NETWORK_CONF_FILES, '{0}.conf'.format(iface))
     path = os.path.join(_RH_NETWORK_CONF_FILES, '{0}.conf'.format(iface))
     if rh_major == '5':
@@ -890,7 +890,7 @@ def build_interface(iface, iface_type, enabled, **settings):
                 )
             )
             return ''
-        ifcfg = template.render(opts)
+        ifcfg = template.render(opts)  # pylint: disable=E1103
 
     if 'test' in settings and settings['test']:
         return _read_temp(ifcfg)
@@ -921,7 +921,7 @@ def build_routes(iface, **settings):
             'Could not load template route_eth.jinja'
         )
         return ''
-    routecfg = template.render(routes=opts['routes'])
+    routecfg = template.render(routes=opts['routes'])  # pylint: disable=E1103
 
     if settings['test']:
         return _read_temp(routecfg)
@@ -1062,7 +1062,7 @@ def build_network_settings(**settings):
     except jinja2.exceptions.TemplateNotFound:
         log.error('Could not load template network.jinja')
         return ''
-    network = template.render(opts)
+    network = template.render(opts)  # pylint: disable=E1103
 
     if settings['test']:
         return _read_temp(network)
