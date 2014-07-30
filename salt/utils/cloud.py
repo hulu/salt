@@ -20,6 +20,7 @@ import msgpack
 import traceback
 import copy
 import re
+import uuid
 
 
 # Let's import pwd and catch the ImportError. We'll raise it if this is not
@@ -724,7 +725,7 @@ def wait_for_passwd(host, port=22, ssh_timeout=15, username='root',
                 log.debug('Using {0} as the key_filename'.format(key_filename))
             elif password:
                 kwargs['password'] = password
-                log.debug('Using password authentication'.format(password))
+                log.debug('Using password authentication')
 
             trycount += 1
             log.debug(
@@ -937,6 +938,8 @@ def deploy_script(host,
     if not isinstance(opts, dict):
         opts = {}
 
+    tmp_dir = '{0}-{1}'.format(tmp_dir, uuid.uuid4())
+    deploy_command = os.path.join(tmp_dir, 'deploy.sh')
     if key_filename is not None and not os.path.isfile(key_filename):
         raise SaltCloudConfigError(
             'The defined key_filename {0!r} does not exist'.format(
@@ -962,9 +965,6 @@ def deploy_script(host,
                            display_ssh_output=display_ssh_output,
                            gateway=gateway, known_hosts_file=known_hosts_file):
 
-            def remote_exists(path):
-                return not root_cmd('test -e \\"{0}\\"'.format(path),
-                                    tty, sudo, **kwargs)
             log.debug(
                 'Logging into {0}:{1} as {2}'.format(
                     host, port, username
@@ -991,7 +991,7 @@ def deploy_script(host,
                 log.debug('Using {0} as the password'.format(password))
                 ssh_kwargs['password'] = password
 
-            if not remote_exists(tmp_dir):
+            if root_cmd('test -e \\"{0}\\"'.format(tmp_dir), tty, sudo, **ssh_kwargs):
                 ret = root_cmd(('sh -c "( mkdir -p \\"{0}\\" &&'
                                 ' chmod 700 \\"{0}\\" )"').format(tmp_dir),
                                tty, sudo, **ssh_kwargs)
