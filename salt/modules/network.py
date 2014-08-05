@@ -503,7 +503,7 @@ def in_subnet(cidr):
     return salt.utils.network.in_subnet(cidr)
 
 
-def ip_addrs(interface=None, include_loopback=False, cidr=None):
+def ip_addrs(interface=None, include_loopback=False, cidr=None):  # pylint: disable=W0621
     '''
     Returns a list of IPv4 addresses assigned to the host. 127.0.0.1 is
     ignored, unless 'include_loopback=True' is indicated. If 'interface' is
@@ -527,7 +527,7 @@ def ip_addrs(interface=None, include_loopback=False, cidr=None):
 ipaddrs = ip_addrs
 
 
-def ip_addrs6(interface=None, include_loopback=False):
+def ip_addrs6(interface=None, include_loopback=False):  # pylint: disable=W0621
     '''
     Returns a list of IPv6 addresses assigned to the host. ::1 is ignored,
     unless 'include_loopback=True' is indicated. If 'interface' is provided,
