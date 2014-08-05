@@ -48,7 +48,7 @@ def joined(name, host, user='rabbit', ram_node=None, runas=None):
     ret = {'name': name, 'result': True, 'comment': '', 'changes': {}}
     result = {}
 
-    joined = __salt__['rabbitmq.cluster_status']()
+    joined = __salt__['rabbitmq.cluster_status']()  # pylint: disable=W0621
     if '{0}@{1}'.format(user, host) in joined:
         ret['comment'] = 'Already in cluster'
         return ret
