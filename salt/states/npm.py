@@ -166,7 +166,7 @@ def installed(name,
         if pkgs is not None:
             cmd_args['pkgs'] = pkgs
         else:
-            cmd_args['pkg'] = pkg_name
+            cmd_args['pkg'] = pkg_name  # pylint: disable=W0631
 
         call = __salt__['npm.install'](**cmd_args)
     except (CommandNotFoundError, CommandExecutionError) as err:
