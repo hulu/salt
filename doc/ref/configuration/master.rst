@@ -135,6 +135,14 @@ worker_threads value.
 Worker threads should not be put below 3 when using the peer system, but can
 drop down to 1 worker otherwise.
 
+.. note::
+    When the master daemon starts, it is expected behaviour to see
+    multiple salt-master processes, even if 'worker_threads' is set to '1'. At
+    a minimum, a controlling process will start along with a Publisher, an
+    EventPublisher, and a number of MWorker procsses will be started. The
+    number of MWorker processes is tuneable by the 'worker_threads'
+    configuration value while the others are not.
+
 .. code-block:: yaml
 
     worker_threads: 5
@@ -1683,8 +1691,8 @@ There are additional details at :ref:`salt-pillars`
 
 Default: ``smart``
 
-The pillar_source_merging_strategy option allows to configure merging strategy
-between different sources. It accepts 3 values:
+The pillar_source_merging_strategy option allows you to configure merging
+strategy between different sources. It accepts 3 values:
 
 * recurse:
 
