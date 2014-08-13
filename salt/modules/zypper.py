@@ -268,7 +268,7 @@ class _RepoInfo(object):
 
     @autorefresh.setter
     def autorefresh(self, value):
-        self.zypp.setAlias(value)
+        self.zypp.setAutorefresh(value)
 
     @property
     def enabled(self):
