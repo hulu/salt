@@ -50,7 +50,8 @@ def install(pkg=None,
             pkgs=None,
             dir=None,  # pylint: disable=W0622
             runas=None,
-            registry=None):
+            registry=None,
+            env=None):
     '''
     Install an NPM package.
 
@@ -65,7 +66,7 @@ def install(pkg=None,
     pkgs
         A list of package names in the same format as the ``name`` parameter
 
-        .. versionadded:: 2014.7
+        .. versionadded:: 2014.7.0
 
     dir
         The target directory in which to install the package, or None for
@@ -76,6 +77,13 @@ def install(pkg=None,
 
     registry
         The NPM registry to install the package from.
+
+        .. versionadded:: 2014.7.0
+
+    env
+        Environment variables to set when invoking npm. Uses the same ``env``
+        format as the :py:func:`cmd.run <salt.modules.cmdmod.run>` execution
+        function.
 
         .. versionadded:: 2014.7.0
 
@@ -103,7 +111,7 @@ def install(pkg=None,
     elif pkgs:
         cmd += ' "{0}"'.format('" "'.join(pkgs))
 
-    result = __salt__['cmd.run_all'](cmd, cwd=dir, runas=runas)
+    result = __salt__['cmd.run_all'](cmd, cwd=dir, runas=runas, env=env)
 
     if result['retcode'] != 0:
         raise CommandExecutionError(result['stderr'])
@@ -176,7 +184,9 @@ def uninstall(pkg,
 
 
 def list_(pkg=None,
-          dir=None):  # pylint: disable=W0622
+            dir=None,  # pylint: disable=W0622
+            runas=None,
+            env=None):
     '''
     List installed NPM packages.
 
@@ -189,6 +199,18 @@ def list_(pkg=None,
     dir
         The directory whose packages will be listed, or None for global
         installation
+
+    runas
+        The user to run NPM with
+
+        .. versionadded:: 2014.7.0
+
+    env
+        Environment variables to set when invoking npm. Uses the same ``env``
+        format as the :py:func:`cmd.run <salt.modules.cmdmod.run>` execution
+        function.
+
+        .. versionadded:: 2014.7.0
 
     CLI Example:
 
@@ -207,7 +229,8 @@ def list_(pkg=None,
     if pkg:
         cmd += ' "{0}"'.format(pkg)
 
-    result = __salt__['cmd.run_all'](cmd, cwd=dir, ignore_retcode=True)
+    result = __salt__['cmd.run_all'](cmd, cwd=dir, runas=runas, env=env,
+            ignore_retcode=True)
 
     # npm will return error code 1 for both no packages found and an actual
     # error. The only difference between the two cases are if stderr is empty
