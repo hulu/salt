@@ -88,7 +88,7 @@ def query(url,
         if isinstance(header_tpl, dict):
             header_dict = header_tpl
         else:
-            header_list = header_tpl.splitlines()
+            header_list = header_tpl.splitlines()  # pylint: disable=E1103
 
     if header_dict is None:
         header_dict = {}
