@@ -37,7 +37,7 @@ Connection module for Amazon VPC
 
 # Import Python libs
 import logging
-from distutils.version import LooseVersion
+from distutils.version import LooseVersion  # pylint: disable=E0611
 
 log = logging.getLogger(__name__)
 
