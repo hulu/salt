@@ -1065,10 +1065,19 @@ def latest(
         desired_pkgs = [name]
 
     cur = __salt__['pkg.version'](*desired_pkgs, **kwargs)
-    avail = __salt__['pkg.latest_version'](*desired_pkgs,
-                                           fromrepo=fromrepo,
-                                           refresh=refresh,
-                                           **kwargs)
+    try:
+        avail = __salt__['pkg.latest_version'](*desired_pkgs,
+                                               fromrepo=fromrepo,
+                                               refresh=refresh,
+                                               **kwargs)
+    except CommandExecutionError as exc:
+        return {'name': name,
+                'changes': {},
+                'result': False,
+                'comment': 'An error was encountered while checking the '
+                           'newest available version of package(s): {0}'
+                           .format(exc)}
+
     # Remove the rtag if it exists, ensuring only one refresh per salt run
     # (unless overridden with refresh=True)
     if os.path.isfile(rtag) and refresh:
@@ -1372,7 +1381,11 @@ def uptodate(name, refresh=False):
         return ret
 
     if isinstance(refresh, bool):
-        packages = __salt__['pkg.list_upgrades'](refresh=refresh)
+        try:
+            packages = __salt__['pkg.list_upgrades'](refresh=refresh)
+        except Exception, e:
+            ret['comment'] = str(e)
+            return ret
     else:
         ret['comment'] = 'refresh must be a boolean.'
         return ret
@@ -1388,7 +1401,9 @@ def uptodate(name, refresh=False):
 
     updated = __salt__['pkg.upgrade'](refresh=refresh)
 
-    if updated:
+    if updated.get('result') is False:
+        ret.update(updated)
+    elif updated:
         ret['changes'] = updated
         ret['comment'] = 'Upgrade successful.'
         ret['result'] = True
