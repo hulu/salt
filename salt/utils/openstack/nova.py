@@ -109,8 +109,8 @@ class SaltNova(OpenStackComputeShell):
         '''
         if not HAS_NOVA:
             return None
-        self.extensions = self._discover_extensions('1.1')
-        self._run_extension_hooks('__pre_parse_args__')
+        self.extensions = self._discover_extensions('1.1')  # pylint: disable=E1101
+        self._run_extension_hooks('__pre_parse_args__')  # pylint: disable=E1101
 
         self.kwargs = kwargs.copy()
         self.kwargs['username'] = username
@@ -154,7 +154,7 @@ class SaltNova(OpenStackComputeShell):
                 region_name
             )['publicURL']
 
-        self._run_extension_hooks('__post_parse_args__', self.kwargs)
+        self._run_extension_hooks('__post_parse_args__', self.kwargs)  # pylint: disable=E1101
         self.compute_conn = client.Client(**self.kwargs)
 
         if region_name is not None:
