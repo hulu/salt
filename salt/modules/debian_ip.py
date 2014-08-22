@@ -1872,7 +1872,7 @@ def build_network_settings(**settings):
     except jinja2.exceptions.TemplateNotFound:
         log.error('Could not load template display-network.jinja')
         return ''
-    network = template.render(opts)
+    network = template.render(opts)  # pylint: disable=E1103
     changes.extend(_read_temp(network))
 
     return changes
