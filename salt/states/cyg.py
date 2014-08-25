@@ -126,7 +126,7 @@ def removed(name, cyg_arch='x86_64', mirrors=None):
     return ret
 
 
-def updated(name=None, cyg_arch='x86_64', mirrors=None):
+def updated(name=None, cyg_arch='x86_64', mirrors=None):  # pylint: disable=W0613
     """
     Make sure all packages are up to date.
 

@@ -11,7 +11,7 @@ import logging
 import os.path
 import re
 import tempfile
-from distutils.version import LooseVersion as _LooseVersion
+from distutils.version import LooseVersion as _LooseVersion  # pylint: disable=E0611
 
 # Import salt libs
 import salt.utils
