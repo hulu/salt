@@ -1924,7 +1924,7 @@ def create(vm_=None, call=None):
         # This was probably created via another process, and doesn't have
         # things like salt keys created yet, so let's create them now.
         if 'pub_key' not in vm_ and 'priv_key' not in vm_:
-            log.debug('Generating minion keys for {0[name]!r}'.format(vm_))
+            log.debug('Generating minion keys for {0[name]!r}'.format(vm_))  # pylint: disable=W1307
             vm_['priv_key'], vm_['pub_key'] = salt.utils.cloud.gen_keys(
                 salt.config.get_cloud_config_value(
                     'keysize',
@@ -2066,9 +2066,9 @@ def create(vm_=None, call=None):
     for key, value in salt.utils.cloud.bootstrap(vm_, __opts__).items():
         ret.setdefault(key, value)
 
-    log.info('Created Cloud VM {0[name]!r}'.format(vm_))
+    log.info('Created Cloud VM {0[name]!r}'.format(vm_))  # pylint: disable=W1307
     log.debug(
-        '{0[name]!r} VM creation details:\n{1}'.format(
+        '{0[name]!r} VM creation details:\n{1}'.format(  # pylint: disable=W1307
             vm_, pprint.pformat(instance)
         )
     )
