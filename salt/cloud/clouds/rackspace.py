@@ -331,10 +331,10 @@ def create(vm_):
     log.debug('Using IP address {0}'.format(ip_address))
 
     if get_salt_interface(vm_) == 'private_ips':
-        salt_ip_address = preferred_ip(vm_, data.private_ips)
+        salt_ip_address = preferred_ip(vm_, data.private_ips)  # pylint: disable=E1103
         log.info('Salt interface set to: {0}'.format(salt_ip_address))
     else:
-        salt_ip_address = preferred_ip(vm_, data.public_ips)
+        salt_ip_address = preferred_ip(vm_, data.public_ips)  # pylint: disable=E1103
         log.debug('Salt interface set to: {0}'.format(salt_ip_address))
 
     if not ip_address:
