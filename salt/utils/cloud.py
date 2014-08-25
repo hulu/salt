@@ -1612,7 +1612,7 @@ def root_cmd(command, tty, sudo, allow_failure=False, **kwargs):
     if 'port' in kwargs:
         ssh_args.extend(['-p {0}'.format(kwargs['port'])])
 
-    cmd = 'ssh {0} {1[username]}@{1[hostname]} {2}'.format(
+    cmd = 'ssh {0} {1[username]}@{1[hostname]} {2}'.format(  # pylint: disable=W1307
         ' '.join(ssh_args), kwargs, pipes.quote(command)
     )
     log.debug('SSH command: {0!r}'.format(cmd))
