@@ -76,7 +76,7 @@ def present(name,
             ret['comment'] = 'User {0} is set to be created'
         elif force:
             ret['comment'] = 'User {0} is set to be updated'
-        ret['comment'] = ret['comment'].format(name)
+        ret['comment'] = ret['comment'].format(name)  # pylint: disable=E1305
 
     else:
         changes = {'old': '', 'new': ''}

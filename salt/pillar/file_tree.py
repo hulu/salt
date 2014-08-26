@@ -108,7 +108,7 @@ def _construct_pillar(top_dir, follow_dir_links):
                 pillar_node[file_name] = open(file_path, 'rb').read()
             except IOError as err:
                 log.error('%s', str(err))
-            except:
+            except:  # pylint: disable=W0702
                 log.error('Unknown exception while reading "%s"', file_path,
                           exc_info=True)
 
