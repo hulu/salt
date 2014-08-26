@@ -71,7 +71,7 @@ class WheelClient(mixins.SyncClientMixin, mixins.AsyncClientMixin, object):
         load = kwargs
         load['cmd'] = 'wheel'
         sreq = salt.payload.SREQ(
-                'tcp://{0[interface]}:{0[ret_port]}'.format(self.opts),
+                'tcp://{0[interface]}:{0[ret_port]}'.format(self.opts),  # pylint: disable=W1307
                 )
         ret = sreq.send('clear', load)
         if isinstance(ret, collections.Mapping):

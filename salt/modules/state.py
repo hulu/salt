@@ -783,7 +783,7 @@ def single(fun, name, test=None, queue=False, **kwargs):
         return err
 
     st_._mod_init(kwargs)
-    ret = {'{0[state]}_|-{0[__id__]}_|-{0[name]}_|-{0[fun]}'.format(kwargs):
+    ret = {'{0[state]}_|-{0[__id__]}_|-{0[name]}_|-{0[fun]}'.format(kwargs):  # pylint: disable=W1307
             st_.call(kwargs)}
     _set_retcode(ret)
     # Work around Windows multiprocessing bug, set __opts__['test'] back to

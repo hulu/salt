@@ -17,7 +17,7 @@ The following fields can be set in the minion conf file::
 '''
 
 # Import python libs
-import distutils.version
+import distutils.version  # pylint: disable=E0611
 import logging
 import pprint
 
@@ -44,8 +44,8 @@ def __virtual__():
     if HAS_LIBS:
         import sleekxmpp
         # Certain XMPP functionaility we're using doesn't work with versions under 1.3.1
-        sleekxmpp_version = distutils.version.LooseVersion(sleekxmpp.__version__)
-        valid_version = distutils.version.LooseVersion('1.3.1')
+        sleekxmpp_version = distutils.version.LooseVersion(sleekxmpp.__version__)  # pylint: disable=E1101
+        valid_version = distutils.version.LooseVersion('1.3.1')  # pylint: disable=E1101
         if sleekxmpp_version >= valid_version:
             return __virtualname__
     return False
