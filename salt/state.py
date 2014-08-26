@@ -2294,15 +2294,15 @@ class BaseHighState(object):
                             _data,
                             _opts
                             ):
-                        if saltenv not in matches:
-                            matches[saltenv] = []
+                        if saltenv not in matches:  # pylint: disable=W0631
+                            matches[saltenv] = []  # pylint: disable=W0631
                         for item in _data:
                             if 'subfilter' in item:
                                 _tmpdata = item.pop('subfilter')
                                 for match, data in _tmpdata.items():
                                     _filter_matches(match, data, _opts)
                             if isinstance(item, string_types):
-                                matches[saltenv].append(item)
+                                matches[saltenv].append(item)  # pylint: disable=W0631
                 _filter_matches(match, data, self.opts['nodegroups'])
         ext_matches = self.client.ext_nodes()
         for saltenv in ext_matches:
