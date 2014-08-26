@@ -1997,9 +1997,9 @@ def create(vm_=None, call=None):
             transport=__opts__['transport']
         )
 
-    log.info('Created Cloud VM {0[name]!r}'.format(vm_))
+    log.info('Created Cloud VM {0[name]!r}'.format(vm_))  # pylint: disable=W1307
     log.debug(
-        '{0[name]!r} VM creation details:\n{1}'.format(
+        '{0[name]!r} VM creation details:\n{1}'.format(  # pylint: disable=W1307
             vm_, pprint.pformat(node_dict)
         )
     )

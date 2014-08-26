@@ -1044,12 +1044,12 @@ def mod_watch(name, **kwargs):
             return {'name': name,
                     'changes': {},
                     'comment': (
-                        'cmd.{0[sfun]} needs a named parameter func'
+                        'cmd.{0[sfun]} needs a named parameter func'  # pylint: disable=W1307
                     ).format(kwargs),
                     'result': False}
 
     return {'name': name,
             'changes': {},
-            'comment': 'cmd.{0[sfun]} does not work with the watch requisite, '
+            'comment': 'cmd.{0[sfun]} does not work with the watch requisite, '  # pylint: disable=W1307
                        'please use cmd.wait or cmd.wait_script'.format(kwargs),
             'result': False}
