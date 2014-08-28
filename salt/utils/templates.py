@@ -366,7 +366,7 @@ def render_wempy_tmpl(tmplstr,
     return Template(tmplstr).render(**context)
 
 
-def render_genshi_tmpl(tmplstr, context, tmplpath=None):
+def render_genshi_tmpl(tmplstr, context, tmplpath=None):  # pylint: disable=W0613
     '''
     Render a Genshi template. A method should be passed in as part of the
     context. If no method is passed in, xml is assumed. Valid methods are:
@@ -397,7 +397,7 @@ def render_genshi_tmpl(tmplstr, context, tmplpath=None):
     return tmpl.generate(**context).render(method)
 
 
-def render_cheetah_tmpl(tmplstr, context, tmplpath=None):
+def render_cheetah_tmpl(tmplstr, context, tmplpath=None):  # pylint: disable=W0613
     '''
     Render a Cheetah template.
     '''
