@@ -894,7 +894,7 @@ def remote_port_tcp(port):
                 if line.strip().startswith('sl'):
                     continue
                 iret = _parse_tcp_line(line)
-                sl = iter(iret).next()
+                sl = iter(iret).next()  # pylint: disable=C0103
                 if iret[sl]['remote_port'] == port:
                     ret.add(iret[sl]['remote_addr'])
         return ret
