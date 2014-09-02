@@ -47,7 +47,8 @@ from salt.utils.debug import enable_sigusr1_handler, enable_sigusr2_handler, ins
 from salt.exceptions import MasterExit
 from salt.utils.event import tagify
 import binascii
-import salt.caches
+from salt.utils.master import ConnectedCache
+from salt.utils.cache import CacheCli
 
 # Import halite libs
 try:
@@ -129,13 +130,21 @@ class Master(SMaster):
         Create a salt master server instance
         '''
         # Warn if ZMQ < 3.2
-        if not(hasattr(zmq, 'zmq_version_info')) or \
-                zmq.zmq_version_info() < (3, 2):
-            # PyZMQ 2.1.9 does not have zmq_version_info
-            log.warning('You have a version of ZMQ less than ZMQ 3.2! There '
-                        'are known connection keep-alive issues with ZMQ < '
-                        '3.2 which may result in loss of contact with '
-                        'minions. Please upgrade your ZMQ!')
+        try:
+            zmq_version_info = zmq.zmq_version_info()
+        except AttributeError:
+            # PyZMQ <= 2.1.9 does not have zmq_version_info, fall back to
+            # using zmq.zmq_version() and build a version info tuple.
+            zmq_version_info = tuple(
+                [int(x) for x in zmq.zmq_version().split('.')]
+            )
+        if zmq_version_info < (3, 2):
+            log.warning(
+                'You have a version of ZMQ less than ZMQ 3.2! There are '
+                'known connection keep-alive issues with ZMQ < 3.2 which '
+                'may result in loss of contact with minions. Please '
+                'upgrade your ZMQ!'
+            )
         SMaster.__init__(self, opts)
 
     def _clear_old_jobs(self):
@@ -333,8 +342,8 @@ class Master(SMaster):
                 clean_proc(reqserv.halite)
             if hasattr(reqserv, 'reactor'):
                 clean_proc(reqserv.reactor)
-            if hasattr(reqserv, 'fscache'):
-                clean_proc(reqserv.fscache)
+            if hasattr(reqserv, 'con_cache'):
+                clean_proc(reqserv.con_cache)
             for proc in reqserv.work_procs:
                 clean_proc(proc)
             raise MasterExit
@@ -554,20 +563,12 @@ class ReqServer(object):
         '''
         start all available caches if configured
         '''
-
-        if self.opts['fs_cache']:
-            self.fscache = salt.caches.FSCache(self.opts)
-
-            # add a job that caches grains and mine data every 30 seconds
-            self.fscache.add_job(
-                **{
-                    'name': 'minions',
-                    'path': '/var/cache/salt/master/minions',
-                    'ival': [0, 30],
-                    'patt': '^.*$'
-                   }
-                )
-            self.fscache.start()
+        if self.opts['con_cache']:
+            log.debug('Starting ConCache')
+            self.con_cache = ConnectedCache(self.opts)
+            self.con_cache.start()
+        else:
+            return False
 
     def start_halite(self):
         '''
@@ -1323,6 +1324,7 @@ class ClearFuncs(object):
         self.wheel_ = salt.wheel.Wheel(opts)
         self.masterapi = salt.daemons.masterapi.LocalFuncs(opts, key)
         self.auto_key = salt.daemons.masterapi.AutoKey(opts)
+        self.cache_cli = CacheCli(self.opts)
 
     def _auth(self, load):
         '''
@@ -1350,7 +1352,16 @@ class ClearFuncs(object):
 
         # 0 is default which should be 'unlimited'
         if self.opts['max_minions'] > 0:
-            minions = salt.utils.minions.CkMinions(self.opts).connected_ids()
+            # use the ConCache if enabled, else use the minion utils
+            if self.cache_cli:
+                minions = self.cache_cli.get_cached()
+            else:
+                minions = self.ckminions.connected_ids()
+                if len(minions) > 1000:
+                    log.info('With large numbers of minions it is advised '
+                             'to enable the ConCache with \'con_cache: True\' '
+                             'in the masters configuration file.')
+
             if not len(minions) < self.opts['max_minions']:
                 # we reject new minions, minions that are already
                 # connected must be allowed for the mine, highstate, etc.
@@ -1558,6 +1569,10 @@ class ClearFuncs(object):
             with salt.utils.fopen(pubfn, 'w+') as fp_:
                 fp_.write(load['pub'])
         pub = None
+
+        # the con_cache is enabled, send the minion id to the cache
+        if self.cache_cli:
+            self.cache_cli.put_cache([load['id']])
 
         # The key payload may sometimes be corrupt when using auto-accept
         # and an empty request comes in
