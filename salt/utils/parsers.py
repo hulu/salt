@@ -1479,10 +1479,11 @@ class SaltCMDOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
                   'queries')
         )
         self.add_option(
-            '--show-timeout',
-            default=False,
-            action='store_true',
-            help=('Display minions that timeout without the additional output of --verbose')
+            '--hide-timeout',
+            dest='show_timeout',
+            default=True,
+            action='store_false',
+            help=('Hide minions that timeout')
         )
         self.add_option(
             '--show-jid',
@@ -1518,6 +1519,15 @@ class SaltCMDOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
             '--return',
             default='',
             metavar='RETURNER',
+            help=('Set an alternative return method. By default salt will '
+                  'send the return data from the command back to the master, '
+                  'but the return data can be redirected into any number of '
+                  'systems, databases or applications.')
+        )
+        self.add_option(
+            '--return_config',
+            default='',
+            metavar='RETURNER_CONF',
             help=('Set an alternative return method. By default salt will '
                   'send the return data from the command back to the master, '
                   'but the return data can be redirected into any number of '
