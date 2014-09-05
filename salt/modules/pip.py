@@ -175,7 +175,7 @@ def install(pkgs=None,  # pylint: disable=R0912,R0913,R0914
             download=None,
             download_cache=None,
             source=None,
-            upgrade=False,
+            upgrade=False,  # pylint: disable=W0621
             force_reinstall=False,
             ignore_installed=False,
             exists_action=None,
