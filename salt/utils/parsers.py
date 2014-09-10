@@ -664,7 +664,8 @@ class LogLevelMixIn(object):
                     # Yep, the user is in ACL!
                     # Let's write the logfile to its home directory instead.
                     xdg_dir = salt.utils.xdg.xdg_config_dir()
-                    user_salt_dir = xdg_dir if os.path.isdir(xdg_dir) else '~/.salt'
+                    user_salt_dir = (xdg_dir if os.path.isdir(xdg_dir) else
+                                     os.path.expanduser('~/.salt'))
 
                     if not os.path.isdir(user_salt_dir):
                         os.makedirs(user_salt_dir, 0750)
@@ -1821,6 +1822,15 @@ class SaltKeyOptionParser(OptionParser, ConfigDirMixIn, MergeConfigMixIn,
             default=False,
             action='store_true',
             help='Answer Yes to all questions presented, defaults to False'
+        )
+
+        self.add_option(
+            '--no-key-rotate',
+            default=False,
+            action='store_true',
+            help=('This option prevents the master from refreshing the key '
+                  'session when keys are deleted or rejected, this lowers '
+                  'the security of the key deletion/rejection operation.')
         )
 
         key_options_group = optparse.OptionGroup(
