@@ -736,7 +736,7 @@ def _determine_config_version(syslog_ng_sbin_dir):
     return full_version[:3]
 
 
-def set_parameters(version=None,
+def set_parameters(version=None,  # pylint: disable=W0621
                    binary_path=None,
                    config_file=None,
                    *args,
