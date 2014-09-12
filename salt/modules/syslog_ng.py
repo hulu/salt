@@ -1098,7 +1098,7 @@ def _format_generated_config_header():
     return __SALT_GENERATED_CONFIG_HEADER.format(now)
 
 
-def write_config(config, newlines=2):
+def write_config(config, newlines=2):  # pylint: disable=W0621
     '''
     Writes the given parameter config into the config file. This function is
     intended to be used from states.
@@ -1118,7 +1118,7 @@ def write_config(config, newlines=2):
     return _format_state_result(name='', result=succ, changes=changes)
 
 
-def _write_config(config, newlines=2):
+def _write_config(config, newlines=2):  # pylint: disable=W0621
     '''
     Writes the given parameter config into the config file.
     '''
