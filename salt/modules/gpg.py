@@ -888,7 +888,7 @@ def encrypt(user=None,
             text=None,
             filename=None,
             output=None,
-            sign=None,
+            sign=None,  # pylint: disable=W0621
             use_passphrase=False):
     '''
     Encrypt a message or file
