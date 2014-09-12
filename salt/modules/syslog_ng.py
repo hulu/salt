@@ -619,7 +619,7 @@ def _render_configuration():
 
 
 def config(name,
-           config,
+           config,  # pylint: disable=W0621
            write=True):
     '''
     Builds syslog-ng configuration. This function is intended to be used from

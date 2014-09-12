@@ -53,7 +53,7 @@ log = logging.getLogger(__name__)
 
 
 def config(name,
-           config,
+           config,  # pylint: disable=W0621
            write=True):
     '''
     Builds syslog-ng configuration.
