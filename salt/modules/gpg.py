@@ -11,7 +11,7 @@ from keyservers.  Sign, encrypt and sign & encrypt text and files.
 '''
 
 # Import python libs
-import distutils.version
+import distutils.version  # pylint: disable=E0611
 import logging
 import re
 import time
@@ -99,7 +99,7 @@ def _create_gpg(user=None):
         else:
             raise SaltInvocationError('User does not exist')
 
-    gnupg_version = distutils.version.LooseVersion(gnupg.__version__)
+    gnupg_version = distutils.version.LooseVersion(gnupg.__version__)  # pylint: disable=E1101
     if gnupg_version >= '1.3.1':
         gpg = gnupg.GPG(homedir='{0}'.format(homeDir))
     else:
