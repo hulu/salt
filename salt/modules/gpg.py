@@ -834,7 +834,7 @@ def sign(user=None,
 
     # Check for at least one secret key to sign with
 
-    gnupg_version = distutils.version.LooseVersion(gnupg.__version__)
+    gnupg_version = distutils.version.LooseVersion(gnupg.__version__)  # pylint: disable=E1101
     if text:
         if gnupg_version >= '1.3.1':
             signed_data = gpg.sign(text, default_key=keyid, passphrase=gpg_passphrase)
