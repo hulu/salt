@@ -198,7 +198,7 @@ class ProcessManager(object):
             if not mapping['Process'].is_alive():
                 self.restart_process(pid)
 
-    def kill_children(self, *args):
+    def kill_children(self, *args):  # pylint: disable=W0613
         '''
         Kill all of the children
         '''
