@@ -45,7 +45,7 @@ def get_conn(conn_type):
     kwargs = vm_.copy()  # pylint: disable=E1103
 
     kwargs['username'] = vm_['username']
-    kwargs['auth_endpoint'] = vm_.get('identity_url', None)
+    kwargs['auth_endpoint'] = vm_.get('identity_url', None)  # pylint: disable=E1103
     kwargs['region'] = vm_['compute_region']
 
     conn = getattr(suop, conn_type)
