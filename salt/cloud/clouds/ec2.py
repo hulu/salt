@@ -2131,7 +2131,7 @@ def create_attach_volumes(name, kwargs, call=None):
         )
 
     if 'instance_id' not in kwargs:
-        kwargs['instance_id'] = _get_node(name)['instanceId']
+        kwargs['instance_id'] = _get_node(name)[name]['instanceId']
 
     if isinstance(kwargs['volumes'], str):
         volumes = yaml.safe_load(kwargs['volumes'])
@@ -2207,7 +2207,7 @@ def stop(name, call=None):
 
     log.info('Stopping node {0}'.format(name))
 
-    instance_id = _get_node(name)['instanceId']
+    instance_id = _get_node(name)[name]['instanceId']
 
     params = {'Action': 'StopInstances',
               'InstanceId.1': instance_id}
@@ -2227,7 +2227,7 @@ def start(name, call=None):
 
     log.info('Starting node {0}'.format(name))
 
-    instance_id = _get_node(name)['instanceId']
+    instance_id = _get_node(name)[name]['instanceId']
 
     params = {'Action': 'StartInstances',
               'InstanceId.1': instance_id}
@@ -2400,7 +2400,7 @@ def del_tags(name=None,
         del kwargs['resource_id']
 
     if not instance_id:
-        instance_id = _get_node(name)['instanceId']
+        instance_id = _get_node(name)[name]['instanceId']
 
     params = {'Action': 'DeleteTags',
               'ResourceId.1': instance_id}
@@ -2537,7 +2537,7 @@ def reboot(name, call=None):
 
         salt-cloud -a reboot mymachine
     '''
-    instance_id = _get_node(name)['instanceId']
+    instance_id = _get_node(name)[name]['instanceId']
     params = {'Action': 'RebootInstances',
               'InstanceId.1': instance_id}
     result = query(params)
@@ -3494,7 +3494,7 @@ def get_console_output(
         )
 
     if not instance_id:
-        instance_id = _get_node(name)['instanceId']
+        instance_id = _get_node(name)[name]['instanceId']
 
     if kwargs is None:
         kwargs = {}
