@@ -456,7 +456,7 @@ class ConnectedCache(multiprocessing.Process):
         self.timer.start()
         self.running = True
 
-    def signal_handler(self, sig, frame):
+    def signal_handler(self, sig, frame):  # pylint: disable=W0613
         '''
         handle signals and shutdown
         '''
