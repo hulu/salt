@@ -1625,7 +1625,7 @@ def _push_assemble_error_status(status, ret, logs):  # pylint: disable=W0621
     return status
 
 
-def push(repo, tag=None, quiet=False):
+def push(repo, tag=None, quiet=False):  # pylint: disable=W0621
     '''
     Pushes an image to any registry. See documentation at top of this page to
     configure authenticated access
