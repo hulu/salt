@@ -922,7 +922,7 @@ def get_availability_zone(vm_):
     if avz is None:
         return None
 
-    zones = list_availability_zones()
+    zones = _list_availability_zones()
 
     # Validate user-specified AZ
     if avz not in zones.keys():
@@ -992,7 +992,7 @@ def get_spot_config(vm_):
     )
 
 
-def list_availability_zones():
+def _list_availability_zones():
     '''
     List all availability zones in the current region
     '''
@@ -1946,6 +1946,11 @@ def create(vm_=None, call=None):
         # Put together all of the information required to request the instance,
         # and then fire off the request for it
         data, vm_ = request_instance(vm_, location)
+
+        # If data is a str, it's an error
+        if isinstance(data, str):
+            log.error('Error requesting instance: {0}'.format(data))
+            return {}
 
         # Pull the instance ID, valid for both spot and normal instances
 
