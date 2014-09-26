@@ -94,7 +94,7 @@ class FSCache(multiprocessing.Process):
         self.upd_t_sock = os.path.join(self.opts['sock_dir'], 'fsc_timer.ipc')
         self.cleanup()
 
-    def signal_handler(self, sig, frame):
+    def signal_handler(self, sig, frame):  # pylint: disable=W0613
         '''
         handle signals and shutdown
         '''
