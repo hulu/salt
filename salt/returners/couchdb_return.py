@@ -80,7 +80,7 @@ def _generate_doc(ret,
     '''
 
     # Create a copy of the object that we will return.
-    r = ret
+    r = ret.copy()
 
     # Set the ID of the document to be the JID.
     r["_id"] = ret["jid"]
