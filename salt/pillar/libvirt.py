@@ -14,7 +14,9 @@ import subprocess
 import salt.utils
 
 
-def ext_pillar(minion_id, pillar, command):  # pylint: disable=W0613
+def ext_pillar(minion_id,
+               pillar,  # pylint: disable=W0613
+               command):  # pylint: disable=W0613
     '''
     Read in the generated libvirt keys
     '''

@@ -123,7 +123,7 @@ def ext_pillar(minion_id,  # pylint: disable=W0613
                env=None,
                env_file=None,
                *args,  # pylint: disable=W0613
-               **kwargs):
+               **kwargs):  # pylint: disable=W0613
     '''
     Connect to a Django database through the ORM and retrieve model fields
 
