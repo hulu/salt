@@ -952,7 +952,7 @@ def mod_data(fsclient):
     for env in envs:
         files = fsclient.file_list(env)
         for ref in sync_refs:
-            mod_data = {}
+            mod_data = {}  # pylint: disable=W0621
             pref = '_{0}'.format(ref)
             for fn_ in files:
                 if fn_.startswith(pref):
