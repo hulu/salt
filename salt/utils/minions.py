@@ -201,7 +201,7 @@ class CkMinions(object):
         '''
         return self._check_cache_minions(expr, delimiter, greedy, 'grains')
 
-    def _check_grain_pcre_minions(self, expr, delimiter, greedy):
+    def _check_grain_pcre_minions(self, expr, delimiter, greedy):  # pylint: disable=W0613
         '''
         Return the minions found by looking via grains with PCRE
         '''
