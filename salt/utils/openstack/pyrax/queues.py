@@ -42,7 +42,7 @@ class RackspaceQueues(object):
                 return False
             queue = self.show(qname)
             if queue:
-                queue.delete()
+                queue.delete()  # pylint: disable=E1103
         except pyrax.exceptions as err_msg:
             log.error('RackSpace API got some problems during deletion: {0}'.format(err_msg))
             return False
