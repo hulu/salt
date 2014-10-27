@@ -288,7 +288,7 @@ def create(vm_):
         'ssh_key_names', vm_, __opts__, search_global=False, default=False
     )
     if ssh_key_names:
-        for key in ssh_key_names.split(','):
+        for key in ssh_key_names.split(','):  # pylint: disable=E1103
             kwargs['ssh_keys'].append(get_keyid(key))
 
     key_filename = config.get_cloud_config_value(
@@ -504,7 +504,7 @@ def create(vm_):
                 )
             )
 
-    ret.update(data)
+    ret.update(data)  # pylint: disable=E1103
 
     log.info('Created Cloud VM {0[name]!r}'.format(vm_))
     log.debug(
