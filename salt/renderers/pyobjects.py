@@ -260,6 +260,8 @@ TODO
 * Interface for working with reactor files
 '''
 
+from __future__ import absolute_import
+
 import logging
 import re
 import sys
@@ -419,7 +421,7 @@ def render(template, saltenv='base', sls='', salt_data=True, **kwargs):
                 exec state_contents in _globals, state_locals
 
             if imports is None:
-                imports = state_locals.keys()
+                imports = list(state_locals.keys())
 
             for name in imports:
                 name = name.strip()
