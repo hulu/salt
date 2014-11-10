@@ -1812,6 +1812,27 @@ def yaml_squote(text):
         return ostream.getvalue()
 
 
+def yaml_encode(data):
+    """A simple YAML encode that can take a single-element datatype and return
+    a string representation.
+    """
+    yrepr = yaml.representer.SafeRepresenter()
+    ynode = yrepr.represent_data(data)
+    if not isinstance(ynode, yaml.ScalarNode):
+        raise TypeError(
+            "yaml_encode() only works with YAML scalar data;"
+            " failed for {0}".format(type(data))
+        )
+
+    tag = ynode.tag.rsplit(':', 1)[-1]
+    ret = ynode.value
+
+    if tag == "str":
+        ret = yaml_dquote(ynode.value)
+
+    return ret
+
+
 def warn_until(version,
                message,
                category=DeprecationWarning,
@@ -1876,6 +1897,19 @@ def warn_until(version,
         )
 
     if _dont_call_warnings is False:
+        def _formatwarning(message,
+                           category,
+                           filename,
+                           lineno,
+                           line=None):  # pylint: disable=W0613
+            '''
+            Replacement for warnings.formatwarning that disables the echoing of
+            the 'line' parameter.
+            '''
+            return '{0}:{1}: {2}: {3}'.format(
+                filename, lineno, category.__name__, message
+            )
+        warnings.formatwarning = _formatwarning
         warnings.warn(
             message.format(version=version.formatted_version),
             category,
