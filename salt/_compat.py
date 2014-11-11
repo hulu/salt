@@ -39,9 +39,9 @@ else:
     MAX_SIZE = sys.maxint
 
 if PY3:
-    xrange = range
+    xrange = range  # pylint: disable=C0103
 else:
-    xrange = xrange
+    xrange = xrange  # pylint: disable=C0103,W1613
 
 # pylint: disable=C0103
 if PY3:
@@ -52,7 +52,7 @@ if PY3:
     binary_type = bytes
     long = int
 else:
-    string_types = basestring,
+    string_types = basestring,  # pylint: disable=W1602
     integer_types = (int, long)
     class_types = (type, types.ClassType)
     text_type = unicode
@@ -125,7 +125,7 @@ else:
             del frame
         elif locals_ is None:
             locals_ = globals_
-        exec('''exec code_ in globals_, locals_''')
+        exec('''exec code_ in globals_, locals_''')  # pylint: disable=W0122
 
 
 ascii_native_.__doc__ = '''
