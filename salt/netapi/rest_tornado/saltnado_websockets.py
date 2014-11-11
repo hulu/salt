@@ -1,4 +1,5 @@
 # encoding: utf-8
+# pylint: disable=E1101
 '''
 A Websockets add-on to saltnado
 ===============================

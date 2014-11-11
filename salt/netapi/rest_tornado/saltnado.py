@@ -1,4 +1,5 @@
 # encoding: utf-8
+# pylint: disable=E1101
 '''
 A REST API for Salt
 ===================

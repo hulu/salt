@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=E1101,W0232
 '''
 Define the behaviors used in the maintinance process
 '''
