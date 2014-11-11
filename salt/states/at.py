@@ -9,7 +9,7 @@ from __future__ import absolute_import
 
 # Import salt libs
 import salt.utils
-from six.moves import map
+from six.moves import map  # pylint: disable=W0622
 
 # Tested on OpenBSD 5.0
 BSD = ('OpenBSD', 'FreeBSD')

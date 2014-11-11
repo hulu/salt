@@ -106,7 +106,7 @@ from __future__ import absolute_import
 import hashlib
 import logging
 import six
-from six.moves import zip
+from six.moves import zip  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

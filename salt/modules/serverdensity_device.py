@@ -11,7 +11,7 @@ import requests
 import json
 import logging
 
-from six.moves import map
+from six.moves import map  # pylint: disable=W0622
 
 from salt.exceptions import CommandExecutionError
 

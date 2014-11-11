@@ -32,7 +32,7 @@ import StringIO
 import hashlib
 import os
 import tempfile
-from six.moves import zip
+from six.moves import zip  # pylint: disable=W0622
 try:
     import pipes
     import csv

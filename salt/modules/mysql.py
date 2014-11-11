@@ -41,8 +41,8 @@ import logging
 import re
 import sys
 import shlex
-from six.moves import zip
-from six.moves import range
+from six.moves import zip  # pylint: disable=W0622
+from six.moves import range  # pylint: disable=W0622
 
 # Import salt libs
 import salt.utils

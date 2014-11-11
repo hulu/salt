@@ -36,7 +36,7 @@ import os
 import os.path
 import salt.utils
 from salt.exceptions import CommandExecutionError
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 
 __SYSLOG_NG_BINARY_PATH = None

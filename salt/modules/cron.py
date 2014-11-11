@@ -11,7 +11,7 @@ import random
 # Import salt libs
 import salt.utils
 import six
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 
 TAG = '# Lines below here are managed by Salt, do not edit\n'

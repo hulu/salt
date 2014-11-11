@@ -31,8 +31,8 @@ import tempfile
 import time
 import glob
 from functools import reduce  # pylint: disable=W0622
-from six.moves import range
-from six.moves import zip
+from six.moves import range  # pylint: disable=W0622
+from six.moves import zip  # pylint: disable=W0622
 
 try:
     import grp
