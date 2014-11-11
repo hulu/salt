@@ -41,7 +41,7 @@ load-plugins=
 # can either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
-disable=R,W0110,W0141,W0142,W0201,W0212,W0511,W0603,W0612,W0703,W1202,C0103,C0111,C0301,C0302,C0330,F0401,I0011,I0012,I0013
+disable=R,W0110,W0141,W0142,W0201,W0212,W0511,W0603,W0612,W0703,W1202,C0103,C0111,C0301,C0302,C0330,F0401,I0011,I0012,I0013,W1604,W1608,W1612,W1619,W1620,W1622,W1623
 # grep -v "but some types could not be inferred"
 
 [REPORTS]
