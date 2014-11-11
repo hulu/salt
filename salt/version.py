@@ -18,7 +18,7 @@ except ImportError:
         string_types = str
         MAX_SIZE = sys.maxsize
     else:
-        string_types = basestring
+        string_types = basestring  # pylint: disable=W1602
         MAX_SIZE = sys.maxint
 
 # ----- ATTENTION --------------------------------------------------------------------------------------------------->

@@ -2977,7 +2977,7 @@ class MasterState(State):
     '''
     Create a State object for master side compiling
     '''
-    def __init__(self, opts, minion):
+    def __init__(self, opts, minion):  # pylint: disable=W0613
         State.__init__(self, opts)
 
     def load_modules(self, data=None):
