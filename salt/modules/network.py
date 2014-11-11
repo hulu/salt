@@ -1032,7 +1032,7 @@ def default_route(family=None):
         raise CommandExecutionError('Invalid address family {0}'.format(family))
 
     _routes = routes()
-    default_route = {}
+    default_route = {}  # pylint: disable=W0621
     if __grains__['kernel'] == 'Linux':
         default_route['inet'] = ['0.0.0.0', 'default']
         default_route['inet6'] = ['::/0', 'default']
