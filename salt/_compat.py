@@ -113,7 +113,7 @@ if PY3:
             raise value.with_traceback(tb)
         raise value
 else:
-    def exec_(code_, globals_=None, locals_=None):
+    def exec_(code_, globals_=None, locals_=None):  # pylint: disable=W0613
         '''
         Execute code directly in a passed namespace
         '''
