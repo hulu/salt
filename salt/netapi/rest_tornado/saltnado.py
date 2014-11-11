@@ -46,6 +46,8 @@ Notes
 '''
 # pylint: disable=W0232
 
+from __future__ import print_function
+
 import logging
 from copy import copy
 
