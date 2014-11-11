@@ -30,7 +30,7 @@ from salt.exceptions import (
     CommandExecutionError, MinionError, SaltInvocationError
 )
 import six
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 
 log = logging.getLogger(__name__)

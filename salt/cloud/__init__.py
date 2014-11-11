@@ -17,7 +17,7 @@ import signal
 import logging
 import multiprocessing
 from itertools import groupby
-from six.moves import input
+from six.moves import input  # pylint: disable=W0622
 
 # Import salt.cloud libs
 from salt.exceptions import (

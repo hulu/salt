@@ -13,7 +13,7 @@ import fnmatch
 import hashlib
 import json
 import logging
-from six.moves import input
+from six.moves import input  # pylint: disable=W0622
 
 # Import salt libs
 import salt.crypt
