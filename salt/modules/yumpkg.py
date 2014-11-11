@@ -21,7 +21,7 @@ import os
 import re
 import six
 from distutils.version import LooseVersion as _LooseVersion  # pylint: disable=E0611
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 # Import salt libs
 import salt.utils

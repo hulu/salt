@@ -17,7 +17,7 @@ import signal
 
 # Import salt libs
 import salt.utils
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

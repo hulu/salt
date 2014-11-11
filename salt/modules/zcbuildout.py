@@ -25,7 +25,7 @@ You have those following methods:
 '''
 from __future__ import absolute_import
 import six
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 # Define the module's virtual name
 __virtualname__ = 'buildout'

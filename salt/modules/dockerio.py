@@ -149,7 +149,7 @@ These are the available methods:
 '''
 
 from __future__ import absolute_import
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 __docformat__ = 'restructuredtext en'
 
 import datetime

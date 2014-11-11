@@ -13,7 +13,7 @@ import re
 import salt.utils
 
 from salt.exceptions import CommandExecutionError
-from six.moves import zip
+from six.moves import zip  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

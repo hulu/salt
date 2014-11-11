@@ -22,8 +22,8 @@ from __future__ import absolute_import
 import sys
 import contextlib
 import os
-from six.moves import range
-from six.moves import map
+from six.moves import range  # pylint: disable=W0622
+from six.moves import map  # pylint: disable=W0622
 
 try:
     import importlib
