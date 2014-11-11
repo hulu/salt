@@ -773,7 +773,7 @@ def in_subnet(cidr, addrs=None):
     return False
 
 
-def ip_addrs(interface=None, include_loopback=False):
+def ip_addrs(interface=None, include_loopback=False):  # pylint: disable=W0621
     '''
     Returns a list of IPv4 addresses assigned to the host. 127.0.0.1 is
     ignored, unless 'include_loopback=True' is indicated. If 'interface' is
@@ -801,7 +801,7 @@ def ip_addrs(interface=None, include_loopback=False):
     return sorted(list(ret))
 
 
-def ip_addrs6(interface=None, include_loopback=False):
+def ip_addrs6(interface=None, include_loopback=False):  # pylint: disable=W0621
     '''
     Returns a list of IPv6 addresses assigned to the host. ::1 is ignored,
     unless 'include_loopback=True' is indicated. If 'interface' is provided,
