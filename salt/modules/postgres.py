@@ -21,10 +21,10 @@ Module to provide Postgres compatibility to salt.
     security audits.
 '''
 
-from __future__ import absolute_import
 # This pylint error is popping up where there are no colons?
 
 # Import python libs
+from __future__ import absolute_import
 import datetime
 import distutils.version  # pylint: disable=E0611
 import logging
@@ -32,6 +32,7 @@ import StringIO
 import hashlib
 import os
 import tempfile
+from six.moves import zip
 try:
     import pipes
     import csv
