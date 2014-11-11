@@ -30,7 +30,7 @@ import sys
 import tempfile
 import time
 import glob
-from functools import reduce
+from functools import reduce  # pylint: disable=W0622
 
 try:
     import grp
