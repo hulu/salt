@@ -32,7 +32,7 @@ def __virtual__():
 
 def installed(name,
               pkgs=None,
-              dir=None,
+              dir=None,  # pylint: disable=W0622
               user=None,
               force_reinstall=False,
               registry=None,

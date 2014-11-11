@@ -156,7 +156,7 @@ class Statement(Buildable):
     Does not need examples.
     '''
 
-    def __init__(self, type, id='', options=None, has_name=True):
+    def __init__(self, type, id='', options=None, has_name=True):  # pylint: disable=W0622
         super(Statement, self).__init__(options, join_body_on='', append_extra_newline=False)
         self.type = type
         self.id = id
@@ -183,7 +183,7 @@ class NamedStatement(Statement):
 
     Does not need examples.
     '''
-    def __init__(self, type, id='', options=None):
+    def __init__(self, type, id='', options=None):  # pylint: disable=W0622
         super(NamedStatement, self).__init__(type, id, options, has_name=True)
 
 
@@ -195,7 +195,7 @@ class UnnamedStatement(Statement):
     Does not need examples.
     '''
 
-    def __init__(self, type, options=None):
+    def __init__(self, type, options=None):  # pylint: disable=W0622
         super(UnnamedStatement, self).__init__(type, id='', options=options, has_name=False)
 
 
@@ -228,7 +228,7 @@ class Option(Buildable):
     Does not need examples.
     '''
 
-    def __init__(self, type='', params=None):
+    def __init__(self, type='', params=None):  # pylint: disable=W0622
         super(Option, self).__init__(params, ",\n")
         self.type = type
         self.params = params if params else []
@@ -300,7 +300,7 @@ class TypedParameter(Parameter):
     Does not need examples.
     '''
 
-    def __init__(self, type='', values=None):
+    def __init__(self, type='', values=None):  # pylint: disable=W0622
         super(TypedParameter, self).__init__(values, ",\n")
         self.type = type
         self.values = values if values else []
@@ -368,7 +368,7 @@ class TypedParameterValue(ParameterValue):
     Does not need examples.
     '''
 
-    def __init__(self, type='', arguments=None):
+    def __init__(self, type='', arguments=None):  # pylint: disable=W0622
         super(TypedParameterValue, self).__init__(arguments, "\n")
         self.type = type
         self.arguments = arguments if arguments else []
