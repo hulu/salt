@@ -47,6 +47,7 @@ Notes
 # pylint: disable=W0232
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import logging
 from copy import copy
@@ -69,6 +70,7 @@ import functools
 import yaml
 import zmq
 import fnmatch
+import six
 
 # salt imports
 import salt.netapi
@@ -369,7 +371,7 @@ class BaseSaltAPIHandler(tornado.web.RequestHandler, SaltClientsMixIn):
         ignore the data passed in and just get the args from wherever they are
         '''
         data = {}
-        for key, val in self.request.arguments.iteritems():
+        for key, val in six.iteritems(self.request.arguments):
             if len(val) == 1:
                 data[key] = val[0]
             else:

@@ -34,7 +34,7 @@ from functools import reduce  # pylint: disable=W0622
 from six import string_types
 from six.moves import range  # pylint: disable=W0622
 from six.moves import zip  # pylint: disable=W0622
-from six.moves.urllib.parse import urlparse
+from six.moves.urllib.parse import urlparse  # pylint: disable=E0611
 
 try:
     import grp
