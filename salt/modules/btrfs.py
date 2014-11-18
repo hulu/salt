@@ -224,7 +224,7 @@ def _usage_specific(raw):
     for val in [size, used]:
         data[section].update(get_key(val.replace(",", "")))
 
-    for devices in raw[1:]:
+    for devices in raw[1:]:  # pylint: disable=W0621
         data[section].update(get_key(re.sub(r"\s+", ":", devices.strip())))
 
     return data
@@ -268,7 +268,7 @@ def usage(path):
     return ret
 
 
-def mkfs(*devices, **kwargs):
+def mkfs(*devices, **kwargs):  # pylint: disable=W0621
     '''
     Create a file system on the specified device. By default wipes out with force.
 
@@ -431,7 +431,7 @@ def convert(device, permanent=False, keeplf=False):
 
     out = __salt__['cmd.run_all']("blkid -o export")
     salt.modules.fsutils._verify_run(out)
-    devices = salt.modules.fsutils._blkid_output(out['stdout'])
+    devices = salt.modules.fsutils._blkid_output(out['stdout'])  # pylint: disable=W0621
     if not devices.get(device):
         raise CommandExecutionError("The device \"{0}\" was is not found.".format(device))
 
@@ -508,7 +508,7 @@ documentation regarding this topic.
     return ret
 
 
-def _restripe(mountpoint, direction, *devices, **kwargs):
+def _restripe(mountpoint, direction, *devices, **kwargs):  # pylint: disable=W0621
     '''
     Restripe BTRFS: add or remove devices from the particular mounted filesystem.
     '''
@@ -577,7 +577,7 @@ def _restripe(mountpoint, direction, *devices, **kwargs):
     return ret
 
 
-def add(mountpoint, *devices, **kwargs):
+def add(mountpoint, *devices, **kwargs):  # pylint: disable=W0621
     '''
     Add a devices to a BTRFS filesystem.
 
@@ -595,7 +595,7 @@ def add(mountpoint, *devices, **kwargs):
     return _restripe(mountpoint, 'add', *devices, **kwargs)
 
 
-def delete(mountpoint, *devices, **kwargs):
+def delete(mountpoint, *devices, **kwargs):  # pylint: disable=W0621
     '''
     Remove devices from a BTRFS filesystem.
 
@@ -621,7 +621,7 @@ def _parse_proplist(data):
     return out
 
 
-def properties(obj, type=None, set=None):
+def properties(obj, type=None, set=None):  # pylint: disable=W0622
     '''
     List properties for given btrfs object. The object can be path of BTRFS device,
     mount point, or any directories/files inside the BTRFS filesystem.
