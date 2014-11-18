@@ -612,7 +612,7 @@ if __name__ == '__main__':
             import pygments
             import pygments.lexers
             import pygments.formatters
-            print(pygments.highlight(yaml.safe_dump(result), pygments.lexers.YamlLexer(), pygments.formatters.TerminalFormatter()))
+            print(pygments.highlight(yaml.safe_dump(result), pygments.lexers.YamlLexer(), pygments.formatters.TerminalFormatter()))  # pylint: disable=E1101
         except ImportError:
             print(yaml.safe_dump(result, indent=4, default_flow_style=False))
     else:
