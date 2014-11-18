@@ -76,9 +76,9 @@ import pprint
 import logging
 import yaml
 import six
-from six.moves import map
-from six.moves import zip
-from six.moves import range
+from six.moves import map  # pylint: disable=W0622
+from six.moves import zip  # pylint: disable=W0622
+from six.moves import range  # pylint: disable=W0622
 
 # Import libs for talking to the EC2 API
 import hmac

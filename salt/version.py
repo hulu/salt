@@ -15,7 +15,7 @@ if sys.version_info[0] == 3:
 else:
     MAX_SIZE = sys.maxint
     string_types = (basestring,)
-    from itertools import imap as map
+    from itertools import imap as map  # pylint: disable=W0622
 
 # ----- ATTENTION --------------------------------------------------------------------------------------------------->
 #

@@ -18,7 +18,7 @@ import re
 import time
 import yaml
 import uuid
-from six.moves import input
+from six.moves import input  # pylint: disable=W0622
 
 # Import salt libs
 import salt.client.ssh.shell

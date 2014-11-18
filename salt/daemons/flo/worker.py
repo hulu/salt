@@ -11,7 +11,7 @@ import time
 import os
 import multiprocessing
 import logging
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 # Import salt libs
 import salt.daemons.masterapi

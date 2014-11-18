@@ -78,7 +78,7 @@ import salt.modules
 import salt.utils
 import salt.utils.s3 as s3
 import six
-from six.moves import filter
+from six.moves import filter  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

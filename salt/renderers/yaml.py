@@ -17,7 +17,7 @@ from salt.utils.odict import OrderedDict
 from salt.exceptions import SaltRenderError
 import six
 from six import string_types
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

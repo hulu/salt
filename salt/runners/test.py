@@ -6,7 +6,7 @@ from __future__ import absolute_import
 # Import python libs
 import time
 import six
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 
 def arg(*args, **kwargs):

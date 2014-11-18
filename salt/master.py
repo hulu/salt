@@ -50,7 +50,7 @@ from salt.utils.event import tagify
 import binascii
 from salt.utils.master import ConnectedCache
 from salt.utils.cache import CacheCli
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 # Import halite libs
 try:
