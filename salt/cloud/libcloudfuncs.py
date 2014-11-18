@@ -10,7 +10,7 @@ import os
 import logging
 from six import string_types
 import six
-from six.moves import zip
+from six.moves import zip  # pylint: disable=W0622
 
 
 # pylint: disable=W0611

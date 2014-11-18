@@ -21,7 +21,7 @@ import time
 import traceback
 import types
 from random import randint, shuffle
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 # Import third party libs
 try:

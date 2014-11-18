@@ -11,7 +11,7 @@ import re
 import logging
 import os
 from string import ascii_letters, digits
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 import six
 
 # Attempt to import wmi

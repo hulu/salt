@@ -39,7 +39,7 @@ from salt.exceptions import SaltRenderError, SaltReqTimeoutError, SaltException
 from salt.utils.odict import OrderedDict, DefaultOrderedDict
 
 # Import third party libs
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

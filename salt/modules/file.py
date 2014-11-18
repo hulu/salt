@@ -2440,7 +2440,7 @@ def set_selinux_context(path,
                         user=None,
                         role=None,
                         type=None,    # pylint: disable=W0622
-                        range=None):  # pylint: disable=W0622
+                        range=None):  # pylint: disable=W0622,W0621
     '''
     Set a specific SELinux label on a given path
 

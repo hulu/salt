@@ -25,9 +25,9 @@ import requests
 # Import Salt libs
 import salt.utils.xmlutil as xml
 from salt._compat import ElementTree as ET
-from six.moves import map
-from six.moves import zip
-from six.moves import range
+from six.moves import map  # pylint: disable=W0622
+from six.moves import zip  # pylint: disable=W0622
+from six.moves import range  # pylint: disable=W0622
 
 LOG = logging.getLogger(__name__)
 DEFAULT_LOCATION = 'us-east-1'
