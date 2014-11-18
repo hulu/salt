@@ -38,9 +38,9 @@ from calendar import month_abbr as months
 from six import string_types
 from six.moves.urllib.parse import urlparse  # pylint: disable=E0611
 import six
-from six.moves import range
-from six.moves import zip
-from six.moves import map
+from six.moves import range  # pylint: disable=W0622
+from six.moves import zip  # pylint: disable=W0622
+from six.moves import map  # pylint: disable=W0622
 
 # Try to load pwd, fallback to getpass if unsuccessful
 try:

@@ -58,7 +58,7 @@ import time
 # Import salt libs
 import salt.utils
 import salt.returners
-from six.moves import map
+from six.moves import map  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 
