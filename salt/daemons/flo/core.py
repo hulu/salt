@@ -18,7 +18,7 @@ import itertools
 from collections import deque
 import random
 import six
-from six.moves import range
+from six.moves import range  # pylint: disable=W0622
 
 # Import salt libs
 import salt.daemons.masterapi
