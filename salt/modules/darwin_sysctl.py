@@ -22,7 +22,7 @@ def __virtual__():
     return __virtualname__ if __grains__['os'] == 'MacOS' else False
 
 
-def show(config_file=False):
+def show(config_file=False):  # pylint: disable=W0613
     '''
     Return a list of sysctl parameters for this minion
 

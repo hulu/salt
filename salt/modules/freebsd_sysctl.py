@@ -26,7 +26,7 @@ def _formatfor(name, value, config, tail=''):
         return '{0}={1}{2}'.format(name, value, tail)
 
 
-def show(config_file=False):
+def show(config_file=False):  # pylint: disable=W0613
     '''
     Return a list of sysctl parameters for this minion
 
