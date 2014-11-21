@@ -828,4 +828,4 @@ def mmodule(saltenv, fun, *args, **kwargs):
         salt '*' saltutil.mmodule base test.ping
     '''
     mminion = _MMinion(saltenv)
-    return mminion.functions[fun](*args, **kwargs)
+    return mminion.functions[fun](*args, **kwargs)  # pylint: disable=E1101
