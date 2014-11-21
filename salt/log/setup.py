@@ -96,7 +96,7 @@ LOGGING_TEMP_HANDLER = StreamHandler(sys.stderr)
 LOGGING_STORE_HANDLER = TemporaryLoggingHandler()
 
 
-class SaltLoggingClass(with_metaclass(LoggingMixInMeta, LOGGING_LOGGER_CLASS, NewStyleClassMixIn)):  # pylint: disable=W0232
+class SaltLoggingClass(with_metaclass(LoggingMixInMeta, LOGGING_LOGGER_CLASS, NewStyleClassMixIn)):  # pylint: disable=W0232,E0239
     def __new__(cls, *args):  # pylint: disable=W0613, E1002
         '''
         We override `__new__` in our logging logger class in order to provide

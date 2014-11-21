@@ -349,7 +349,7 @@ def need_salt(*a, **k):  # pylint: disable=W0613
     return {}
 
 
-class Map(six.with_metaclass(MapMeta, object)):  # pylint: disable=W0232
+class Map(six.with_metaclass(MapMeta, object)):  # pylint: disable=W0232,E0239
     __salt__ = {
         'grains.filter_by': need_salt,
         'pillar.get': need_salt
