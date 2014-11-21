@@ -741,7 +741,7 @@ class Loader(object):
         return funcs
 
     def gen_functions(self, pack=None, virtual_enable=True, whitelist=None,
-                      provider_overrides=False, include_errors=False, initial_load=False):
+                      provider_overrides=False, include_errors=False, initial_load=False):  # pylint: disable=W0613
         '''
         Return a dict of functions found in the defined module_dirs
         '''

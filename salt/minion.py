@@ -269,7 +269,7 @@ class SMinion(object):
         else:
             self.gen_modules(initial_load=True)
 
-    def gen_modules(self, initial_load=False):
+    def gen_modules(self, initial_load=False):  # pylint: disable=W0613
         '''
         Load all of the modules for the minion
         '''
