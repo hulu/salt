@@ -165,7 +165,7 @@ def _gen_jid(cur):
     return None
 
 
-def prep_jid(nocache=False, passed_jid=None):
+def prep_jid(nocache=False, passed_jid=None):  # pylint: disable=W0613
     '''
     Return a job id and prepare the job id directory
     This is the function responsible for making sure jids don't collide
