@@ -292,7 +292,7 @@ def salt_cloud():
     The main function for salt-cloud
     '''
     try:
-        import salt.cloud.cli
+        import salt.cloud.cli  # pylint: disable=W0621
         has_saltcloud = True
     except ImportError:
         # No salt cloud on Windows

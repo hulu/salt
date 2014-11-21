@@ -251,7 +251,7 @@ def saltenviron(environ):
     Make Salt's opts dict and the APIClient available in the WSGI environ
     '''
     if '__opts__' not in locals():
-        import salt.config
+        import salt.config  # pylint: disable=W0621
         __opts__ = salt.config.client_config(
                 os.environ.get('SALT_MASTER_CONFIG', '/etc/salt/master'))
 
@@ -299,7 +299,7 @@ def get_opts():
     '''
     Return the Salt master config as __opts__
     '''
-    import salt.config
+    import salt.config  # pylint: disable=W0621
 
     return salt.config.client_config(
             os.environ.get('SALT_MASTER_CONFIG', '/etc/salt/master'))
