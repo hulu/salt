@@ -242,7 +242,7 @@ class Authorize(object):
             yield {'sub_auth': sub_auth, 'name': name}
         yield {}
 
-    def rights_check(self, form, sub_auth, name, load, eauth=None):
+    def rights_check(self, form, sub_auth, name, load, eauth=None):  # pylint: disable=W0613
         '''
         Read in the access system to determine if the validated user has
         requested rights
