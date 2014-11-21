@@ -51,7 +51,7 @@ import inspect
 import yaml
 
 # Import generic libcloud functions
-from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
+from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401,W0622
 
 # Import salt.cloud libs
 import salt.utils.cloud

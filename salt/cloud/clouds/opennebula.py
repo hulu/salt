@@ -79,7 +79,7 @@ def _get_xml_rpc():
     password = config.get_cloud_config_value(
         'password', get_configured_provider(), __opts__
     )
-    server = salt.ext.six.moves.xmlrpc_client.ServerProxy(xml_rpc)
+    server = salt.ext.six.moves.xmlrpc_client.ServerProxy(xml_rpc)  # pylint: disable=E1101
 
     return server, user, password
 

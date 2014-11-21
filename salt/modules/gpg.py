@@ -90,7 +90,7 @@ def __virtual__():
     Makes sure that python-gnupg and gpg are available.
     '''
     if _check_gpg() and HAS_LIBS:
-        gnupg_version = distutils.version.LooseVersion(gnupg.__version__)
+        gnupg_version = distutils.version.LooseVersion(gnupg.__version__)  # pylint: disable=E1101
         if gnupg_version >= '1.3.1':
             global GPG_1_3_1
             GPG_1_3_1 = True

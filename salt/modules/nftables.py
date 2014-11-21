@@ -46,7 +46,7 @@ def _nftables_cmd():
     return 'nft'
 
 
-def _conf(family='ip'):
+def _conf(family='ip'):  # pylint: disable=W0613
     '''
     Use the same file for rules for now.
     '''
@@ -244,7 +244,7 @@ def build_rule(table=None, chain=None, command=None, position='', full=None, fam
     return rule
 
 
-def get_saved_rules(conf_file=None, family='ipv4'):
+def get_saved_rules(conf_file=None, family='ipv4'):  # pylint: disable=W0613
     '''
     Return a data structure of the rules in the conf file
 

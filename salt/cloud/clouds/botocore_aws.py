@@ -44,7 +44,7 @@ import salt.ext.six as six
 
 # Import libcloudfuncs and libcloud_aws, required to latter patch __opts__
 try:
-    from salt.cloud.libcloudfuncs import *  # pylint: disable=W0614,W0401
+    from salt.cloud.libcloudfuncs import *  # pylint: disable=W0614,W0401,W0622
     from salt.cloud import libcloudfuncs
     from salt.cloud.clouds import libcloud_aws
     # Import libcloud_aws, storing pre and post locals so we can namespace any

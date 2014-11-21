@@ -54,7 +54,7 @@ from salt.exceptions import (
 import salt.ext.six as six
 
 try:
-    from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
+    from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401,W0622
     from salt.cloud.libcloudfuncs import destroy as libcloudfuncs_destroy
     from libcloud.compute.types import Provider
 

@@ -91,7 +91,7 @@ from salt.utils import namespaced_function
 # Import saltcloud libs
 import salt.utils.cloud
 import salt.config as config
-from salt.cloud.libcloudfuncs import *  # pylint: disable=W0401,W0614
+from salt.cloud.libcloudfuncs import *  # pylint: disable=W0401,W0614,W0622
 from salt.exceptions import (
     SaltCloudException,
     SaltCloudSystemExit,

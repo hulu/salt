@@ -102,7 +102,7 @@ import socket
 import pprint
 
 # Import generic libcloud functions
-from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
+from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401,W0622
 import salt.ext.six as six
 try:
     from salt.utils.openstack import nova

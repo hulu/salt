@@ -37,7 +37,7 @@ import time
 # Import salt cloud libs
 import salt.config as config
 from salt.exceptions import SaltCloudSystemExit
-from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401
+from salt.cloud.libcloudfuncs import *   # pylint: disable=W0614,W0401,W0622
 from salt.utils import namespaced_function
 
 # Attempt to import softlayer lib
