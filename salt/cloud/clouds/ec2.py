@@ -2263,7 +2263,7 @@ def start(name, call=None):
 
 def set_tags(name=None,
              tags=None,
-             call=None,
+             call=None,  # pylint: disable=W0613
              location=None,
              instance_id=None,
              resource_id=None,
@@ -2358,7 +2358,7 @@ def set_tags(name=None,
 
 def get_tags(name=None,
              instance_id=None,
-             call=None,
+             call=None,  # pylint: disable=W0613
              location=None,
              kwargs=None,
              resource_id=None):  # pylint: disable=W0613
@@ -2399,7 +2399,7 @@ def get_tags(name=None,
 
 def del_tags(name=None,
              kwargs=None,
-             call=None,
+             call=None,  # pylint: disable=W0613
              instance_id=None,
              resource_id=None):  # pylint: disable=W0613
     '''
@@ -2556,7 +2556,7 @@ def destroy(name, call=None):
     return ret
 
 
-def reboot(name, call=None):
+def reboot(name, call=None):  # pylint: disable=W0613
     '''
     Reboot a node.
 
@@ -2774,7 +2774,7 @@ def _list_nodes_full(location=None):
     return ret
 
 
-def list_nodes_min(location=None, call=None):
+def list_nodes_min(location=None, call=None):  # pylint: disable=W0613
     '''
     Return a list of the VMs that are on the provider. Only a list of VM names,
     and their state, is returned. This is the minimum amount of information

@@ -469,7 +469,7 @@ def list_nodes_min(kwargs=None, call=None):  # pylint: disable=W0613
     return ret
 
 
-def list_nodes(kwargs=None, call=None):
+def list_nodes(kwargs=None, call=None):  # pylint: disable=W0613
     '''
     Return a list of the VMs that are on the provider, with basic fields
     '''

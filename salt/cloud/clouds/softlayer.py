@@ -528,7 +528,7 @@ def create(vm_):
     return ret
 
 
-def list_nodes_full(mask='mask[id]', call=None):
+def list_nodes_full(mask='mask[id]', call=None):  # pylint: disable=W0613
     '''
     Return a list of the VMs that are on the provider
     '''
