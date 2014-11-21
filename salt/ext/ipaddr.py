@@ -29,7 +29,7 @@ from __future__ import absolute_import
 import struct
 
 # Import salt libs
-from six.moves import range as range  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 
 __version__ = 'trunk'
 

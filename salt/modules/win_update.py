@@ -14,7 +14,7 @@ from __future__ import absolute_import
 
 # Import Python libs
 import logging
-from six.moves import range  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 try:
     import win32com.client
     import pythoncom

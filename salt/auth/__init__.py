@@ -23,7 +23,7 @@ import time
 import logging
 import random
 import getpass
-from six.moves import input  # pylint: disable=W0622
+from salt.ext.six.moves import input  # pylint: disable=W0622
 
 # Import salt libs
 import salt.config

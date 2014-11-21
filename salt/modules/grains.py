@@ -21,7 +21,7 @@ import salt.utils.dictupdate
 from salt.defaults import DEFAULT_TARGET_DELIM
 from salt.exceptions import SaltException
 from functools import reduce  # pylint: disable=W0622
-from six.moves import range  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 
 __proxyenabled__ = ['*']
 

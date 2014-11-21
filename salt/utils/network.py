@@ -11,8 +11,8 @@ import re
 import logging
 import os
 from string import ascii_letters, digits
-from six.moves import range  # pylint: disable=W0622
-import six
+from salt.ext.six.moves import range  # pylint: disable=W0622
+import salt.ext.six as six
 
 # Attempt to import wmi
 try:

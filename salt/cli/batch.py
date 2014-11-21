@@ -14,7 +14,7 @@ import copy
 import salt.client
 import salt.output
 from salt.utils import print_cli
-from six.moves import range  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 
 
 class Batch(object):

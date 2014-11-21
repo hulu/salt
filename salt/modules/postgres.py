@@ -32,7 +32,7 @@ import StringIO
 import hashlib
 import os
 import tempfile
-from six.moves import zip  # pylint: disable=W0622
+from salt.ext.six.moves import zip  # pylint: disable=W0622
 try:
     import pipes
     import csv
@@ -42,7 +42,7 @@ except ImportError:
 
 # Import salt libs
 import salt.utils
-from six import string_types
+from salt.ext.six import string_types
 
 log = logging.getLogger(__name__)
 

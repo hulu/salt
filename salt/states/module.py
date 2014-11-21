@@ -70,7 +70,7 @@ import datetime
 # Import salt libs
 import salt.loader
 import salt.utils
-from six.moves import range  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 
 
 def wait(name, **kwargs):  # pylint: disable=W0613

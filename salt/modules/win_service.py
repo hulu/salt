@@ -9,8 +9,8 @@ import salt.utils
 import time
 import logging
 from subprocess import list2cmdline
-from six.moves import zip  # pylint: disable=W0622
-from six.moves import range  # pylint: disable=W0622
+from salt.ext.six.moves import zip  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

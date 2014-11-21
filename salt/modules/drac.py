@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import salt.utils
 
 import logging
-from six.moves import range  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

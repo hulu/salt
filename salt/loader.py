@@ -597,6 +597,9 @@ class Loader(object):
         '''
         Load a single module and pack it with the functions passed
         '''
+        if not name:
+            return {}
+
         full = ''
         mod = None
         for mod_dir in self.module_dirs:

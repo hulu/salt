@@ -17,7 +17,7 @@ import hashlib
 import logging
 import traceback
 import binascii
-from six.moves import zip  # pylint: disable=W0622
+from salt.ext.six.moves import zip  # pylint: disable=W0622
 
 # Import third party libs
 try:

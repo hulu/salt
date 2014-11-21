@@ -11,7 +11,7 @@ from __future__ import absolute_import
 # Python Libs
 import logging
 import re
-from six.moves import map  # pylint: disable=W0622
+from salt.ext.six.moves import map  # pylint: disable=W0622
 
 # Third party libs
 try:

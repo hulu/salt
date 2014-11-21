@@ -50,7 +50,7 @@ from __future__ import absolute_import
 from contextlib import contextmanager
 import collections
 import logging
-import six.moves.cPickle as pickle  # pylint: disable=E0611
+import salt.ext.six.moves.cPickle as pickle  # pylint: disable=E0611
 import socket
 import struct
 import time
@@ -58,7 +58,7 @@ import time
 # Import salt libs
 import salt.utils
 import salt.returners
-from six.moves import map  # pylint: disable=W0622
+from salt.ext.six.moves import map  # pylint: disable=W0622
 
 log = logging.getLogger(__name__)
 

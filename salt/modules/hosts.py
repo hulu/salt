@@ -10,8 +10,8 @@ import os
 # Import salt libs
 import salt.utils
 import salt.utils.odict as odict
-from six.moves import range  # pylint: disable=W0622
-import six
+from salt.ext.six.moves import range  # pylint: disable=W0622
+import salt.ext.six as six
 
 
 # pylint: disable=C0103

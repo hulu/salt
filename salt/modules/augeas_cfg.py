@@ -29,8 +29,8 @@ from __future__ import absolute_import
 import os
 import re
 import logging
-from six.moves import zip  # pylint: disable=W0622
-import six
+from salt.ext.six.moves import zip  # pylint: disable=W0622
+import salt.ext.six as six
 
 # Make sure augeas python interface is installed
 HAS_AUGEAS = False

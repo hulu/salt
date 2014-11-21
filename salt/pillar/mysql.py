@@ -188,7 +188,7 @@ import logging
 
 # Import Salt libs
 from salt.utils.odict import OrderedDict
-from six.moves import range  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 
 # Set up logging
 log = logging.getLogger(__name__)

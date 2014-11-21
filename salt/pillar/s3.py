@@ -70,8 +70,8 @@ from copy import deepcopy
 from salt.pillar import Pillar
 import salt.utils
 import salt.utils.s3 as s3
-import six
-from six.moves import filter  # pylint: disable=W0622
+import salt.ext.six as six
+from salt.ext.six.moves import filter  # pylint: disable=W0622
 
 # Set up logging
 log = logging.getLogger(__name__)

@@ -10,7 +10,7 @@ import os
 import re
 import fnmatch
 
-from six.moves import range  # pylint: disable=W0622
+from salt.ext.six.moves import range  # pylint: disable=W0622
 
 # Import salt libs
 import salt.utils

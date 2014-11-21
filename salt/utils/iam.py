@@ -12,8 +12,8 @@ import logging
 import time
 import requests
 import pprint
-from six.moves import range  # pylint: disable=W0622
-import six
+from salt.ext.six.moves import range  # pylint: disable=W0622
+import salt.ext.six as six
 
 log = logging.getLogger(__name__)
 
