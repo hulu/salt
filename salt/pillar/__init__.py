@@ -68,7 +68,7 @@ class RemotePillar(object):
     '''
     Get the pillar from the master
     '''
-    def __init__(self, opts, grains, id_, saltenv, ext=None, functions=None):
+    def __init__(self, opts, grains, id_, saltenv, ext=None, functions=None):  # pylint: disable=W0613
         self.opts = opts
         self.opts['environment'] = saltenv
         self.ext = ext
