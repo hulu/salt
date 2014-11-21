@@ -173,7 +173,7 @@ def new_set(set=None, set_type=None, family='ipv4', comment=False, **kwargs):  #
     return out
 
 
-def delete_set(set=None, family='ipv4'):  # pylint: disable=W0622
+def delete_set(set=None, family='ipv4'):  # pylint: disable=W0622,W0613
     '''
     .. versionadded:: 2014.7.0
 
@@ -200,7 +200,7 @@ def delete_set(set=None, family='ipv4'):  # pylint: disable=W0622
     return out
 
 
-def rename_set(set=None, new_set=None, family='ipv4'):  # pylint: disable=W0621,W0622
+def rename_set(set=None, new_set=None, family='ipv4'):  # pylint: disable=W0621,W0622,W0613
     '''
     .. versionadded:: 2014.7.0
 
@@ -238,7 +238,7 @@ def rename_set(set=None, new_set=None, family='ipv4'):  # pylint: disable=W0621,
     return out
 
 
-def list_sets(family='ipv4'):
+def list_sets(family='ipv4'):  # pylint: disable=W0613
     '''
     .. versionadded:: 2014.7.0
 
@@ -269,7 +269,7 @@ def list_sets(family='ipv4'):
     return sets
 
 
-def check_set(set=None, family='ipv4'):  # pylint: disable=W0622
+def check_set(set=None, family='ipv4'):  # pylint: disable=W0622,W0613
     '''
     .. versionadded:: 2014.7.0
 
@@ -291,7 +291,7 @@ def check_set(set=None, family='ipv4'):  # pylint: disable=W0622
     return True
 
 
-def add(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622
+def add(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622,W0613
     '''
     Append an entry to the specified set.
 
@@ -347,7 +347,7 @@ def add(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622
     return 'Error: {0}'.format(out)
 
 
-def delete(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622
+def delete(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622,W0613
     '''
     Delete an entry from the specified set.
 
@@ -376,7 +376,7 @@ def delete(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0
     return 'Error: {0}'.format(out)
 
 
-def check(set=None, entry=None, family='ipv4'):  # pylint: disable=W0622
+def check(set=None, entry=None, family='ipv4'):  # pylint: disable=W0622,W0613
     '''
     Check that an entry exists in the specified set.
 
@@ -402,7 +402,7 @@ def check(set=None, entry=None, family='ipv4'):  # pylint: disable=W0622
     return False
 
 
-def test(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622
+def test(set=None, entry=None, family='ipv4', **kwargs):  # pylint: disable=W0622,W0613
     '''
     Test if an entry is in the specified set.
 
