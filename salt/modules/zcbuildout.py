@@ -465,8 +465,8 @@ def _dot_buildout(directory):
 
 @_salt_callback
 def upgrade_bootstrap(directory='.',
-                      onlyif=None,
-                      unless=None,
+                      onlyif=None,  # pylint: disable=W0613
+                      unless=None,  # pylint: disable=W0613
                       runas=None,  # pylint: disable=W0613
                       env=(),  # pylint: disable=W0613
                       offline=False,
@@ -558,8 +558,8 @@ def upgrade_bootstrap(directory='.',
 def bootstrap(directory='.',
               config='buildout.cfg',
               python=sys.executable,
-              onlyif=None,
-              unless=None,
+              onlyif=None,  # pylint: disable=W0613
+              unless=None,  # pylint: disable=W0613
               runas=None,
               env=(),
               distribute=None,
@@ -771,8 +771,8 @@ def bootstrap(directory='.',
 def run_buildout(directory='.',
                  config='buildout.cfg',
                  parts=None,
-                 onlyif=None,
-                 unless=None,
+                 onlyif=None,  # pylint: disable=W0613
+                 unless=None,  # pylint: disable=W0613
                  offline=False,
                  newest=True,
                  runas=None,
@@ -936,8 +936,8 @@ def buildout(directory='.',
              python=sys.executable,
              debug=False,
              verbose=False,
-             onlyif=None,
-             unless=None,
+             onlyif=None,  # pylint: disable=W0613
+             unless=None,  # pylint: disable=W0613
              use_vt=False,
              loglevel=None):
     '''
