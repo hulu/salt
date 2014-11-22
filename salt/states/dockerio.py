@@ -730,7 +730,7 @@ def run(name,
         return _invalid(comment=result['comment'], name=name)
 
 
-def script(*args, **kw):
+def script(*args, **kw):  # pylint: disable=W0613
     '''
     Placeholder function for a cmd.script alike.
 

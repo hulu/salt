@@ -228,7 +228,7 @@ def configurable_test_state(name, changes=True, result=True, comment=''):
     return ret
 
 
-def mod_watch(name, sfun=None, **kwargs):
+def mod_watch(name, sfun=None, **kwargs):  # pylint: disable=W0613
     ''''
     Call this function via a watch statement
 

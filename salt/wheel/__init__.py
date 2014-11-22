@@ -79,7 +79,7 @@ class WheelClient(mixins.SyncClientMixin, mixins.AsyncClientMixin, object):
                 raise_error(**ret['error'])
         return ret
 
-    def cmd_sync(self, low, timeout=None):
+    def cmd_sync(self, low, timeout=None):  # pylint: disable=W0613
         '''
         Execute a wheel function synchronously; eauth is respected
 

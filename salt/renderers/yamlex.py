@@ -11,7 +11,7 @@ from salt.utils.serializers.yamlex import deserialize
 log = logging.getLogger(__name__)
 
 
-def render(sls_data, saltenv='base', sls='', **kws):
+def render(sls_data, saltenv='base', sls='', **kws):  # pylint: disable=W0613
     '''
     Accepts YAML_EX as a string or as a file object and runs it through the YAML_EX
     parser.
