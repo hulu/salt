@@ -973,7 +973,7 @@ def _retcode_quiet(cmd,
                    template=None,
                    umask=None,
                    output_loglevel='quiet',
-                   quiet=True,
+                   quiet=True,  # pylint: disable=W0613
                    timeout=None,
                    reset_system_locale=True,
                    ignore_retcode=False,

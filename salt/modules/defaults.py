@@ -37,7 +37,7 @@ def _get_files(pillar_name):
     return __context__['cp.fileclient'].cache_files(paths)
 
 
-def _load(pillar_name, defaults_path):
+def _load(pillar_name, defaults_path):  # pylint: disable=W0613
     '''
     Given a pillar_name and the template cache location, attempt to load
     the defaults.json from the cache location. If it does not exist, try
