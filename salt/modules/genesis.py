@@ -36,7 +36,7 @@ def __virtual__():
 def bootstrap(platform,
               root,
               img_format='dir',
-              fs_format='ext2',
+              fs_format='ext2',  # pylint: disable=W0613
               arch=None,
               flavor=None,
               repo_url=None,
@@ -188,7 +188,7 @@ def _bootstrap_deb(
     )
 
 
-def _bootstrap_pacman(root, pkg_confs='/etc/pacman*'):
+def _bootstrap_pacman(root, pkg_confs='/etc/pacman*'):  # pylint: disable=W0613
     '''
     Bootstrap an image using the pacman tools
 
