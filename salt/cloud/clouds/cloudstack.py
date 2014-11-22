@@ -96,7 +96,7 @@ def get_conn():
 
     if verify_ssl_cert is False:
         try:
-            import libcloud.security
+            import libcloud.security  # pylint: disable=W0621
             libcloud.security.VERIFY_SSL_CERT = False
         except (ImportError, AttributeError):
             raise SaltCloudSystemExit(

@@ -258,7 +258,7 @@ def get_conn():
         'insecure', vm_, __opts__, search_global=False
     )
     if insecure:
-        import libcloud.security
+        import libcloud.security  # pylint: disable=W0621
         libcloud.security.VERIFY_SSL_CERT = False
 
     user = config.get_cloud_config_value(
