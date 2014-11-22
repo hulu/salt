@@ -780,21 +780,21 @@ def deploy_windows(host,
                    username='Administrator',
                    password=None,
                    name=None,
-                   sock_dir=None,
-                   conf_file=None,
-                   start_action=None,
-                   parallel=False,
+                   sock_dir=None,  # pylint: disable=W0613
+                   conf_file=None,  # pylint: disable=W0613
+                   start_action=None,  # pylint: disable=W0613
+                   parallel=False,  # pylint: disable=W0613
                    minion_pub=None,
                    minion_pem=None,
                    minion_conf=None,
                    keep_tmp=False,
-                   script_args=None,
-                   script_env=None,
+                   script_args=None,  # pylint: disable=W0613
+                   script_env=None,  # pylint: disable=W0613
                    port_timeout=15,
-                   preseed_minion_keys=None,
+                   preseed_minion_keys=None,  # pylint: disable=W0613
                    win_installer=None,
                    master=None,
-                   tmp_dir='C:\\salttmp',
+                   tmp_dir='C:\\salttmp',  # pylint: disable=W0613
                    opts=None,
                    **kwargs):
     '''
