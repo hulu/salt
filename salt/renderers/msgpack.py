@@ -8,7 +8,7 @@ import msgpack
 from salt.ext.six import string_types
 
 
-def render(msgpack_data, saltenv='base', sls='', **kws):
+def render(msgpack_data, saltenv='base', sls='', **kws):  # pylint: disable=W0613
     '''
     Accepts a message pack string or a file object, renders said data back to
     a python dict.

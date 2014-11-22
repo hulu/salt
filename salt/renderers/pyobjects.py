@@ -313,7 +313,7 @@ def load_states():
     __context__['pyobjects_states'] = states
 
 
-def render(template, saltenv='base', sls='', salt_data=True, **kwargs):
+def render(template, saltenv='base', sls='', salt_data=True, **kwargs):  # pylint: disable=W0613
     if 'pyobjects_states' not in __context__:
         load_states()
 

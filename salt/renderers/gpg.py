@@ -125,7 +125,7 @@ def decrypt_object(o, gpg):
         return o
 
 
-def render(data, saltenv='base', sls='', argline='', **kwargs):
+def render(data, saltenv='base', sls='', argline='', **kwargs):  # pylint: disable=W0613
     '''
     Create a gpg object given a gpg_keydir, and then use it to try to decrypt
     the data to be rendered.

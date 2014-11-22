@@ -16,7 +16,7 @@ except ImportError:
 from salt.ext.six import string_types
 
 
-def render(cheetah_data, saltenv='base', sls='', method='xml', **kws):
+def render(cheetah_data, saltenv='base', sls='', method='xml', **kws):  # pylint: disable=W0613
     '''
     Render a Cheetah template.
 

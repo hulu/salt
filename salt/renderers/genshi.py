@@ -18,7 +18,7 @@ except ImportError:
 from salt.ext.six import string_types
 
 
-def render(genshi_data, saltenv='base', sls='', method='xml', **kws):
+def render(genshi_data, saltenv='base', sls='', method='xml', **kws):  # pylint: disable=W0613
     '''
     Render a Genshi template. A method should be passed in as part of the
     kwargs. If no method is passed in, xml is assumed. Valid methods are:
