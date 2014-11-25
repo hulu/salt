@@ -131,7 +131,7 @@ def full_restart(name):
     restart(name)
 
 
-def status(name, sig=None):
+def status(name, sig=None):  # pylint: disable=W0613
     '''
     Return the status for a service via runit, return pid if running
 
