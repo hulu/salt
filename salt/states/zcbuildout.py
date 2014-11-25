@@ -134,7 +134,7 @@ def installed(name,
               unless=None,
               onlyif=None,
               use_vt=False,
-              loglevel='debug'):
+              loglevel='debug'):  # pylint: disable=W0613
     '''
     Install buildout in a specific directory
 
