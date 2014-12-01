@@ -2,7 +2,7 @@
 # pylint: disable=E1101
 '''
 A non-blocking REST API for Salt
-===================
+================================
 
 .. py:currentmodule:: salt.netapi.rest_tornado.saltnado
 
