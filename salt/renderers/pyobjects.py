@@ -266,6 +266,7 @@ import logging
 import re
 from salt.ext.six import exec_
 
+import salt.utils
 from salt.loader import _create_loader
 from salt.fileclient import get_file_client
 from salt.utils.pyobjects import Registry, StateFactory, SaltObject, Map
@@ -404,7 +405,7 @@ def render(template, saltenv='base', sls='', salt_data=True, **kwargs):  # pylin
             if not state_file:
                 raise ImportError("Could not find the file {0!r}".format(import_file))
 
-            with open(state_file) as f:
+            with salt.utils.fopen(state_file) as f:
                 state_contents = f.read()
 
             state_locals = {}
