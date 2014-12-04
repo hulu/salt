@@ -99,7 +99,7 @@ def pxe(hostname, timeout=20):
         for cmd in sorted(_cmds.keys()):
             log.info('Executing command {0}'.format(cmd))
 
-            (stdin, stdout, stderr) = client.exec_command(_cmds[cmd])
+            (stdin, stdout, stderr) = client.exec_command(_cmds[cmd])  # pylint: disable=E1101
 
         if bool([True for i in _keywords if i in stdout.readline().rstrip()]):
             log.info('Executing command: {0}'.format(cmd))
@@ -125,7 +125,7 @@ def reboot(hostname, timeout=20):
     _keywords = ['successful', 'successfully']
 
     if isinstance(client, paramiko.SSHClient):
-        (stdin, stdout, stderr) = client.exec_command('racadm serveraction powercycle')
+        (stdin, stdout, stderr) = client.exec_command('racadm serveraction powercycle')  # pylint: disable=E1101
 
         if bool([True for i in _keywords if i in stdout.readline().rstrip()]):
             log.info('powercycle successful')
@@ -154,7 +154,7 @@ def poweroff(hostname, timeout=20):
     _keywords = ['successful', 'successfully']
 
     if isinstance(client, paramiko.SSHClient):
-        (stdin, stdout, stderr) = client.exec_command('racadm serveraction powerdown')
+        (stdin, stdout, stderr) = client.exec_command('racadm serveraction powerdown')  # pylint: disable=E1101
 
         if bool([True for i in _keywords if i in stdout.readline().rstrip()]):
             log.info('powerdown successful')
@@ -183,7 +183,7 @@ def poweron(hostname, timeout=20):
     _keywords = ['successful', 'successfully']
 
     if isinstance(client, paramiko.SSHClient):
-        (stdin, stdout, stderr) = client.exec_command('racadm serveraction powerup')
+        (stdin, stdout, stderr) = client.exec_command('racadm serveraction powerup')  # pylint: disable=E1101
 
         if bool([True for i in _keywords if i in stdout.readline().rstrip()]):
             log.info('powerup successful')
