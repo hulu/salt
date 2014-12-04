@@ -182,7 +182,7 @@ def scrub(pool_name=None):
 
 def create(pool_name, *vdevs, **kwargs):
     '''
-    Create a simple zpool, a mirrored zpool, a zpool having nested VDEVs, a hybrid zpool with cache and log drives or a zpool with RAIDZ-1, RAIDZ-2 or RAIDZ-3
+    Create a simple zpool, a mirrored zpool, a zpool having nested VDEVs, a hybrid zpool with cache, spare and log drives or a zpool with RAIDZ-1, RAIDZ-2 or RAIDZ-3
 
     CLI Example:
 
@@ -192,7 +192,7 @@ def create(pool_name, *vdevs, **kwargs):
         salt '*' zpool.create myzpool mirror /path/to/vdev1 /path/to/vdev2 [...] [force=True|False]
         salt '*' zpool.create myzpool raidz1 /path/to/vdev1 /path/to/vdev2 raidz2 /path/to/vdev3 /path/to/vdev4 /path/to/vdev5 [...] [force=True|False]
         salt '*' zpool.create myzpool mirror /path/to/vdev1 [...] mirror /path/to/vdev2 /path/to/vdev3 [...] [force=True|False]
-        salt '*' zpool.create myhybridzpool mirror /tmp/file1 [...] log mirror /path/to/vdev1 [...] cache /path/to/vdev2 [...] [force=True|False]
+        salt '*' zpool.create myhybridzpool mirror /tmp/file1 [...] log mirror /path/to/vdev1 [...] cache /path/to/vdev2 [...] spare /path/to/vdev3 [...] [force=True|False]
 
     .. note::
 
@@ -222,7 +222,7 @@ def create(pool_name, *vdevs, **kwargs):
 
     # make sure files are present on filesystem
     for vdev in vdevs:
-        if vdev not in ['mirror', 'log', 'cache', 'raidz1', 'raidz2', 'raidz3']:
+        if vdev not in ['mirror', 'log', 'cache', 'raidz1', 'raidz2', 'raidz3', 'spare']:
             if not os.path.exists(vdev):
                 # Path doesn't exist so error and return
                 ret[vdev] = '{0} not present on filesystem'.format(vdev)
@@ -268,37 +268,52 @@ def create(pool_name, *vdevs, **kwargs):
     return ret
 
 
-def add(pool_name, vdev):
+def add(pool_name, *vdevs):
     '''
-    Add the specified vdev to the given pool
+    Add the specified vdev\'s to the given pool
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt '*' zpool.add myzpool /path/to/vdev
+        salt '*' zpool.add myzpool /path/to/vdev1 /path/to/vdev2 [...]
     '''
     ret = {}
+    dlist = []
+
     # check for pool
     if not exists(pool_name):
-        ret['Error'] = 'Can\'t add {0} to {1} pool is not available'.format(
-                pool_name,
-                vdev)
+        ret['Error'] = 'Storage Pool `{0}` doesn\'t exist'.format(pool_name)
         return ret
 
-    # check device is a file
-    if not os.path.isfile(vdev):
-        ret['Error'] = '{0} not on filesystem'.format(vdev)
+    if not vdevs:
+        ret['Error'] = 'Missing vdev specification. Please specify vdevs.'
         return ret
+
+    # make sure files are present on filesystem
+    for vdev in vdevs:
+        if vdev not in ['mirror', 'log', 'cache', 'raidz1', 'raidz2', 'raidz3', 'spare']:
+            if not os.path.exists(vdev):
+                # Path doesn't exist so error and return
+                ret[vdev] = '{0} not present on filesystem'.format(vdev)
+                return ret
+            mode = os.stat(vdev).st_mode
+            if not stat.S_ISBLK(mode) and not stat.S_ISREG(mode):
+                # Not a block device or file vdev so error and return
+                ret[vdev] = '{0} is not a block device or a file vdev'.format(vdev)
+                return ret
+        dlist.append(vdev)
+
+    devs = ' '.join(dlist)
 
     # try and add watch out for mismatched replication levels
     zpool = _check_zpool()
-    cmd = '{0} add {1} {2}'.format(zpool, pool_name, vdev)
+    cmd = '{0} add {1} {2}'.format(zpool, pool_name, devs)
     res = __salt__['cmd.run'](cmd)
     if 'errors' not in res.splitlines():
-        ret['Added'] = '{0} to {1}'.format(vdev, pool_name)
+        ret['Added'] = '{0} to {1}'.format(devs, pool_name)
         return ret
-    ret['Error'] = 'Something went wrong add {0} to {1}'.format(vdev, pool_name)
+    ret['Error'] = 'Something went wrong when adding {0} to {1}'.format(devs, pool_name)
 
 
 def replace(pool_name, old, new):
@@ -352,7 +367,9 @@ def create_file_vdev(size, *vdevs):
 
         salt '*' zpool.create_file_vdev 7g /path/to/vdev1 [/path/to/vdev2] [...]
 
-        Depending on file size this may take a while to return
+    .. note::
+
+        Depending on file size, the above command may take a while to return.
     '''
     ret = {}
     if not _check_mkfile():
@@ -468,4 +485,114 @@ def import_(pool_name='', new_name='', **kwargs):
             ret['Error']['Reason'] = res
         else:
             ret[pool_name] = 'Imported'
+    return ret
+
+
+def online(pool_name, *vdevs, **kwargs):
+    '''
+    Ensure that the specified devices are online
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' zpool.online myzpool /path/to/vdev1 [...]
+
+    '''
+    ret = {}
+    dlist = []
+
+    # Check if the pool_name exists
+    if not exists(pool_name):
+        ret['Error'] = 'Storage Pool `{0}` doesn\'t exist'.format(pool_name)
+        return ret
+
+    if not vdevs:
+        ret['Error'] = 'Missing vdev specification. Please specify vdevs.'
+        return ret
+
+    # make sure files are present on filesystem
+    for vdev in vdevs:
+        if not os.path.exists(vdev):
+            # Path doesn't exist so error and return
+            ret[vdev] = '{0} not present on filesystem'.format(vdev)
+            return ret
+        mode = os.stat(vdev).st_mode
+        if not stat.S_ISBLK(mode) and not stat.S_ISREG(mode):
+            # Not a block device or file vdev so error and return
+            ret[vdev] = '{0} is not a block device or a file vdev'.format(vdev)
+            return ret
+        dlist.append(vdev)
+
+    devs = ' '.join(dlist)
+    zpool = _check_zpool()
+    cmd = '{0} online {1} {2}'.format(zpool, pool_name, devs)
+
+    # Bring all specified devices online
+    res = __salt__['cmd.run'](cmd)
+    if res:
+        ret['Error'] = {}
+        ret['Error']['Message'] = 'Failure bringing device online.'
+        ret['Error']['Reason'] = res
+    else:
+        ret[pool_name] = 'Specified devices: {0} are online.'.format(vdevs)
+    return ret
+
+
+def offline(pool_name, *vdevs, **kwargs):
+    '''
+    Ensure that the specified devices are offline
+
+    .. warning::
+
+        By default, the OFFLINE state is persistent. The device remains offline when
+        the system is rebooted. To temporarily take a device offline, use ``temporary=True``.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' zpool.offline myzpool /path/to/vdev1 [...] [temporary=True|False]
+    '''
+    ret = {}
+    dlist = []
+
+    # Check if the pool_name exists
+    if not exists(pool_name):
+        ret['Error'] = 'Storage Pool `{0}` doesn\'t exist'.format(pool_name)
+        return ret
+
+    if not vdevs:
+        ret['Error'] = 'Missing vdev specification. Please specify vdevs.'
+        return ret
+
+    # make sure files are present on filesystem
+    for vdev in vdevs:
+        if not os.path.exists(vdev):
+            # Path doesn't exist so error and return
+            ret[vdev] = '{0} not present on filesystem'.format(vdev)
+            return ret
+        mode = os.stat(vdev).st_mode
+        if not stat.S_ISBLK(mode) and not stat.S_ISREG(mode):
+            # Not a block device or file vdev so error and return
+            ret[vdev] = '{0} is not a block device or a file vdev'.format(vdev)
+            return ret
+        dlist.append(vdev)
+
+    devs = ' '.join(dlist)
+    zpool = _check_zpool()
+    temporary_opt = kwargs.get('temporary', False)
+    if temporary_opt:
+        cmd = '{0} offline -t {1} {2}'.format(zpool, pool_name, devs)
+    else:
+        cmd = '{0} offline {1} {2}'.format(zpool, pool_name, devs)
+
+    # Take all specified devices offline
+    res = __salt__['cmd.run'](cmd)
+    if res:
+        ret['Error'] = {}
+        ret['Error']['Message'] = 'Failure taking specified devices offline.'
+        ret['Error']['Reason'] = res
+    else:
+        ret[pool_name] = 'Specified devices: {0} are offline.'.format(vdevs)
     return ret
