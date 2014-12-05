@@ -798,10 +798,10 @@ class ReactWrap(object):
         if ReactWrap.client_cache is None:
             ReactWrap.client_cache = salt.utils.cache.CacheDict(opts['reactor_refresh_interval'])
 
-        self.pool = salt.utils.process. ThreadPool(
-                        self.opts['reactor_worker_threads'],  # number of workers for runner/wheel
-                        queue_size=self.opts['reactor_worker_hwm']  # queue size for those workers
-                    )
+        self.pool = salt.utils.process.ThreadPool(
+            self.opts['reactor_worker_threads'],  # number of workers for runner/wheel
+            queue_size=self.opts['reactor_worker_hwm']  # queue size for those workers
+        )
 
     def run(self, low):
         '''
@@ -879,9 +879,9 @@ class StateFire(object):
                     'cmd': '_minion_event',
                     'tok': self.auth.gen_token('salt')})
 
-        sreq = salt.transport.Channel.factory(self.opts)
+        channel = salt.transport.Channel.factory(self.opts)
         try:
-            sreq.send(load)
+            channel.send(load)
         except Exception:
             pass
         return True
@@ -909,9 +909,9 @@ class StateFire(object):
                     {'tag': tag,
                      'data': running[stag]}
                     )
-        sreq = salt.transport.Channel.factory(self.opts)
+        channel = salt.transport.Channel.factory(self.opts)
         try:
-            sreq.send(load)
+            channel.send(load)
         except Exception:
             pass
         return True

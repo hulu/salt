@@ -186,11 +186,11 @@
 # option, then the master will log a warning message.
 #
 # Include a config file from some other path:
-#include: /etc/salt/extra_config
+# include: /etc/salt/extra_config
 #
 # Include config from several files and directories:
-#include:
-#  - /etc/salt/extra_config
+# include:
+#   - /etc/salt/extra_config
 
 
 #####        Security settings       #####
@@ -358,6 +358,14 @@
 # If set to 'changes', the output will be full unless the state didn't change.
 #state_output: full
 
+# Automatically aggregate all states that have support for mod_aggregate by
+# setting to True. Or pass a list of state module names to automatically
+# aggregate just those types.
+#
+# state_aggregate:
+#   - pkg
+#
+#state_aggregate: False
 
 #####      File Server settings      #####
 ##########################################

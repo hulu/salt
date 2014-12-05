@@ -23,7 +23,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 import time
-import copy
 import logging
 import errno
 from datetime import datetime
@@ -60,13 +59,6 @@ try:
 except ImportError:
     pass
 
-HAS_RAET = False
-try:
-    import salt.client.raet
-    HAS_RAET = True
-except (AttributeError, ImportError):
-    pass
-
 log = logging.getLogger(__name__)
 
 
@@ -83,8 +75,11 @@ def get_local_client(
     if mopts:
         opts = mopts
     else:
+        # Late import to prevent circular import
+        import salt.config
         opts = salt.config.client_config(c_path)
     if opts['transport'] == 'raet':
+        import salt.client.raet
         return salt.client.raet.LocalClient(mopts=opts)
     elif opts['transport'] == 'zeromq':
         return LocalClient(mopts=opts, skip_perm_errors=skip_perm_errors)
@@ -808,19 +803,24 @@ class LocalClient(object):
             event = self.event
         jid_tag = 'salt/job/{0}'.format(jid)
         while True:
-            try:
+            if HAS_ZMQ:
+                try:
+                    raw = event.get_event_noblock()
+                    if raw and raw.get('tag', '').startswith(jid_tag):
+                        yield raw
+                    else:
+                        yield None
+                except zmq.ZMQError as ex:
+                    if ex.errno == errno.EAGAIN or ex.errno == errno.EINTR:
+                        yield None
+                    else:
+                        raise
+            else:
                 raw = event.get_event_noblock()
                 if raw and raw.get('tag', '').startswith(jid_tag):
                     yield raw
                 else:
                     yield None
-            except Exception as ex:
-                # TODO: create a "Salt" exception to raise instead of usinge zmq's
-                if HAS_ZMQ and isinstance(ex, zmq.ZMQError) and \
-                        (ex.errno == errno.EAGAIN or ex.errno == errno.EINTR):
-                    yield None
-                else:
-                    raise
 
     def get_iter_returns(
             self,
@@ -1397,12 +1397,12 @@ class LocalClient(object):
 
         master_uri = 'tcp://' + salt.utils.ip_bracket(self.opts['interface']) + \
                      ':' + str(self.opts['ret_port'])
-        channel = salt.transport.Channel.factory(self.opts,
-                                                 crypt='clear',
-                                                 master_uri=master_uri)
+        sreq = salt.transport.Channel.factory(self.opts,
+                                              crypt='clear',
+                                              master_uri=master_uri)
 
         try:
-            payload = channel.send(payload_kwargs, timeout=timeout)
+            payload = sreq.send(payload_kwargs, timeout=timeout)
         except SaltReqTimeoutError:
             log.error(
                 'Salt request timed out. If this error persists, '
@@ -1418,12 +1418,12 @@ class LocalClient(object):
                 return payload
             self.key = key
             payload_kwargs['key'] = self.key
-            payload = channel.send(payload_kwargs)
+            payload = sreq.send(payload_kwargs)
             if not payload:
                 return payload
 
-        # We have the payload, let's get rid of the channel fast(GC'ed faster)
-        del channel
+        # We have the payload, let's get rid of SREQ fast(GC'ed faster)
+        del sreq
 
         return {'jid': payload['load']['jid'],
                 'minions': payload['load']['minions']}

@@ -1114,6 +1114,8 @@ class Minion(MinionBase):
             mod_name = function_name.split('.')[0]
             if mod_name in minion_instance.function_errors:
                 ret['return'] += ' Possible reasons: {0!r}'.format(minion_instance.function_errors[mod_name])
+            ret['success'] = False
+            ret['retcode'] = 254
             ret['out'] = 'nested'
 
         ret['jid'] = data['jid']
@@ -1547,9 +1549,9 @@ class Minion(MinionBase):
         '''
         Send mine data to the master
         '''
-        sreq = salt.transport.Channel.factory(self.opts)
+        channel = salt.transport.Channel.factory(self.opts)
         load = salt.utils.event.SaltEvent.unpack(package)[1]
-        ret = sreq.send(load)
+        ret = channel.send(load)
         return ret
 
     def handle_event(self, package):
