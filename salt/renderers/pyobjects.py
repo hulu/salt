@@ -274,6 +274,7 @@ from salt.utils.pyobjects import Registry, StateFactory, SaltObject, Map
 # our import regexes
 FROM_RE = r'^\s*from\s+(salt:\/\/.*)\s+import (.*)$'
 IMPORT_RE = r'^\s*import\s+(salt:\/\/.*)$'
+FROM_AS_RE = r'^(.*) as (.*)$'
 
 log = logging.getLogger(__name__)
 
@@ -415,13 +416,19 @@ def render(template, saltenv='base', sls='', salt_data=True, **kwargs):  # pylin
                 imports = list(state_locals.keys())
 
             for name in imports:
-                name = name.strip()
+                name = alias = name.strip()
+
+                matches = re.match(FROM_AS_RE, name)
+                if matches is not None:
+                    name = matches.group(1).strip()
+                    alias = matches.group(2).strip()
+
                 if name not in state_locals:
                     raise ImportError("{0!r} was not found in {1!r}".format(
                         name,
                         import_file
                     ))
-                _globals[name] = state_locals[name]
+                _globals[alias] = state_locals[name]
 
             matched = True
             break
