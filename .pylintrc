@@ -30,6 +30,10 @@ persistent=yes
 load-plugins=
 
 
+# Fileperms Lint Plugin Settings
+fileperms-default=0644
+fileperms-ignore-paths=tests/runtests.py,tests/jenkins*.py,tests/saltsh.py,tests/buildpackage.py
+
 [MESSAGES CONTROL]
 
 # Enable the message, report, category or checker with the given id(s). You can
