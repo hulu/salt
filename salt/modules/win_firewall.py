@@ -116,7 +116,7 @@ def add_rule(name, localport, protocol="tcp", action="allow", dir="in"):  # pyli
     return __salt__['cmd.run'](cmd, python_shell=False) == 'Ok.'
 
 
-def delete_rule(name, localport, protocol, dir):
+def delete_rule(name, localport, protocol, dir):  # pylint: disable=W0622
     '''
     Delete an existing firewall rule
 
