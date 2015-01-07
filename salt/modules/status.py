@@ -556,7 +556,7 @@ def version():
     return ret
 
 
-def master(master=None, connected=True):
+def master(master=None, connected=True):  # pylint: disable=W0621
     '''
     .. versionadded:: 2014.7.0
 
