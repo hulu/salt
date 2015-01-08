@@ -64,5 +64,9 @@ _version.py
 
 # Ignore grains file written out during tests
 tests/integration/files/conf/grains
+/salt/_syspaths.py
+
+# ignore the local root
+/root/**
 
 update.sh
