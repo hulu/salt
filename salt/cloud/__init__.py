@@ -1231,6 +1231,15 @@ class Cloud(object):
         )
 
         try:
+            vm_['inline_script'] = salt.config.get_cloud_config_value(
+                'inline_script',
+                vm_,
+                self.opts
+            )
+        except KeyError:
+            pass
+
+        try:
             alias, driver = vm_['provider'].split(':')
             func = '{0}.create'.format(driver)
             with context.func_globals_inject(
@@ -1589,9 +1598,6 @@ class Map(Cloud):
             for driver, vms in drivers.copy().items():
                 for vm_name, vm_details in vms.copy().items():
                     if vm_details == 'Absent':
-                        query_map[alias][driver].pop(vm_name)
-                    elif vm_details['state'].lower() not in ('running',
-                                                             'active'):
                         query_map[alias][driver].pop(vm_name)
                 if not query_map[alias][driver]:
                     query_map[alias].pop(driver)

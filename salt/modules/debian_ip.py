@@ -334,9 +334,9 @@ def __ipv4_netmask(value):
 
 def __ipv6_netmask(value):
     '''validate an IPv6 integer netmask'''
-    valid, errmsg = False, 'IPv6 netmask (0->127)'
+    valid, errmsg = False, 'IPv6 netmask (0->128)'
     valid, value, _ = __int(value)
-    valid = (valid and 0 <= value <= 127)
+    valid = (valid and 0 <= value <= 128)
     return (valid, value, errmsg)
 
 
@@ -1536,7 +1536,7 @@ def build_interface(iface, iface_type, enabled, **settings):
         if not __salt__['pkg.version']('ppp'):
             inst = __salt__['pkg.install']('ppp')
 
-    elif iface_type is 'bond':
+    elif iface_type == 'bond':
         if 'slaves' not in settings:
             msg = 'slaves is a required setting for bond interfaces'
             log.error(msg)

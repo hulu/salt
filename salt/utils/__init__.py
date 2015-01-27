@@ -105,8 +105,6 @@ from salt.exceptions import (
     SaltInvocationError
 )
 
-# Import third party libs
-import yaml
 
 log = logging.getLogger(__name__)
 _empty = object()
@@ -137,6 +135,8 @@ def get_color_theme(theme):
     '''
     Return the color theme to use
     '''
+    # Keep the heavy lifting out of the module space
+    import yaml
     if not os.path.isfile(theme):
         log.warning('The named theme {0} if not available'.format(theme))
     try:
@@ -756,17 +756,6 @@ def format_call(fun,
             continue
         extra[key] = copy.deepcopy(value)
 
-    # We'll be showing errors to the users until Salt Lithium comes out, after
-    # which, errors will be raised instead.
-    warn_until(
-        'Lithium',
-        'It\'s time to start raising `SaltInvocationError` instead of '
-        'returning warnings',
-        # Let's not show the deprecation warning on the console, there's no
-        # need.
-        _dont_call_warnings=True
-    )
-
     if extra:
         # Found unexpected keyword arguments, raise an error to the user
         if len(extra) == 1:
@@ -790,20 +779,14 @@ def format_call(fun,
                     '{0}.{1}'.format(fun.__module__, fun.__name__)
                 )
             )
-
-        # Return a warning to the user explaining what's going on
-        ret.setdefault('warnings', []).append(
+        raise SaltInvocationError(
             '{0}. If you were trying to pass additional data to be used '
             'in a template context, please populate \'context\' with '
-            '\'key: value\' pairs. Your approach will work until Salt Lithium '
-            'is out.{1}'.format(
+            '\'key: value\' pairs.{1}'.format(
                 msg,
                 '' if 'full' not in ret else ' Please update your state files.'
             )
         )
-
-        # Lets pack the current extra kwargs as template context
-        ret.setdefault('context', {}).update(extra)
     return ret
 
 
@@ -2302,3 +2285,32 @@ def sdecode(string_):
         except UnicodeDecodeError:
             continue
     return string_
+
+
+def relpath(path, start='.'):
+    '''
+    Work around Python bug #5117, which is not (and will not be) patched in
+    Python 2.6 (http://bugs.python.org/issue5117)
+    '''
+    if sys.version_info < (2, 7) and 'posix' in sys.builtin_module_names:
+        # The below code block is based on posixpath.relpath from Python 2.7,
+        # which has the fix for this bug.
+        if not path:
+            raise ValueError('no path specified')
+
+        start_list = [
+            x for x in os.path.abspath(start).split(os.path.sep) if x
+        ]
+        path_list = [
+            x for x in os.path.abspath(path).split(os.path.sep) if x
+        ]
+
+        # work out how much of the filepath is shared by start and path.
+        i = len(os.path.commonprefix([start_list, path_list]))
+
+        rel_list = [os.path.pardir] * (len(start_list)-i) + path_list[i:]
+        if not rel_list:
+            return os.path.curdir
+        return os.path.join(*rel_list)
+
+    return os.path.relpath(path, start=start)

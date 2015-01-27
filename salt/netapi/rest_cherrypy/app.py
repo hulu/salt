@@ -8,6 +8,7 @@ A REST API for Salt
 .. py:currentmodule:: salt.netapi.rest_cherrypy.app
 
 :depends:   - CherryPy Python module
+            - salt-api package
 :optdepends:    - ws4py Python module for websockets support.
 :configuration: All authentication is done through Salt's :ref:`external auth
     <acl-eauth>` system which requires additional configuration not described
@@ -347,7 +348,8 @@ def hypermedia_handler(*args, **kwargs):
     try:
         cherrypy.response.processors = dict(ct_out_map)
         ret = cherrypy.serving.request._hypermedia_inner_handler(*args, **kwargs)
-    except salt.exceptions.EauthAuthenticationError:
+    except (salt.exceptions.EauthAuthenticationError,
+            salt.exceptions.TokenAuthenticationError):
         raise cherrypy.HTTPError(401)
     except cherrypy.CherryPyException:
         raise

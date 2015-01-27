@@ -21,6 +21,7 @@ from collections import MutableMapping
 from salt.exceptions import LoaderError
 from salt.template import check_render_pipe_str
 from salt.utils.decorators import Depends
+from salt.utils.odict import OrderedDict
 
 # Solve the Chicken and egg problem where grains need to run before any
 # of the modules are loaded and are generally available for any usage.
@@ -654,10 +655,18 @@ class Loader(object):
                 exc_info=True
             )
             return mod
-        except Exception:
+        except Exception as error:
             log.error(
                 'Failed to import {0} {1}, this is due most likely to a '
                 'syntax error:\n'.format(
+                    self.tag, name
+                ),
+                exc_info=True
+            )
+            return mod
+        except SystemExit as error:
+            log.error(
+                'Failed to import {0} {1} as the module called exit()\n'.format(
                     self.tag, name
                 ),
                 exc_info=True
@@ -745,7 +754,7 @@ class Loader(object):
         '''
         Return a dict of functions found in the defined module_dirs
         '''
-        funcs = {}
+        funcs = OrderedDict()
         error_funcs = {}
         if not hasattr(self, 'modules'):
             self.load_modules()
@@ -865,7 +874,7 @@ class Loader(object):
         self.modules = []
 
         log.trace('loading {0} in {1}'.format(self.tag, self.module_dirs))
-        names = {}
+        names = OrderedDict()
         disable = set(self.opts.get('disable_{0}s'.format(self.tag), []))
 
         cython_enabled = False
@@ -1012,6 +1021,13 @@ class Loader(object):
                         'Failed to import {0} {1}, this is due most likely to a '
                         'syntax error. The exception is {2}. Traceback raised:\n'.format(
                             self.tag, name, error
+                        ),
+                        exc_info=True
+                    )
+                except SystemExit as error:
+                    log.warning(
+                        'Failed to import {0} {1} as the module called exit()\n'.format(
+                            self.tag, name
                         ),
                         exc_info=True
                     )
@@ -1296,14 +1312,7 @@ class Loader(object):
         grains_data = {}
         funcs = self.gen_functions()
         for key, fun in funcs.items():
-            if not key.startswith('core.'):
-                continue
-            ret = fun()
-            if not isinstance(ret, dict):
-                continue
-            grains_data.update(ret)
-        for key, fun in funcs.items():
-            if key.startswith('core.') or key == '_errors':
+            if key == '_errors':
                 continue
             try:
                 ret = fun()
@@ -1318,7 +1327,10 @@ class Loader(object):
                 continue
             if not isinstance(ret, dict):
                 continue
-            grains_data.update(ret)
+            # The OrderedDict of funcs has core grains at the end. So earlier
+            # grains are the ones which should override
+            ret.update(grains_data)
+            grains_data = ret
         # Write cache if enabled
         if self.opts.get('grains_cache', False):
             cumask = os.umask(0o77)

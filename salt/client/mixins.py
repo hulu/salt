@@ -21,6 +21,19 @@ from salt.utils.doc import strip_rst as _strip_rst
 
 log = logging.getLogger(__name__)
 
+CLIENT_INTERNAL_KEYWORDS = frozenset([
+    'client',
+    'cmd',
+    'eauth',
+    'fun',
+    'kwarg',
+    'match',
+    'token',
+    '__jid__',
+    '__tag__',
+    '__user__'
+])
+
 
 class SyncClientMixin(object):
     '''
@@ -207,13 +220,13 @@ class SyncClientMixin(object):
             # if there are no kwargs in the low object passed in
             f_call = None
             if 'args' not in low:
-                f_call = salt.utils.format_call(self.functions[fun], low)
+                f_call = salt.utils.format_call(self.functions[fun], low, expected_extra_kws=CLIENT_INTERNAL_KEYWORDS)
                 args = f_call.get('args', ())
             else:
                 args = low['args']
             if 'kwargs' not in low:
                 if f_call is None:
-                    f_call = salt.utils.format_call(self.functions[fun], low)
+                    f_call = salt.utils.format_call(self.functions[fun], low, expected_extra_kws=CLIENT_INTERNAL_KEYWORDS)
                 kwargs = f_call.get('kwargs', {})
 
                 # throw a warning for the badly formed low data if we found
@@ -240,6 +253,12 @@ class SyncClientMixin(object):
         event.fire_event(data, tagify('ret', base=tag))
         # if we fired an event, make sure to delete the event object.
         # This will ensure that we call destroy, which will do the 0MQ linger
+        #
+        # The process ends and the zmq linger appears NOT to be respected. As
+        # a result, at time the del event kills the socket before the above
+        # fire_event can finish. There may be a better way to wait for the event
+        # to fire but for now we will insert a small delay.
+        time.sleep(0.25)
         del event
         return data['return']
 
@@ -271,7 +290,7 @@ class AsyncClientMixin(object):
         Run this method in a multiprocess target to execute the function in a
         multiprocess and fire the return data on the event bus
         '''
-        salt.utils.daemonize()
+        salt.utils.daemonize(redirect_out=False)
 
         # pack a few things into low
         low['__jid__'] = jid
@@ -338,7 +357,7 @@ class AsyncClientMixin(object):
 
     def get_async_returns(self, tag, timeout=None, event=None):
         '''
-        Yield all events from a given tag until "ret" is recieved or timeout is
+        Yield all events from a given tag until "ret" is received or timeout is
         reached.
         '''
         if timeout is None:
